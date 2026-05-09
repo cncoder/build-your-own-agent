@@ -6,6 +6,18 @@ export default defineConfig({
 
   base: '/build-your-own-agent/',
 
+  vite: {
+    build: {
+      rollupOptions: {
+        onwarn(warning, warn) {
+          if (warning.code === 'UNRESOLVED_IMPORT' || warning.message?.includes('Could not resolve')) return
+          warn(warning)
+        },
+        external: [/\.\/(diagrams|images|infographic)\/.*/]
+      }
+    }
+  },
+
   locales: {
     root: {
       label: '中文',
