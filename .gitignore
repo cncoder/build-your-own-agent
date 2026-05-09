@@ -81,9 +81,6 @@ site/.vitepress/dist/
 **/*.pem
 **/*.key
 
-# TEMP: split push - binary assets pushed separately
-*.mp3
-*.pptx
 
 # Internal TTS audit/quality files
 assets/tts/*.json

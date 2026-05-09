@@ -4,7 +4,7 @@ export default defineConfig({
   title: 'Build AI Agent from Scratch',
   description: 'Build a general-purpose AI Agent Runtime with Python — 26 chapters, fully runnable',
 
-  base: '/build-ai-agent/',
+  base: '/build-your-own-agent/',
 
   locales: {
     root: {
