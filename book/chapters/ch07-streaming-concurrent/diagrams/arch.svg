@@ -1,0 +1,157 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#050810"/>
+      <stop offset="100%" style="stop-color:#060d1a"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="rgba(0,200,255,0.6)"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="rgba(0,200,100,0.6)"/>
+    </marker>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,150,255,0.04)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <rect width="1200" height="800" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="600" y="48" fill="rgba(255,255,255,0.7)" font-family="'SF Pro Display', -apple-system, sans-serif" font-size="26" font-weight="700" text-anchor="middle">lena-v0.5 · SSE 流式 + 并发抢跑架构</text>
+  <text x="600" y="74" fill="rgba(0,200,255,0.5)" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle" letter-spacing="2">StreamingAgentLoop + ConcurrentToolExecutor</text>
+
+  <!-- USER -->
+  <rect x="40" y="120" width="140" height="60" rx="10" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="110" y="146" fill="white" font-family="'SF Pro Display', sans-serif" font-size="16" font-weight="600" text-anchor="middle">用户输入</text>
+  <text x="110" y="164" fill="rgba(255,255,255,0.35)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">5 个查询</text>
+
+  <!-- Arrow: user → loop -->
+  <line x1="180" y1="150" x2="240" y2="150" stroke="rgba(0,200,255,0.4)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- StreamingAgentLoop box -->
+  <rect x="240" y="100" width="220" height="280" rx="12" fill="rgba(0,200,255,0.04)" stroke="rgba(0,200,255,0.2)" stroke-width="1.5"/>
+  <text x="350" y="130" fill="rgba(0,200,255,0.7)" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle" letter-spacing="1">StreamingAgentLoop</text>
+
+  <!-- State: STREAMING -->
+  <rect x="260" y="145" width="180" height="44" rx="8" fill="rgba(100,100,255,0.1)" stroke="rgba(100,100,255,0.3)" stroke-width="1"/>
+  <text x="350" y="165" fill="#9090ff" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle">STREAMING</text>
+  <text x="350" y="182" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="10" text-anchor="middle">消费 SSE 流，打印文字</text>
+
+  <!-- State: addTool -->
+  <rect x="260" y="200" width="180" height="44" rx="8" fill="rgba(0,200,255,0.1)" stroke="rgba(0,200,255,0.3)" stroke-width="1"/>
+  <text x="350" y="220" fill="#00c8ff" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle">addTool()</text>
+  <text x="350" y="237" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="10" text-anchor="middle">tool_use 块到达即触发</text>
+
+  <!-- State: TOOL_WAIT -->
+  <rect x="260" y="255" width="180" height="44" rx="8" fill="rgba(0,200,100,0.08)" stroke="rgba(0,200,100,0.25)" stroke-width="1"/>
+  <text x="350" y="275" fill="#00c864" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle">TOOL_WAIT</text>
+  <text x="350" y="292" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="10" text-anchor="middle">等待并发工具全部完成</text>
+
+  <!-- State: NEXT_TURN -->
+  <rect x="260" y="310" width="180" height="44" rx="8" fill="rgba(255,200,0,0.06)" stroke="rgba(255,200,0,0.2)" stroke-width="1"/>
+  <text x="350" y="330" fill="rgba(255,200,0,0.8)" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle">NEXT_TURN</text>
+  <text x="350" y="347" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="10" text-anchor="middle">打包 tool_result 继续</text>
+
+  <!-- Arrow: loop → API -->
+  <line x1="460" y1="240" x2="540" y2="200" stroke="rgba(0,200,255,0.4)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="490" y="215" fill="rgba(0,200,255,0.4)" font-family="'SF Mono', monospace" font-size="11">stream()</text>
+
+  <!-- Anthropic API -->
+  <rect x="540" y="140" width="200" height="120" rx="12" fill="rgba(199,146,234,0.06)" stroke="rgba(199,146,234,0.3)" stroke-width="1.5"/>
+  <text x="640" y="170" fill="#c792ea" font-family="'SF Pro Display', sans-serif" font-size="16" font-weight="600" text-anchor="middle">Anthropic API</text>
+  <text x="640" y="192" fill="rgba(255,255,255,0.25)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">SSE stream_message()</text>
+  <text x="640" y="214" fill="rgba(199,146,234,0.5)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">content_block_delta</text>
+  <text x="640" y="232" fill="rgba(199,146,234,0.5)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">signature_delta 🔑</text>
+  <text x="640" y="250" fill="rgba(199,146,234,0.5)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">message_stop</text>
+
+  <!-- Arrow: API → loop (SSE events) -->
+  <line x1="540" y1="220" x2="460" y2="260" stroke="rgba(199,146,234,0.4)" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="480" y="248" fill="rgba(199,146,234,0.4)" font-family="'SF Mono', monospace" font-size="10">events</text>
+
+  <!-- ConcurrentToolExecutor -->
+  <rect x="540" y="310" width="200" height="160" rx="12" fill="rgba(0,200,255,0.04)" stroke="rgba(0,200,255,0.2)" stroke-width="1.5"/>
+  <text x="640" y="338" fill="rgba(0,200,255,0.6)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">ConcurrentToolExecutor</text>
+  <rect x="560" y="348" width="160" height="36" rx="6" fill="rgba(0,200,255,0.08)" stroke="rgba(0,200,255,0.2)" stroke-width="1"/>
+  <text x="640" y="372" fill="rgba(0,200,255,0.7)" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle">Semaphore(10)</text>
+  <text x="640" y="406" fill="rgba(255,255,255,0.3)" font-family="'SF Pro Display', sans-serif" font-size="12" text-anchor="middle">pending: dict[id, Task]</text>
+  <text x="640" y="424" fill="rgba(255,255,255,0.3)" font-family="'SF Pro Display', sans-serif" font-size="12" text-anchor="middle">results: dict[id, Any]</text>
+  <text x="640" y="454" fill="rgba(0,200,100,0.5)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">wait_all() → tool_results</text>
+
+  <!-- Arrow: loop → executor -->
+  <line x1="440" y1="320" x2="540" y2="360" stroke="rgba(0,200,255,0.4)" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="455" y="340" fill="rgba(0,200,255,0.4)" font-family="'SF Mono', monospace" font-size="10">add_tool()</text>
+
+  <!-- Tools -->
+  <rect x="800" y="140" width="360" height="440" rx="12" fill="rgba(0,200,100,0.03)" stroke="rgba(0,200,100,0.15)" stroke-width="1"/>
+  <text x="980" y="170" fill="rgba(0,200,100,0.5)" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle" letter-spacing="1">ToolRegistry · 工具并发执行</text>
+
+  <!-- Individual tools -->
+  <rect x="820" y="185" width="320" height="50" rx="8" fill="rgba(0,200,255,0.1)" stroke="rgba(0,200,255,0.3)" stroke-width="1"/>
+  <text x="980" y="210" fill="#00c8ff" font-family="'SF Mono', monospace" font-size="13" text-anchor="middle">web_search("天气")</text>
+  <text x="980" y="228" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">async, 0.5~2.5s delay</text>
+
+  <rect x="820" y="247" width="320" height="50" rx="8" fill="rgba(0,200,150,0.08)" stroke="rgba(0,200,150,0.25)" stroke-width="1"/>
+  <text x="980" y="272" fill="#00c896" font-family="'SF Mono', monospace" font-size="13" text-anchor="middle">web_search("AI 新闻")</text>
+  <text x="980" y="290" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">同时运行</text>
+
+  <rect x="820" y="309" width="320" height="50" rx="8" fill="rgba(0,200,80,0.08)" stroke="rgba(0,200,80,0.25)" stroke-width="1"/>
+  <text x="980" y="334" fill="#00c850" font-family="'SF Mono', monospace" font-size="13" text-anchor="middle">web_search("BTC 价格")</text>
+  <text x="980" y="352" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">同时运行</text>
+
+  <rect x="820" y="371" width="320" height="50" rx="8" fill="rgba(124,188,48,0.08)" stroke="rgba(124,188,48,0.2)" stroke-width="1"/>
+  <text x="980" y="396" fill="#7cbc30" font-family="'SF Mono', monospace" font-size="13" text-anchor="middle">web_search("航班")</text>
+  <text x="980" y="414" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">同时运行</text>
+
+  <rect x="820" y="433" width="320" height="50" rx="8" fill="rgba(188,160,0,0.08)" stroke="rgba(188,160,0,0.2)" stroke-width="1"/>
+  <text x="980" y="458" fill="#bca000" font-family="'SF Mono', monospace" font-size="13" text-anchor="middle">web_search("Python 3.13")</text>
+  <text x="980" y="476" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">同时运行</text>
+
+  <!-- Arrows executor → tools -->
+  <line x1="740" y1="370" x2="800" y2="210" stroke="rgba(0,200,255,0.25)" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <line x1="740" y1="380" x2="800" y2="272" stroke="rgba(0,200,255,0.2)" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <line x1="740" y1="390" x2="800" y2="334" stroke="rgba(0,200,255,0.18)" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <line x1="740" y1="400" x2="800" y2="396" stroke="rgba(0,200,255,0.15)" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <line x1="740" y1="410" x2="800" y2="458" stroke="rgba(0,200,255,0.12)" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+  <!-- Result: tool_results → loop -->
+  <rect x="800" y="510" width="360" height="50" rx="8" fill="rgba(0,200,100,0.08)" stroke="rgba(0,200,100,0.3)" stroke-width="1"/>
+  <text x="980" y="535" fill="#00c864" font-family="'SF Mono', monospace" font-size="13" text-anchor="middle">tool_results: dict[id, result]</text>
+  <text x="980" y="553" fill="rgba(255,255,255,0.3)" font-family="'SF Mono', monospace" font-size="11" text-anchor="middle">asyncio.gather(*pending.values())</text>
+  <line x1="740" y1="470" x2="800" y2="530" stroke="rgba(0,200,100,0.4)" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+  <!-- Back to loop -->
+  <line x1="800" y1="535" x2="460" y2="355" stroke="rgba(0,200,100,0.3)" stroke-width="1.5" stroke-dasharray="6 3" marker-end="url(#arrow-green)"/>
+  <text x="580" y="450" fill="rgba(0,200,100,0.4)" font-family="'SF Mono', monospace" font-size="10">wait_all() return</text>
+
+  <!-- Streaming output label -->
+  <rect x="40" y="430" width="170" height="60" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="125" y="458" fill="rgba(255,255,255,0.5)" font-family="'SF Pro Display', sans-serif" font-size="14" text-anchor="middle">流式文字输出</text>
+  <text x="125" y="478" fill="rgba(0,200,255,0.4)" font-family="'SF Mono', monospace" font-size="12" text-anchor="middle">print(text, flush=True)</text>
+  <line x1="240" y1="220" x2="210" y2="460" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+
+  <!-- Legend -->
+  <rect x="40" y="640" width="1120" height="120" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="80" y="668" fill="rgba(255,255,255,0.25)" font-family="'SF Pro Display', sans-serif" font-size="13" letter-spacing="2">关键路径</text>
+  <line x1="80" y1="690" x2="140" y2="690" stroke="rgba(0,200,255,0.5)" stroke-width="1.5"/>
+  <text x="150" y="695" fill="rgba(255,255,255,0.4)" font-family="'SF Pro Display', sans-serif" font-size="13">SSE 事件流</text>
+  <line x1="80" y1="720" x2="140" y2="720" stroke="rgba(0,200,100,0.5)" stroke-width="1.5"/>
+  <text x="150" y="725" fill="rgba(255,255,255,0.4)" font-family="'SF Pro Display', sans-serif" font-size="13">工具结果回传</text>
+  <line x1="80" y1="750" x2="140" y2="750" stroke="rgba(0,200,255,0.4)" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="150" y="755" fill="rgba(255,255,255,0.4)" font-family="'SF Pro Display', sans-serif" font-size="13">并发触发（5 个同时）</text>
+
+  <text x="400" y="668" fill="rgba(255,255,255,0.25)" font-family="'SF Pro Display', sans-serif" font-size="13" letter-spacing="2">核心文件</text>
+  <text x="400" y="695" fill="rgba(199,146,234,0.6)" font-family="'SF Mono', monospace" font-size="12">StreamingToolExecutor.ts:40</text>
+  <text x="400" y="720" fill="rgba(0,200,255,0.6)" font-family="'SF Mono', monospace" font-size="12">query.ts:842  — addTool 调用点</text>
+  <text x="400" y="745" fill="rgba(0,200,100,0.6)" font-family="'SF Mono', monospace" font-size="12">toolOrchestration.ts:10  — MAX_CONCURRENCY=10</text>
+
+  <text x="800" y="668" fill="rgba(255,255,255,0.25)" font-family="'SF Pro Display', sans-serif" font-size="13" letter-spacing="2">nanoClaw 参考</text>
+  <text x="800" y="695" fill="rgba(199,146,234,0.6)" font-family="'SF Mono', monospace" font-size="12">llm.py:383  — signature_delta</text>
+  <text x="800" y="720" fill="rgba(77,184,255,0.6)" font-family="'SF Mono', monospace" font-size="12">llm.py:18-38  — 三家 cache token 统一</text>
+  <text x="800" y="745" fill="rgba(0,200,100,0.6)" font-family="'SF Mono', monospace" font-size="12">ConnectionPool(limit=20, keepalive=30s)</text>
+</svg>

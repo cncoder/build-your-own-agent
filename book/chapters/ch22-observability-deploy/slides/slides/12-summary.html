@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 12 本章小结</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scene {
+    width: 100%; height: 100%; position: relative;
+    display: flex; align-items: center;
+    padding: 60px 100px;
+    gap: 80px;
+  }
+  /* 背景微光 */
+  .glow {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px; height: 900px;
+    background: radial-gradient(circle, rgba(63,185,80,0.06) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* 左：标题区 */
+  .left {
+    flex-shrink: 0; width: 500px; position: relative; z-index: 10;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #3fb950; text-transform: uppercase; }
+  h1 { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1.1; }
+  h1 .v18 { color: #3fb950; }
+  .desc { font-size: 20px; color: #8b949e; line-height: 1.5; }
+  .desc strong { color: #e6edf3; }
+
+  /* 右：能力清单 */
+  .right {
+    flex: 1; position: relative; z-index: 10;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .cap {
+    background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.8);
+    border-radius: 10px; padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .cap-title { font-size: 15px; font-weight: 600; color: #e6edf3; }
+  .cap-impl { font-size: 13px; color: #8b949e; line-height: 1.4; }
+  .cap-impl code { font-family: 'SF Mono', monospace; color: #d2a8ff; font-size: 12px; }
+
+  /* 进度条 */
+  .progress {
+    position: absolute; bottom: 40px; left: 100px; right: 100px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .progress-label { font-size: 13px; color: #6e7681; white-space: nowrap; }
+  .progress-bar {
+    flex: 1; height: 4px; background: rgba(48,54,61,0.6); border-radius: 100px;
+  }
+  .progress-fill {
+    height: 100%; width: 90%; background: linear-gradient(90deg, #58a6ff, #3fb950);
+    border-radius: 100px;
+  }
+  .next-label { font-size: 13px; color: #3fb950; white-space: nowrap; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="glow"></div>
+
+  <div class="left">
+    <div class="tag">本章小结</div>
+    <h1>Lena <span class="v18">v1.8</span><br>生产就绪</h1>
+    <p class="desc">
+      从开发机上的脚本，到<strong>7×24 可观测、可控制</strong>的生产 Agent。
+    </p>
+  </div>
+
+  <div class="right">
+    <div class="cap">
+      <div class="cap-title">📋 结构化日志</div>
+      <div class="cap-impl">structlog + JSONRenderer<br>每条日志可 <code>jq</code> 查询，trace_id 关联</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">🔍 分布式追踪</div>
+      <div class="cap-impl">OpenTelemetry SDK<br>trace/span 树，接 Jaeger / AWS X-Ray</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">💰 Token 预算</div>
+      <div class="cap-impl">BudgetController 四状态机<br>80% 告警 · 90% 限速 · 100% 停止</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">🍎 macOS 持续运行</div>
+      <div class="cap-impl">launchd plist + ThrottleInterval<br>防重启风暴 · 随登录自启</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">🐧 Linux 持续运行</div>
+      <div class="cap-impl">systemd service + StartLimitBurst<br><code>systemctl reset-failed</code> 恢复</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">🐳 多服务部署</div>
+      <div class="cap-impl">Docker Compose (Lena+Redis+Jaeger)<br>healthcheck 依赖 · 一键启停</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">⚙️ 14 种 Hook 自动化</div>
+      <div class="cap-impl">PostToolUse lint · Stop 通知<br>PreToolUse 拦截 · child_process IPC</div>
+    </div>
+    <div class="cap">
+      <div class="cap-title">🚀 Fleet 批量部署</div>
+      <div class="cap-impl">privateclaw 7 步（LiteLLM Key→EC2→SSM）<br>独立 Watchdog + Telegram 告警</div>
+    </div>
+  </div>
+
+  <div class="progress">
+    <span class="progress-label">Ch 18 · 可观测性与部署</span>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <span class="next-label">→ Ch 19 · 从 Lena 派生专用 Agent</span>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · 完成</div>
+</body>
+</html>

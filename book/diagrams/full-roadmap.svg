@@ -1,0 +1,319 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 660" width="990" height="660" style="background:#050810;font-family:system-ui,sans-serif;">
+  <defs>
+    <!-- Part glow filters -->
+    <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Arrowhead markers -->
+    <marker id="arr-gold" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ffd700" opacity="0.75"/>
+    </marker>
+    <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00d4ff" opacity="0.75"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00ff88" opacity="0.75"/>
+    </marker>
+    <marker id="arr-rose" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff4d6d" opacity="0.75"/>
+    </marker>
+    <marker id="arr-sky" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4d9fff" opacity="0.75"/>
+    </marker>
+    <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ffaa00" opacity="0.75"/>
+    </marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#b084ff" opacity="0.75"/>
+    </marker>
+
+    <!-- Subtle grid -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0L0 0 0 40" fill="none" stroke="rgba(0,212,255,0.04)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="990" height="660" fill="#050810"/>
+  <rect width="990" height="660" fill="url(#grid)"/>
+  <!-- Top glow -->
+  <ellipse cx="495" cy="-30" rx="400" ry="120" fill="rgba(0,212,255,0.06)"/>
+
+  <!-- ====== Part Banner Backgrounds ====== -->
+  <!-- Ch0 banner -->
+  <rect x="421" y="22" width="148" height="22" rx="4" fill="rgba(255,215,0,0.10)" stroke="#ffd700" stroke-width="0.8" opacity="0.5"/>
+  <text x="495" y="37" text-anchor="middle" fill="#ffd700" font-size="10" font-weight="700" letter-spacing="0.08em">序章</text>
+
+  <!-- Part 1 banner -->
+  <rect x="167" y="82" width="656" height="22" rx="4" fill="rgba(0,212,255,0.08)" stroke="#00d4ff" stroke-width="0.8" opacity="0.4"/>
+  <text x="495" y="97" text-anchor="middle" fill="#00d4ff" font-size="10" font-weight="700" letter-spacing="0.08em">Part 1 · 地基</text>
+
+  <!-- Part 2 banner -->
+  <rect x="37" y="152" width="916" height="22" rx="4" fill="rgba(0,255,136,0.07)" stroke="#00ff88" stroke-width="0.8" opacity="0.4"/>
+  <text x="495" y="167" text-anchor="middle" fill="#00ff88" font-size="10" font-weight="700" letter-spacing="0.08em">Part 2 · 核心能力</text>
+
+  <!-- Part 3 banner -->
+  <rect x="231" y="232" width="528" height="22" rx="4" fill="rgba(255,77,109,0.08)" stroke="#ff4d6d" stroke-width="0.8" opacity="0.4"/>
+  <text x="495" y="247" text-anchor="middle" fill="#ff4d6d" font-size="10" font-weight="700" letter-spacing="0.08em">Part 3 · 安全</text>
+
+  <!-- Part 4 banner -->
+  <rect x="102" y="312" width="786" height="22" rx="4" fill="rgba(77,159,255,0.07)" stroke="#4d9fff" stroke-width="0.8" opacity="0.4"/>
+  <text x="495" y="327" text-anchor="middle" fill="#4d9fff" font-size="10" font-weight="700" letter-spacing="0.08em">Part 4 · 通信</text>
+
+  <!-- Part 5 banner -->
+  <rect x="231" y="392" width="528" height="22" rx="4" fill="rgba(255,170,0,0.07)" stroke="#ffaa00" stroke-width="0.8" opacity="0.4"/>
+  <text x="495" y="407" text-anchor="middle" fill="#ffaa00" font-size="10" font-weight="700" letter-spacing="0.08em">Part 5 · 生产化</text>
+
+  <!-- Part 6 banner -->
+  <rect x="231" y="472" width="528" height="22" rx="4" fill="rgba(176,132,255,0.07)" stroke="#b084ff" stroke-width="0.8" opacity="0.4"/>
+  <text x="495" y="487" text-anchor="middle" fill="#b084ff" font-size="10" font-weight="700" letter-spacing="0.08em">Part 6 · 高级</text>
+
+  <!-- ====== Connection lines ====== -->
+  <!-- Ch0 → Ch1 (gold→cyan, elbow) -->
+  <path d="M495,69 C495,88 225,88 225,109" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.45" marker-end="url(#arr-cyan)"/>
+  <!-- Part1 row: Ch1→Ch2→Ch3→Ch4→Ch5 -->
+  <path d="M281,130 L335,130" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-cyan)"/>
+  <path d="M391,130 L445,130" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-cyan)"/>
+  <path d="M501,130 L555,130" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-cyan)"/>
+  <path d="M611,130 L665,130" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-cyan)"/>
+  <!-- Ch5 → Ch6 (elbow down) -->
+  <path d="M711,151 C711,178 895,178 895,198" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.45" marker-end="url(#arr-green)"/>
+  <!-- Part2 row right→left: Ch6(895)→Ch7(765)→Ch8(635)→Ch9(505)→Ch10(375)→Ch11(245)→Ch12(115) -->
+  <path d="M839,219 L811,219" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-green)"/>
+  <path d="M765,219 L711,219" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-green)"/>
+  <path d="M635,219 L581,219" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-green)"/>
+  <path d="M505,219 L451,219" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-green)"/>
+  <path d="M375,219 L321,219" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.55" marker-end="url(#arr-green)"/>
+  <path d="M245,219 L191,219" fill="none" stroke="#00ff88" stroke-width="1.5" opacity="0.35" marker-end="url(#arr-green)"/>
+  <!-- Ch12 → Ch13 (elbow) -->
+  <path d="M141,240 C141,265 335,265 335,285" fill="none" stroke="#ff4d6d" stroke-width="1.5" opacity="0.35" marker-end="url(#arr-rose)"/>
+  <!-- Part3: Ch13→Ch14 -->
+  <path d="M391,306 L445,306" fill="none" stroke="#ff4d6d" stroke-width="1.5" opacity="0.35" marker-end="url(#arr-rose)"/>
+  <!-- Ch14 → Ch15 (elbow) -->
+  <path d="M501,327 C501,352 765,352 765,372" fill="none" stroke="#4d9fff" stroke-width="1.5" opacity="0.3" marker-end="url(#arr-sky)"/>
+  <!-- Part4 right→left: Ch15(765)→Ch16(635)→Ch17(505)→Ch18(375)→Ch19(245) -->
+  <path d="M709,393 L681,393" fill="none" stroke="#4d9fff" stroke-width="1.5" opacity="0.3" marker-end="url(#arr-sky)"/>
+  <path d="M635,393 L581,393" fill="none" stroke="#4d9fff" stroke-width="1.5" opacity="0.3" marker-end="url(#arr-sky)"/>
+  <path d="M505,393 L451,393" fill="none" stroke="#4d9fff" stroke-width="1.5" opacity="0.3" marker-end="url(#arr-sky)"/>
+  <path d="M375,393 L321,393" fill="none" stroke="#4d9fff" stroke-width="1.5" opacity="0.3" marker-end="url(#arr-sky)"/>
+  <!-- Ch19 → Ch20 (elbow) -->
+  <path d="M271,414 C271,438 335,438 335,458" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.28" marker-end="url(#arr-amber)"/>
+  <!-- Part5: Ch20→Ch21→Ch22 -->
+  <path d="M391,479 L445,479" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.28" marker-end="url(#arr-amber)"/>
+  <path d="M501,479 L555,479" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.28" marker-end="url(#arr-amber)"/>
+  <!-- Ch22 → Ch23 (elbow) -->
+  <path d="M601,500 C601,524 765,524 765,544" fill="none" stroke="#b084ff" stroke-width="1.5" opacity="0.25" marker-end="url(#arr-purple)"/>
+  <!-- Part6 right→left: Ch23(765)→Ch24(635)→Ch25(505) -->
+  <path d="M709,565 L681,565" fill="none" stroke="#b084ff" stroke-width="1.5" opacity="0.25" marker-end="url(#arr-purple)"/>
+  <path d="M635,565 L581,565" fill="none" stroke="#b084ff" stroke-width="1.5" opacity="0.25" marker-end="url(#arr-purple)"/>
+
+  <!-- ====== Nodes ====== -->
+  <!-- Helper macro — each node: outer rect (done=bright/undone=dim), badge, name, lena -->
+
+  <!-- Ch0 — gold, special -->
+  <rect x="417" y="34" width="156" height="46" rx="16" fill="none" stroke="#ffd700" stroke-width="0.8" opacity="0.4" stroke-dasharray="4 3"/>
+  <rect x="421" y="38" width="148" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#ffd700" stroke-width="2"/>
+  <rect x="421" y="38" width="148" height="42" rx="12" fill="rgba(255,215,0,0.10)"/>
+  <rect x="427" y="43" width="26" height="14" rx="4" fill="rgba(255,215,0,0.2)"/>
+  <text x="440" y="53" text-anchor="middle" fill="#ffd700" font-size="9" font-weight="700" font-family="monospace">Ch0</text>
+  <text x="495" y="63" text-anchor="middle" fill="white" font-size="12" font-weight="500">聪明度地图</text>
+  <text x="563" y="75" text-anchor="end" fill="#ffd700" font-size="11">★</text>
+
+  <!-- Part 1 nodes (row y=109..151, centers: 225,335,445,555,665,711=row right end) -->
+  <!-- Ch1 x=225 -->
+  <rect x="171" y="109" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00d4ff" stroke-width="1.2"/>
+  <rect x="171" y="109" width="108" height="42" rx="12" fill="rgba(0,212,255,0.08)"/>
+  <rect x="177" y="114" width="26" height="14" rx="4" fill="rgba(0,212,255,0.2)"/>
+  <text x="190" y="124" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700" font-family="monospace">Ch1</text>
+  <text x="225" y="134" text-anchor="middle" fill="white" font-size="12" font-weight="500">你好 Agent</text>
+  <text x="273" y="145" text-anchor="end" fill="#00d4ff" font-size="8" font-family="monospace" opacity="0.7">v0.1</text>
+
+  <!-- Ch2 x=335 -->
+  <rect x="281" y="109" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00d4ff" stroke-width="1.2"/>
+  <rect x="281" y="109" width="108" height="42" rx="12" fill="rgba(0,212,255,0.08)"/>
+  <rect x="287" y="114" width="26" height="14" rx="4" fill="rgba(0,212,255,0.2)"/>
+  <text x="300" y="124" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700" font-family="monospace">Ch2</text>
+  <text x="335" y="134" text-anchor="middle" fill="white" font-size="12" font-weight="500">ReAct 循环</text>
+  <text x="383" y="145" text-anchor="end" fill="#00d4ff" font-size="8" font-family="monospace" opacity="0.7">v0.2</text>
+
+  <!-- Ch3 x=445 -->
+  <rect x="391" y="109" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00d4ff" stroke-width="1.2"/>
+  <rect x="391" y="109" width="108" height="42" rx="12" fill="rgba(0,212,255,0.08)"/>
+  <rect x="397" y="114" width="26" height="14" rx="4" fill="rgba(0,212,255,0.2)"/>
+  <text x="410" y="124" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700" font-family="monospace">Ch3</text>
+  <text x="445" y="134" text-anchor="middle" fill="white" font-size="12" font-weight="500">Lena 诞生</text>
+  <text x="493" y="145" text-anchor="end" fill="#00d4ff" font-size="8" font-family="monospace" opacity="0.7">v0.3</text>
+
+  <!-- Ch4 x=555 -->
+  <rect x="501" y="109" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00d4ff" stroke-width="1.2"/>
+  <rect x="501" y="109" width="108" height="42" rx="12" fill="rgba(0,212,255,0.08)"/>
+  <rect x="507" y="114" width="26" height="14" rx="4" fill="rgba(0,212,255,0.2)"/>
+  <text x="520" y="124" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700" font-family="monospace">Ch4</text>
+  <text x="555" y="134" text-anchor="middle" fill="white" font-size="12" font-weight="500">LLM 速查</text>
+
+  <!-- Ch5 x=665 -->
+  <rect x="611" y="109" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00d4ff" stroke-width="1.2"/>
+  <rect x="611" y="109" width="108" height="42" rx="12" fill="rgba(0,212,255,0.08)"/>
+  <rect x="617" y="114" width="26" height="14" rx="4" fill="rgba(0,212,255,0.2)"/>
+  <text x="630" y="124" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700" font-family="monospace">Ch5</text>
+  <text x="665" y="134" text-anchor="middle" fill="white" font-size="12" font-weight="500">技术选型</text>
+
+  <!-- Part 2 nodes right→left: Ch6(895) Ch7(765) Ch8(635) Ch9(505) Ch10(375) Ch11(245) Ch12(115) -->
+  <!-- Ch6 x=895 -->
+  <rect x="841" y="198" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00ff88" stroke-width="1.2"/>
+  <rect x="841" y="198" width="108" height="42" rx="12" fill="rgba(0,255,136,0.07)"/>
+  <rect x="847" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.2)"/>
+  <text x="860" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace">Ch6</text>
+  <text x="895" y="223" text-anchor="middle" fill="white" font-size="12" font-weight="500">工具系统</text>
+  <text x="943" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.7">v0.4</text>
+
+  <!-- Ch7 x=765 -->
+  <rect x="711" y="198" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00ff88" stroke-width="1.2"/>
+  <rect x="711" y="198" width="108" height="42" rx="12" fill="rgba(0,255,136,0.07)"/>
+  <rect x="717" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.2)"/>
+  <text x="730" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace">Ch7</text>
+  <text x="765" y="223" text-anchor="middle" fill="white" font-size="12" font-weight="500">流式并发</text>
+  <text x="813" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.7">v0.5</text>
+
+  <!-- Ch8 x=635 -->
+  <rect x="581" y="198" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00ff88" stroke-width="1.2"/>
+  <rect x="581" y="198" width="108" height="42" rx="12" fill="rgba(0,255,136,0.07)"/>
+  <rect x="587" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.2)"/>
+  <text x="600" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace">Ch8</text>
+  <text x="635" y="223" text-anchor="middle" fill="white" font-size="12" font-weight="500">记忆</text>
+  <text x="683" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.7">v0.6</text>
+
+  <!-- Ch9 x=505 -->
+  <rect x="451" y="198" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00ff88" stroke-width="1.2"/>
+  <rect x="451" y="198" width="108" height="42" rx="12" fill="rgba(0,255,136,0.07)"/>
+  <rect x="457" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.2)"/>
+  <text x="470" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace">Ch9</text>
+  <text x="505" y="223" text-anchor="middle" fill="white" font-size="12" font-weight="500">RAG</text>
+  <text x="553" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.7">v0.7</text>
+
+  <!-- Ch10 x=375 -->
+  <rect x="321" y="198" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00ff88" stroke-width="1.2"/>
+  <rect x="321" y="198" width="108" height="42" rx="12" fill="rgba(0,255,136,0.07)"/>
+  <rect x="327" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.2)"/>
+  <text x="340" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace">Ch10</text>
+  <text x="375" y="223" text-anchor="middle" fill="white" font-size="11.5" font-weight="500">Context Eng.</text>
+  <text x="423" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.7">v0.8</text>
+
+  <!-- Ch11 x=245 -->
+  <rect x="191" y="198" width="108" height="42" rx="12" fill="rgba(12,18,32,0.95)" stroke="#00ff88" stroke-width="1.2"/>
+  <rect x="191" y="198" width="108" height="42" rx="12" fill="rgba(0,255,136,0.07)"/>
+  <rect x="197" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.2)"/>
+  <text x="210" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace">Ch11</text>
+  <text x="245" y="223" text-anchor="middle" fill="white" font-size="11" font-weight="500">规划与子代理</text>
+  <text x="293" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.7">v0.9</text>
+
+  <!-- Ch12 x=115 (not done, dimmed) -->
+  <rect x="61" y="198" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#00ff88" stroke-width="1.2" opacity="0.55"/>
+  <rect x="67" y="203" width="26" height="14" rx="4" fill="rgba(0,255,136,0.15)"/>
+  <text x="80" y="213" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch12</text>
+  <text x="115" y="223" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.5">Skills</text>
+  <text x="163" y="234" text-anchor="end" fill="#00ff88" font-size="8" font-family="monospace" opacity="0.5">v0.10</text>
+
+  <!-- Part 3 nodes: Ch13(335) Ch14(505) -->
+  <rect x="281" y="285" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#ff4d6d" stroke-width="1.2" opacity="0.55"/>
+  <rect x="287" y="290" width="26" height="14" rx="4" fill="rgba(255,77,109,0.15)"/>
+  <text x="300" y="300" text-anchor="middle" fill="#ff4d6d" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch13</text>
+  <text x="335" y="310" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.5">输入安全</text>
+
+  <rect x="451" y="285" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#ff4d6d" stroke-width="1.2" opacity="0.55"/>
+  <rect x="457" y="290" width="26" height="14" rx="4" fill="rgba(255,77,109,0.15)"/>
+  <text x="470" y="300" text-anchor="middle" fill="#ff4d6d" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch14</text>
+  <text x="505" y="310" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.5">执行安全</text>
+
+  <!-- Part 4 right→left: Ch15(765) Ch16(635) Ch17(505) Ch18(375) Ch19(245) -->
+  <rect x="711" y="372" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#4d9fff" stroke-width="1.2" opacity="0.5"/>
+  <rect x="717" y="377" width="26" height="14" rx="4" fill="rgba(77,159,255,0.15)"/>
+  <text x="730" y="387" text-anchor="middle" fill="#4d9fff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch15</text>
+  <text x="765" y="397" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.45">Channel</text>
+
+  <rect x="581" y="372" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#4d9fff" stroke-width="1.2" opacity="0.5"/>
+  <rect x="587" y="377" width="26" height="14" rx="4" fill="rgba(77,159,255,0.15)"/>
+  <text x="600" y="387" text-anchor="middle" fill="#4d9fff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch16</text>
+  <text x="635" y="397" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.45">MessageBus</text>
+
+  <rect x="451" y="372" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#4d9fff" stroke-width="1.2" opacity="0.5"/>
+  <rect x="457" y="377" width="26" height="14" rx="4" fill="rgba(77,159,255,0.15)"/>
+  <text x="470" y="387" text-anchor="middle" fill="#4d9fff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch17</text>
+  <text x="505" y="397" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.45">Heartbeat</text>
+
+  <rect x="321" y="372" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#4d9fff" stroke-width="1.2" opacity="0.5"/>
+  <rect x="327" y="377" width="26" height="14" rx="4" fill="rgba(77,159,255,0.15)"/>
+  <text x="340" y="387" text-anchor="middle" fill="#4d9fff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch18</text>
+  <text x="375" y="397" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.45">Cron</text>
+
+  <rect x="191" y="372" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#4d9fff" stroke-width="1.2" opacity="0.5"/>
+  <rect x="197" y="377" width="26" height="14" rx="4" fill="rgba(77,159,255,0.15)"/>
+  <text x="210" y="387" text-anchor="middle" fill="#4d9fff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch19</text>
+  <text x="245" y="397" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.45">MCP 协议</text>
+
+  <!-- Part 5: Ch20(335) Ch21(445→505) Ch22(615) — left→right -->
+  <rect x="281" y="458" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#ffaa00" stroke-width="1.2" opacity="0.48"/>
+  <rect x="287" y="463" width="26" height="14" rx="4" fill="rgba(255,170,0,0.15)"/>
+  <text x="300" y="473" text-anchor="middle" fill="#ffaa00" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch20</text>
+  <text x="335" y="483" text-anchor="middle" fill="white" font-size="11" font-weight="500" opacity="0.42">Docker Sandbox</text>
+
+  <rect x="451" y="458" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#ffaa00" stroke-width="1.2" opacity="0.48"/>
+  <rect x="457" y="463" width="26" height="14" rx="4" fill="rgba(255,170,0,0.15)"/>
+  <text x="470" y="473" text-anchor="middle" fill="#ffaa00" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch21</text>
+  <text x="505" y="483" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.42">Evals</text>
+
+  <rect x="551" y="458" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#ffaa00" stroke-width="1.2" opacity="0.48"/>
+  <rect x="557" y="463" width="26" height="14" rx="4" fill="rgba(255,170,0,0.15)"/>
+  <text x="570" y="473" text-anchor="middle" fill="#ffaa00" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch22</text>
+  <text x="605" y="483" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.42">可观测性</text>
+
+  <!-- Part 6 right→left: Ch23(765) Ch24(635) Ch25(505) special -->
+  <rect x="711" y="544" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#b084ff" stroke-width="1.2" opacity="0.45"/>
+  <rect x="717" y="549" width="26" height="14" rx="4" fill="rgba(176,132,255,0.15)"/>
+  <text x="730" y="559" text-anchor="middle" fill="#b084ff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch23</text>
+  <text x="765" y="569" text-anchor="middle" fill="white" font-size="12" font-weight="500" opacity="0.4">专用化</text>
+  <text x="813" y="580" text-anchor="end" fill="#b084ff" font-size="8" font-family="monospace" opacity="0.5">v1.0-α</text>
+
+  <rect x="581" y="544" width="108" height="42" rx="12" fill="rgba(8,13,24,0.7)" stroke="#b084ff" stroke-width="1.2" opacity="0.45"/>
+  <rect x="587" y="549" width="26" height="14" rx="4" fill="rgba(176,132,255,0.15)"/>
+  <text x="600" y="559" text-anchor="middle" fill="#b084ff" font-size="9" font-weight="700" font-family="monospace" opacity="0.6">Ch24</text>
+  <text x="635" y="569" text-anchor="middle" fill="white" font-size="11.5" font-weight="500" opacity="0.4">Browser Agent</text>
+  <text x="683" y="580" text-anchor="end" fill="#b084ff" font-size="8" font-family="monospace" opacity="0.5">v1.0-β</text>
+
+  <!-- Ch25 special finish -->
+  <rect x="447" y="540" width="116" height="50" rx="16" fill="none" stroke="#b084ff" stroke-width="0.8" opacity="0.4" stroke-dasharray="4 3"/>
+  <rect x="451" y="544" width="108" height="42" rx="12" fill="rgba(12,18,32,0.9)" stroke="#b084ff" stroke-width="2" opacity="0.45"/>
+  <rect x="451" y="544" width="108" height="42" rx="12" fill="rgba(176,132,255,0.08)"/>
+  <rect x="457" y="549" width="26" height="14" rx="4" fill="rgba(176,132,255,0.2)"/>
+  <text x="470" y="559" text-anchor="middle" fill="#b084ff" font-size="9" font-weight="700" font-family="monospace">Ch25</text>
+  <text x="505" y="569" text-anchor="middle" fill="white" font-size="11" font-weight="500" opacity="0.4">从通用到专用</text>
+  <text x="553" y="579" text-anchor="end" fill="#b084ff" font-size="8" font-family="monospace" opacity="0.5">v1.0</text>
+  <text x="553" y="556" text-anchor="end" font-size="11">🏆</text>
+
+  <!-- Legend -->
+  <rect x="30" y="610" width="930" height="40" rx="8" fill="rgba(12,18,32,0.6)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <circle cx="58" cy="630" r="5" fill="#00d4ff"/>
+  <text x="68" y="634" fill="#94a3b8" font-size="10">Part1 地基</text>
+  <circle cx="138" cy="630" r="5" fill="#00ff88"/>
+  <text x="148" y="634" fill="#94a3b8" font-size="10">Part2 核心</text>
+  <circle cx="218" cy="630" r="5" fill="#ff4d6d"/>
+  <text x="228" y="634" fill="#94a3b8" font-size="10">Part3 安全</text>
+  <circle cx="298" cy="630" r="5" fill="#4d9fff"/>
+  <text x="308" y="634" fill="#94a3b8" font-size="10">Part4 通信</text>
+  <circle cx="378" cy="630" r="5" fill="#ffaa00"/>
+  <text x="388" y="634" fill="#94a3b8" font-size="10">Part5 生产化</text>
+  <circle cx="458" cy="630" r="5" fill="#b084ff"/>
+  <text x="468" y="634" fill="#94a3b8" font-size="10">Part6 高级</text>
+  <!-- brightness legend -->
+  <rect x="570" y="622" width="40" height="16" rx="4" fill="rgba(12,18,32,0.95)" stroke="#94a3b8" stroke-width="1"/>
+  <text x="560" y="638" fill="#94a3b8" font-size="10" text-anchor="end">✓</text>
+  <text x="614" y="634" fill="#94a3b8" font-size="10">已完成</text>
+  <rect x="680" y="622" width="40" height="16" rx="4" fill="rgba(8,13,24,0.7)" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
+  <text x="724" y="634" fill="#94a3b8" font-size="10" opacity="0.7">未完成</text>
+</svg>

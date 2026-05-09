@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Lena Agent - launchd 配置（macOS）
+  安装：cp ai.lena.agent.plist ~/Library/LaunchAgents/
+         launchctl load ~/Library/LaunchAgents/ai.lena.agent.plist
+  修改后必须 unload/load（SIGUSR1 不刷新环境变量）
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.lena.agent</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/lena/.venv/bin/python</string>
+        <string>-u</string>
+        <string>-m</string>
+        <string>src.main</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/opt/lena</string>
+
+    <!-- 随用户登录自动启动 -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- 进程退出后自动重启 -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <!--
+      ThrottleInterval（秒）：两次重启之间的最小间隔。
+      不加这个：进程崩溃 → launchd 立即重启 → 再次崩溃 → 60s 内超 5 次 →
+               进程被永久停止，没有任何告警，你下午才发现 Lena 已经挂了 5 小时。
+      加了 30s：给你时间修复代码、查日志，launchd 也不会触发过快重启限制。
+    -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>AWS_REGION</key>
+        <string>us-west-2</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+        <key>LOG_LEVEL</key>
+        <string>INFO</string>
+        <key>LOG_FORMAT</key>
+        <string>json</string>
+        <!-- DISCORD_WEBHOOK_URL 和 AWS credentials 放在 .env 文件里，不进 plist -->
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/lena/agent.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/lena/agent-err.log</string>
+</dict>
+</plist>

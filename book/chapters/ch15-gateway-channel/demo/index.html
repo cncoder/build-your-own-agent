@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 11 Demo · Lena Gateway 多 Channel 流量拓扑</title>
+<style>
+:root{
+  --bg:#060612;--surface:#0c0c1f;
+  --purple:#a855f7;--cyan:#22d3ee;--green:#4ade80;
+  --orange:#fb923c;--yellow:#fbbf24;--pink:#f472b6;
+  --text:#f1f5f9;--dim:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);
+  font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  min-height:100vh;display:flex;flex-direction:column}
+/* Header */
+.header{
+  padding:24px 40px;border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.header-title{font-size:20px;font-weight:700;color:var(--text)}
+.header-sub{font-size:13px;color:var(--dim)}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);
+  border-radius:999px;padding:6px 16px;font-size:13px;color:var(--purple);
+}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Main layout */
+.main{flex:1;display:flex;gap:0}
+.canvas-area{flex:1;position:relative;overflow:hidden}
+.sidebar{
+  width:360px;border-left:1px solid rgba(255,255,255,.06);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* Canvas */
+canvas{display:block}
+
+/* Gateway node */
+.gw-node{
+  position:absolute;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(168,85,247,.2) 0%,rgba(168,85,247,.05) 70%);
+  border:2px solid rgba(168,85,247,.4);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:default;box-shadow:0 0 40px rgba(168,85,247,.15);
+  transition:box-shadow .3s;
+}
+.gw-node:hover{box-shadow:0 0 60px rgba(168,85,247,.3)}
+.gw-label{font-size:15px;font-weight:700;color:var(--purple)}
+.gw-sub{font-size:12px;color:var(--dim);margin-top:4px}
+.gw-stat{font-size:22px;font-weight:800;color:var(--text);margin-top:8px}
+
+/* Channel nodes */
+.ch-node{
+  position:absolute;width:120px;height:80px;
+  border-radius:14px;padding:14px;
+  background:rgba(255,255,255,.04);border:1.5px solid;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .2s,box-shadow .2s;
+  gap:6px;
+}
+.ch-node:hover{transform:scale(1.06)}
+.ch-node.selected{box-shadow:0 0 20px var(--ch-color,var(--cyan))}
+.ch-name{font-size:13px;font-weight:600}
+.ch-status{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:4px}
+.dot{width:6px;height:6px;border-radius:50%}
+.dot.connected{background:var(--green)}
+.dot.disconnected{background:#ef4444}
+.dot.reconnecting{background:var(--yellow);animation:blink 0.8s infinite}
+
+/* Sidebar */
+.sidebar-header{
+  padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);
+  font-size:15px;font-weight:600;
+}
+.sidebar-content{flex:1;overflow-y:auto;padding:20px 24px}
+.config-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:16px;margin-bottom:16px;
+}
+.config-title{font-size:13px;color:var(--dim);margin-bottom:10px}
+.config-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.config-key{font-size:13px;color:var(--text)}
+.config-val{font-size:13px;color:var(--cyan);font-family:monospace}
+.msg-item{
+  padding:10px 14px;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  margin-bottom:8px;
+}
+.msg-sender{font-size:12px;color:var(--dim);margin-bottom:4px}
+.msg-text{font-size:13px;color:var(--text)}
+.msg-reply{font-size:13px;color:var(--cyan);margin-top:4px}
+.empty{font-size:13px;color:var(--dim);text-align:center;margin-top:40px}
+
+/* Status bar */
+.status-bar{
+  padding:12px 40px;border-top:1px solid rgba(255,255,255,.06);
+  display:flex;gap:40px;background:rgba(0,0,0,.3);
+}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-label{font-size:11px;color:var(--dim)}
+.stat-val{font-size:16px;font-weight:700;color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Ch 11 · Lena Gateway — 多 Channel 流量拓扑图</div>
+    <div class="header-sub">点击 Channel 节点查看配置和消息记录</div>
+  </div>
+  <div class="badge">
+    <span class="badge-dot"></span>
+    Gateway 运行中
+  </div>
+</div>
+
+<div class="main">
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="canvas"></canvas>
+    <!-- Gateway node (center) -->
+    <div class="gw-node" id="gwNode">
+      <div class="gw-label">Lena Gateway</div>
+      <div class="gw-sub">AgentLoop 永远运行</div>
+      <div class="gw-stat" id="totalMsgs">0</div>
+      <div style="font-size:11px;color:var(--dim)">total messages</div>
+    </div>
+
+    <!-- Channel nodes -->
+    <div class="ch-node" id="ch-telegram" style="--ch-color:#22d3ee;border-color:rgba(34,211,238,.4)"
+         onclick="selectChannel('telegram')">
+      <div class="ch-name" style="color:#22d3ee">Telegram</div>
+      <div class="ch-status"><span class="dot connected"></span><span>connected</span></div>
+    </div>
+
+    <div class="ch-node" id="ch-discord" style="--ch-color:#a855f7;border-color:rgba(168,85,247,.4)"
+         onclick="selectChannel('discord')">
+      <div class="ch-name" style="color:#a855f7">Discord</div>
+      <div class="ch-status"><span class="dot connected"></span><span>connected</span></div>
+    </div>
+
+    <div class="ch-node" id="ch-feishu" style="--ch-color:#fbbf24;border-color:rgba(251,191,36,.4)"
+         onclick="selectChannel('feishu')">
+      <div class="ch-name" style="color:#fbbf24">飞书</div>
+      <div class="ch-status"><span class="dot connected"></span><span>connected</span></div>
+    </div>
+
+    <div class="ch-node" id="ch-http" style="--ch-color:#fb923c;border-color:rgba(251,146,60,.4)"
+         onclick="selectChannel('http')">
+      <div class="ch-name" style="color:#fb923c">HTTP API</div>
+      <div class="ch-status"><span class="dot connected"></span><span>connected</span></div>
+    </div>
+
+    <div class="ch-node" id="ch-console" style="--ch-color:#4ade80;border-color:rgba(74,222,128,.4)"
+         onclick="selectChannel('console')">
+      <div class="ch-name" style="color:#4ade80">Console CLI</div>
+      <div class="ch-status"><span class="dot connected"></span><span>connected</span></div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-header" id="sidebarTitle">← 点击 Channel 节点查看详情</div>
+    <div class="sidebar-content" id="sidebarContent">
+      <div class="empty">选择一个 Channel 节点查看配置和最近消息</div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="stat">
+    <div class="stat-label">运行时间</div>
+    <div class="stat-val" id="uptime">00:00:00</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">活跃 Channel</div>
+    <div class="stat-val" id="activeChannels">5</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">WS 连接</div>
+    <div class="stat-val" id="wsConns">3</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">总消息数</div>
+    <div class="stat-val" id="totalMsgsBar">0</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">BackoffPolicy</div>
+    <div class="stat-val" id="backoffStatus" style="font-size:13px;color:var(--green)">健康</div>
+  </div>
+</div>
+
+<script>
+// ============ Channel data ============
+const CHANNELS = {
+  telegram: {
+    color: '#22d3ee',
+    allowFrom: ['<your-user-id>'],
+    requireMention: false,
+    account: 'Bot @lena_assist_bot',
+    retryAttempt: 0,
+    messages: [
+      {from:'用户 (Telegram)', text:'今天深圳天气怎么样？', reply:'今天深圳晴天，气温 28℃，适合外出。'},
+      {from:'用户 (Telegram)', text:'帮我写一个 Python hello world', reply:'print("Hello, World!")'},
+      {from:'用户 (Telegram)', text:'Lena 你好！', reply:'你好！我在后台随时待命 🎉'},
+    ]
+  },
+  discord: {
+    color: '#a855f7',
+    allowFrom: ['user_discord_id', 'lena_bot_id'],
+    requireMention: true,
+    account: 'Bot Lena#4567',
+    retryAttempt: 0,
+    messages: [
+      {from:'用户#0001 (Discord)', text:'@Lena 今天的日报有什么亮点？', reply:'今日亮点：Claude 4 Opus 发布，支持 200K context。'},
+      {from:'用户#0001 (Discord)', text:'@Lena 飞书频道配置好了吗？', reply:'飞书 channel 已就绪，可以开始推送了。'},
+    ]
+  },
+  feishu: {
+    color: '#fbbf24',
+    allowFrom: ['*'],
+    requireMention: false,
+    account: '飞书机器人 @Lena',
+    retryAttempt: 0,
+    messages: [
+      {from:'梦芊日报 cron', text:'[推送] 今日播客脚本已生成', reply:'收到，正在合成 TTS...'},
+      {from:'用户 (飞书)', text:'日报什么时候好？', reply:'TTS 合成预计还需 20 分钟，08:00 前推送。'},
+    ]
+  },
+  http: {
+    color: '#fb923c',
+    allowFrom: ['*'],
+    requireMention: false,
+    account: 'REST API :3000',
+    retryAttempt: 0,
+    messages: [
+      {from:'curl POST /message', text:'{"content":"hello"}', reply:'{"reply":"Hello! How can I help?"}'},
+      {from:'Webhook', text:'{"content":"status check"}', reply:'{"reply":"Gateway running, 5 channels connected."}'},
+    ]
+  },
+  console: {
+    color: '#4ade80',
+    allowFrom: ['*'],
+    requireMention: false,
+    account: 'localhost:stdin',
+    retryAttempt: 0,
+    messages: [
+      {from:'Console', text:'你好 Lena', reply:'你好！我现在后台运行着，Console 和 Telegram 都能找到我。'},
+      {from:'Console', text:'测试一下多 channel', reply:'Console channel 正常。同时还有 Telegram/Discord/飞书/HTTP 在线。'},
+    ]
+  }
+};
+
+// ============ Layout ============
+let gwCenter = {x: 0, y: 0};
+let chPositions = {};
+const CH_ORDER = ['telegram','discord','feishu','http','console'];
+const ANGLES = [-72, -36+360*0, 72, 144, 216]; // degrees
+
+function layout() {
+  const area = document.getElementById('canvasArea');
+  const W = area.clientWidth, H = area.clientHeight;
+  const cx = W/2, cy = H/2;
+  gwCenter = {x: cx, y: cy};
+
+  // Gateway node
+  const gw = document.getElementById('gwNode');
+  gw.style.left = (cx - 80) + 'px';
+  gw.style.top  = (cy - 80) + 'px';
+
+  const r = Math.min(W, H) * 0.32;
+  CH_ORDER.forEach((id, i) => {
+    const angle = (i / CH_ORDER.length) * Math.PI * 2 - Math.PI/2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    chPositions[id] = {x, y};
+    const el = document.getElementById('ch-' + id);
+    el.style.left = (x - 60) + 'px';
+    el.style.top  = (y - 40) + 'px';
+  });
+
+  drawLines();
+}
+
+// ============ Canvas lines + particles ============
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let totalMsgs = 0;
+
+function drawLines() {
+  const area = document.getElementById('canvasArea');
+  canvas.width  = area.clientWidth;
+  canvas.height = area.clientHeight;
+}
+
+// Particle: from channel to gateway
+function emitParticle(chId) {
+  const from = chPositions[chId];
+  const to   = gwCenter;
+  if (!from) return;
+  particles.push({
+    x: from.x, y: from.y,
+    tx: to.x,  ty: to.y,
+    color: CHANNELS[chId].color,
+    t: 0,
+    chId
+  });
+  totalMsgs++;
+  document.getElementById('totalMsgs').textContent    = totalMsgs;
+  document.getElementById('totalMsgsBar').textContent = totalMsgs;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw connection lines
+  CH_ORDER.forEach(id => {
+    const pos = chPositions[id];
+    if (!pos) return;
+    ctx.beginPath();
+    ctx.moveTo(gwCenter.x, gwCenter.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = CHANNELS[id].color + '20';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // Update + draw particles
+  particles = particles.filter(p => p.t < 1);
+  particles.forEach(p => {
+    p.t += 0.012;
+    const t = p.t;
+    const x = p.x + (p.tx - p.x) * t;
+    const y = p.y + (p.ty - p.y) * t;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+}
+
+// ============ Sidebar ============
+let selectedCh = null;
+function selectChannel(id) {
+  if (selectedCh) {
+    document.getElementById('ch-' + selectedCh)?.classList.remove('selected');
+  }
+  selectedCh = id;
+  document.getElementById('ch-' + id)?.classList.add('selected');
+
+  const ch = CHANNELS[id];
+  document.getElementById('sidebarTitle').textContent = `Channel: ${id}`;
+
+  let html = `
+    <div class="config-card">
+      <div class="config-title">配置</div>
+      <div class="config-row">
+        <span class="config-key">id</span>
+        <span class="config-val">${id}</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key">account</span>
+        <span class="config-val">${ch.account}</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key">requireMention</span>
+        <span class="config-val">${ch.requireMention}</span>
+      </div>
+      <div class="config-row">
+        <span class="config-key">retryAttempt</span>
+        <span class="config-val">${ch.retryAttempt}</span>
+      </div>
+      <div style="margin-top:10px">
+        <div class="config-title">allowFrom</div>
+        <div style="font-family:monospace;font-size:12px;color:var(--cyan);background:rgba(0,0,0,.3);padding:8px;border-radius:8px">
+          ${JSON.stringify(ch.allowFrom, null, 2)}
+        </div>
+      </div>
+    </div>
+    <div class="config-card">
+      <div class="config-title">最近 5 条消息</div>
+  `;
+
+  ch.messages.forEach(m => {
+    html += `
+      <div class="msg-item">
+        <div class="msg-sender">${m.from}</div>
+        <div class="msg-text">${m.text}</div>
+        <div class="msg-reply">↳ Lena: ${m.reply}</div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  document.getElementById('sidebarContent').innerHTML = html;
+
+  // Emit particle for selected channel
+  emitParticle(id);
+}
+
+// ============ Uptime ============
+const startTime = Date.now();
+function updateUptime() {
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  const h = String(Math.floor(s / 3600)).padStart(2,'0');
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+  const sec = String(s % 60).padStart(2,'0');
+  document.getElementById('uptime').textContent = `${h}:${m}:${sec}`;
+}
+
+// ============ Auto-emit particles ============
+function autoEmit() {
+  const ids = CH_ORDER;
+  const id = ids[Math.floor(Math.random() * ids.length)];
+  emitParticle(id);
+  setTimeout(autoEmit, 800 + Math.random() * 1200);
+}
+
+// ============ Init ============
+window.addEventListener('resize', layout);
+layout();
+animate();
+setInterval(updateUptime, 1000);
+setTimeout(autoEmit, 1000);
+</script>
+</body>
+</html>

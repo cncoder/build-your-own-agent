@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 54px; font-weight: 900; }
+.stars { position: absolute; top: 130px; right: 100px; font-size: 14px; color: rgba(255,255,255,0.3); }
+
+.layout { position: absolute; top: 230px; left: 100px; right: 100px; display: flex; gap: 50px; }
+
+.flow-diagram { flex-shrink: 0; width: 680px; }
+.flow-title { font-size: 13px; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); text-transform: uppercase; margin-bottom: 20px; }
+.flow-box {
+  background: #0c0e18; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 28px; font-size: 13px; line-height: 2.2; font-family: monospace; color: #9099b0;
+}
+.user-msg { color: #88ddaa; }
+.supervisor-label { color: #cc88ff; }
+.agent-label { color: #66aaff; }
+.arrow { color: rgba(153,102,255,0.5); }
+.result-msg { color: #ffcc66; }
+
+.code-col { flex: 1; }
+.code-title { font-size: 13px; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); text-transform: uppercase; margin-bottom: 16px; }
+.code-box {
+  background: #0c0e18; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px; padding: 20px 22px; font-family: 'SF Mono','Fira Code',monospace;
+  font-size: 11.5px; line-height: 1.85; color: #9099b0;
+  height: 420px; overflow: hidden;
+}
+.k { color: #cc88ff; } .f { color: #66aaff; } .s { color: #88ddaa; } .c { color: #555577; }
+
+.design-note {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(153,102,255,0.04); border-left: 3px solid #9966ff;
+  border-radius: 0 6px 6px 0; font-size: 13px; color: rgba(200,180,255,0.7); line-height: 1.7;
+}
+.design-note strong { color: #cc88ff; }
+</style>
+</head>
+<body>
+<div class="title">Agent Squad · 8k stars · 2FastLabs/agent-squad</div>
+<div class="heading">SupervisorAgent：agent-as-tools 模式</div>
+<div class="stars">⭐ 8,000+ stars</div>
+
+<div class="layout">
+  <div class="flow-diagram">
+    <div class="flow-title">路由流程（用户无需知道有多少个 agent）</div>
+    <div class="flow-box">
+<span class="user-msg">用户：</span>"BTC 现在该买吗？"
+      <span class="arrow">↓</span>
+<span class="supervisor-label">SupervisorAgent（LLM 推理意图）</span>
+      <span class="arrow">↓ 识别为量化交易意图</span>
+      <span class="arrow">↓ 调用工具 delegate_to_trader</span>
+<span class="agent-label">TradingBot.handle("BTC 买入分析")</span>
+      <span class="arrow">↓ 返回分析结果</span>
+<span class="supervisor-label">SupervisorAgent 汇总 + 格式化</span>
+      <span class="arrow">↓</span>
+<span class="result-msg">回复："BTC 当前 RSI=42，MACD 刚金叉...</span>
+    </div>
+    <div class="design-note">
+      <strong>精妙之处：</strong>每个专用 agent 被包装成一个 tool（<code>delegate_to_trader</code>），路由决策本身是 LLM 推理出来的，而不是关键字匹配——可以处理语义复杂的意图，也可以跨 agent 组合任务。
+    </div>
+  </div>
+
+  <div class="code-col">
+    <div class="code-title">核心代码（见 spec_kit/supervisor.py）</div>
+    <div class="code-box">
+<span class="k">class</span> SupervisorAgent:
+    <span class="k">def</span> _build_tools(<span class="k">self</span>) -> list:
+        <span class="c"># 每个 agent → 一个 delegate 工具</span>
+        <span class="k">return</span> [{
+            <span class="s">"name"</span>: <span class="f">f</span><span class="s">"delegate_to_{name}"</span>,
+            <span class="s">"description"</span>: agent.description,
+            <span class="s">"input_schema"</span>: {<span class="s">"task"</span>: {...}}
+        } <span class="k">for</span> name, agent <span class="k">in</span> <span class="k">self</span>.agents.items()]
+
+    <span class="k">def</span> handle(<span class="k">self</span>, user_message) -> str:
+        messages = [...]
+        <span class="k">while True</span>:
+            resp = client.messages.create(
+                <span class="s">system=</span>supervisor_system_prompt,
+                <span class="s">tools=</span><span class="k">self</span>.tools,  <span class="c"># 所有 delegate 工具</span>
+                <span class="s">messages=</span>messages
+            )
+            <span class="k">if</span> resp.stop_reason == <span class="s">"end_turn"</span>:
+                <span class="k">return</span> resp.content[0].text  <span class="c"># 最终回复</span>
+            <span class="k">if</span> resp.stop_reason == <span class="s">"tool_use"</span>:
+                <span class="c"># 路由到对应专用 agent</span>
+                <span class="k">for</span> block <span class="k">in</span> resp.content:
+                    agent_name = block.name.replace(
+                        <span class="s">"delegate_to_"</span>, <span class="s">""</span>)
+                    result = <span class="k">self</span>.agents[agent_name].handle(
+                        block.input[<span class="s">"task"</span>])
+                    <span class="c"># 结果反馈给 Supervisor 汇总</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

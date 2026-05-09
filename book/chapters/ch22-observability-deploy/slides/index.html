@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 18 · 可观测性与部署 — Lena v1.8</title>
+
+<script>
+  window.DECK_MANIFEST = [
+    { file: "slides/01-intro.html",         label: "问题引入：Lena 上线了，但我怎么知道她挂了？" },
+    { file: "slides/02-structured-log.html", label: "结构化日志：为什么 JSON 让排查快 10 倍" },
+    { file: "slides/03-otel.html",           label: "OpenTelemetry：Trace / Span / Metric / Log 一图理清" },
+    { file: "slides/04-otel-code.html",      label: "Python 实现：20 行接入 structlog + OTel SDK" },
+    { file: "slides/05-budget.html",         label: "Token Budget：nanoClaw budget 模块设计思路" },
+    { file: "slides/06-hooks.html",          label: "CC Hooks 14 种事件：PostToolUse 自动化代码示例" },
+    { file: "slides/07-systemd.html",        label: "systemd 部署配置（lena.service 完整文件）" },
+    { file: "slides/08-launchd.html",        label: "launchd 部署配置（macOS plist 完整文件）" },
+    { file: "slides/09-docker.html",         label: "Docker Compose 部署配置（完整 yml）" },
+    { file: "slides/10-lesson-systemd.html", label: "血泪教训：StartLimitBurst + ThrottleInterval" },
+    { file: "slides/11-design-note.html",    label: "Design Note：自托管 vs 云函数——Lena 的部署选型指南" },
+    { file: "slides/12-summary.html",        label: "本章小结：Lena v1.8 完整生产就绪" },
+  ];
+  window.DECK_WIDTH = 1920;
+  window.DECK_HEIGHT = 1080;
+</script>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #040812; overflow: hidden; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #stage {
+    position: fixed; top: 50%; left: 50%;
+    transform-origin: top left; will-change: transform;
+    box-shadow: 0 10px 60px rgba(0,0,0,0.7);
+  }
+  iframe { width: 100%; height: 100%; border: 0; display: block; background: #040812; }
+  .counter {
+    position: fixed; bottom: 20px; right: 20px;
+    background: rgba(0,0,0,0.75); color: #fff; padding: 6px 14px;
+    border-radius: 999px; font-size: 13px; letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums; z-index: 100; user-select: none;
+    opacity: 0.7; transition: opacity 0.2s;
+  }
+  .counter:hover { opacity: 1; }
+  .counter .label { color: rgba(255,255,255,0.5); margin-left: 8px; font-size: 11px; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+  .nav-zone { position: fixed; top: 0; bottom: 0; width: 12%; cursor: pointer; z-index: 50; }
+  .nav-zone.left { left: 0; }
+  .nav-zone.right { right: 0; }
+  .nav-hint {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 999px;
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; opacity: 0; transition: opacity 0.2s;
+  }
+  .nav-zone.left .nav-hint { left: 20px; }
+  .nav-zone.right .nav-hint { right: 20px; }
+  .nav-zone:hover .nav-hint { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <iframe id="frame" src="about:blank"></iframe>
+</div>
+
+<div class="nav-zone left"  id="navL"><div class="nav-hint">‹</div></div>
+<div class="nav-zone right" id="navR"><div class="nav-hint">›</div></div>
+<div class="counter" id="counter">1 / 12</div>
+
+<script>
+(function () {
+  const W = window.DECK_WIDTH || 1920;
+  const H = window.DECK_HEIGHT || 1080;
+  const deck = window.DECK_MANIFEST || [];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const counter = document.getElementById('counter');
+  const storageKey = 'deck-ch18-' + location.pathname;
+  let current = 0;
+
+  stage.style.width  = W + 'px';
+  stage.style.height = H + 'px';
+
+  function fit() {
+    const sx = window.innerWidth  / W;
+    const sy = window.innerHeight / H;
+    const s  = Math.min(sx, sy);
+    const dx = (window.innerWidth  - W * s) / 2;
+    const dy = (window.innerHeight - H * s) / 2;
+    stage.style.transform = `translate(${dx}px, ${dy}px) scale(${s})`;
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  function goTo(i) {
+    if (!deck.length) return;
+    i = Math.max(0, Math.min(deck.length - 1, i));
+    current = i;
+    frame.src = deck[i].file;
+    counter.innerHTML = `${i + 1} / ${deck.length}<span class="label">${deck[i].label}</span>`;
+    try { localStorage.setItem(storageKey, i); } catch(e) {}
+  }
+
+  try {
+    const saved = parseInt(localStorage.getItem(storageKey), 10);
+    if (!isNaN(saved) && saved >= 0 && saved < deck.length) current = saved;
+  } catch(e) {}
+
+  goTo(current);
+
+  document.getElementById('navL').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('navR').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   || e.key === 'PageUp')   goTo(current - 1);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') goTo(current + 1);
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(deck.length - 1);
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 9) goTo(n - 1);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace; }
+
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,100,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,100,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.bg-glow {
+  position: absolute;
+  width: 800px; height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,200,80,0.06) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.chapter-tag {
+  position: absolute; top: 60px; left: 80px;
+  font-size: 13px; letter-spacing: 0.3em;
+  color: #00cc55; text-transform: uppercase;
+  border: 1px solid rgba(0,204,85,0.3);
+  padding: 6px 16px; border-radius: 2px;
+}
+.chapter-num {
+  position: absolute; top: 40px; right: 80px;
+  font-size: 180px; font-weight: 900;
+  color: rgba(255,255,255,0.03);
+  line-height: 1; letter-spacing: -0.05em;
+  font-family: 'Arial Black', sans-serif;
+}
+.main {
+  position: absolute; top: 50%; left: 80px;
+  transform: translateY(-50%);
+}
+.title-line1 {
+  font-size: 20px; letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.4); margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.title-main {
+  font-size: 96px; font-weight: 900;
+  color: #ffffff; line-height: 1;
+  letter-spacing: -0.02em;
+  font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
+}
+.title-sub {
+  font-size: 48px; font-weight: 300;
+  color: #00cc55; margin-top: 12px;
+  letter-spacing: 0.05em;
+}
+.subtitle {
+  margin-top: 40px;
+  font-size: 18px; color: rgba(255,255,255,0.4);
+  letter-spacing: 0.1em;
+  max-width: 680px; line-height: 1.8;
+}
+.right-panel {
+  position: absolute; right: 80px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 24px; align-items: flex-end;
+}
+.stat-block {
+  text-align: right;
+  border-right: 2px solid rgba(0,204,85,0.4);
+  padding-right: 20px;
+}
+.stat-num { font-size: 48px; font-weight: 700; color: #00cc55; }
+.stat-label { font-size: 12px; color: rgba(255,255,255,0.35); letter-spacing: 0.2em; margin-top: 2px; }
+
+.bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #00cc55 40%, #00ff88 60%, transparent 100%);
+}
+.pillar {
+  position: absolute; bottom: 24px; right: 80px;
+  font-size: 11px; color: rgba(0,204,85,0.6); letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="chapter-num">16</div>
+<div class="chapter-tag">Ch 16 · Docker Sandbox</div>
+
+<div class="main">
+  <div class="title-line1">给 Agent 真沙箱</div>
+  <div class="title-main">Docker<br>Sandbox</div>
+  <div class="title-sub">生产级代码执行环境</div>
+  <div class="subtitle">
+    正则过滤是一道门，Docker 是一堵墙。<br>
+    本章教你用容器隔离代替黑名单防御。
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="stat-block">
+    <div class="stat-num">41</div>
+    <div class="stat-label">OpenClaw Sandbox Files</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num">v1.6</div>
+    <div class="stat-label">Lena 本章产物版本</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num">0</div>
+    <div class="stat-label">Docker Socket 访问</div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+<div class="pillar">支柱：Safety / 可控性</div>
+</body>
+</html>

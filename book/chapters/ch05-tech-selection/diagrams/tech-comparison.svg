@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="400" viewBox="0 0 900 400">
+  <defs>
+    <style>
+      text { font-family: 'PingFang SC', 'Noto Sans SC', sans-serif; }
+      .axis-label { font-size: 13px; fill: #94a3b8; }
+      .axis-title { font-size: 14px; fill: #cbd5e1; font-weight: 600; }
+      .quadrant-label { font-size: 11px; fill: #475569; }
+      .card-title-en { font-size: 13px; font-weight: 700; }
+      .card-title-zh { font-size: 11px; }
+      .card-desc { font-size: 10px; fill: #94a3b8; }
+      .arrow { stroke-width: 1.5; fill: none; }
+      .grid-line { stroke: #1e293b; stroke-width: 1; }
+    </style>
+    <!-- Arrow markers -->
+    <marker id="arrowR" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowU" markerWidth="8" markerHeight="8" refX="3" refY="2" orient="auto">
+      <path d="M0,6 L6,6 L3,0 z" fill="#475569"/>
+    </marker>
+    <!-- Card shadows / glows -->
+    <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#7c3aed" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#2563eb" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#059669" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow-orange" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#d97706" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="400" fill="#0f172a" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="16" font-weight="700" fill="#e2e8f0">Agent 框架选型对比 · Framework Selection Quadrant</text>
+
+  <!-- Chart area: x 80-820, y 50-360 -->
+  <!-- Grid lines -->
+  <line x1="450" y1="50" x2="450" y2="360" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="80" y1="205" x2="820" y2="205" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- X Axis -->
+  <line x1="80" y1="360" x2="820" y2="360" stroke="#475569" stroke-width="1.5" marker-end="url(#arrowR)"/>
+  <!-- Y Axis -->
+  <line x1="80" y1="360" x2="80" y2="50" stroke="#475569" stroke-width="1.5" marker-end="url(#arrowU)"/>
+
+  <!-- X axis labels -->
+  <text x="85" y="378" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" fill="#64748b">低抽象 Low Abstraction</text>
+  <text x="750" y="378" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" fill="#64748b">高抽象 High Abstraction</text>
+  <text x="450" y="393" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" fill="#94a3b8" font-weight="600">抽象层级 · Abstraction Level →</text>
+
+  <!-- Y axis labels -->
+  <text x="20" y="355" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" fill="#64748b" transform="rotate(-90, 20, 355)">粗粒度</text>
+  <text x="20" y="75" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" fill="#64748b" transform="rotate(-90, 20, 75)">细粒度</text>
+  <text x="16" y="210" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" fill="#94a3b8" font-weight="600" transform="rotate(-90, 16, 210)">控制粒度 · Control →</text>
+
+  <!-- Quadrant background tints -->
+  <rect x="81" y="51" width="368" height="153" fill="#0f2a1a" opacity="0.4" rx="4"/>
+  <rect x="451" y="51" width="368" height="153" fill="#1a1a2e" opacity="0.4" rx="4"/>
+  <rect x="81" y="206" width="368" height="153" fill="#1a1a0a" opacity="0.4" rx="4"/>
+  <rect x="451" y="206" width="368" height="153" fill="#1a0a0a" opacity="0.4" rx="4"/>
+
+  <!-- Quadrant corner labels -->
+  <text x="90" y="68" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#1e3a2a">低抽象 / 细粒度</text>
+  <text x="460" y="68" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#1e1e3a">高抽象 / 细粒度</text>
+  <text x="90" y="220" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#2a2a10">低抽象 / 粗粒度</text>
+  <text x="460" y="220" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#2a1010">高抽象 / 粗粒度</text>
+
+  <!-- ============================================================ -->
+  <!-- Card 1: 本书方案 - 薄 Provider 层  (左上: 低抽象 + 细粒度) -->
+  <!-- Position: x≈190, y≈105 -->
+  <!-- ============================================================ -->
+  <rect x="120" y="75" width="180" height="100" rx="10" fill="#064e3b" stroke="#059669" stroke-width="2" filter="url(#glow-green)"/>
+  <rect x="120" y="75" width="180" height="6" rx="5" fill="#059669"/>
+  <text x="210" y="104" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" font-weight="700" fill="#34d399">本书方案</text>
+  <text x="210" y="120" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="11" fill="#6ee7b7">薄 Provider 层</text>
+  <text x="210" y="136" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">Thin Provider Layer</text>
+  <text x="210" y="152" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#6ee7b7">完全可控 · 零黑盒</text>
+  <text x="210" y="166" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="9" fill="#64748b">Full control · No black box</text>
+  <!-- Star badge -->
+  <circle cx="288" cy="83" r="10" fill="#059669"/>
+  <text x="288" y="87" text-anchor="middle" font-family="sans-serif" font-size="12" fill="white">★</text>
+
+  <!-- ============================================================ -->
+  <!-- Card 2: LangChain  (右上: 高抽象 + 细粒度) -->
+  <!-- Position: x≈640, y≈105 -->
+  <!-- ============================================================ -->
+  <rect x="560" y="75" width="180" height="100" rx="10" fill="#1e1b4b" stroke="#6366f1" stroke-width="2" filter="url(#glow-blue)"/>
+  <rect x="560" y="75" width="180" height="6" rx="5" fill="#6366f1"/>
+  <text x="650" y="104" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" font-weight="700" fill="#818cf8">LangChain</text>
+  <text x="650" y="120" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="11" fill="#a5b4fc">高抽象框架</text>
+  <text x="650" y="136" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">High Abstraction Framework</text>
+  <text x="650" y="152" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#a5b4fc">快速开发 · 黑盒较多</text>
+  <text x="650" y="166" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="9" fill="#64748b">Fast dev · More black boxes</text>
+
+  <!-- ============================================================ -->
+  <!-- Card 3: 裸 API  (左下: 低抽象 + 粗粒度) -->
+  <!-- Position: x≈190, y≈260 -->
+  <!-- ============================================================ -->
+  <rect x="120" y="225" width="180" height="100" rx="10" fill="#1c1917" stroke="#d97706" stroke-width="2" filter="url(#glow-orange)"/>
+  <rect x="120" y="225" width="180" height="6" rx="5" fill="#d97706"/>
+  <text x="210" y="254" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" font-weight="700" fill="#fbbf24">裸 API</text>
+  <text x="210" y="270" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="11" fill="#fcd34d">直接调用模型 API</text>
+  <text x="210" y="286" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">Raw API Calls</text>
+  <text x="210" y="302" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#fcd34d">零依赖 · 重复代码多</text>
+  <text x="210" y="316" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="9" fill="#64748b">Zero deps · Boilerplate heavy</text>
+
+  <!-- ============================================================ -->
+  <!-- Card 4: AutoGen / CrewAI  (右下: 高抽象 + 粗粒度) -->
+  <!-- Position: x≈640, y≈260 -->
+  <!-- ============================================================ -->
+  <rect x="560" y="225" width="180" height="100" rx="10" fill="#2d1b69" stroke="#9333ea" stroke-width="2" filter="url(#glow-purple)"/>
+  <rect x="560" y="225" width="180" height="6" rx="5" fill="#9333ea"/>
+  <text x="650" y="254" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" font-weight="700" fill="#c084fc">AutoGen / CrewAI</text>
+  <text x="650" y="270" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="11" fill="#d8b4fe">多智能体框架</text>
+  <text x="650" y="286" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">Multi-Agent Frameworks</text>
+  <text x="650" y="302" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#d8b4fe">高层编排 · 调试困难</text>
+  <text x="650" y="316" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="9" fill="#64748b">High-level · Hard to debug</text>
+
+  <!-- Evolution arrows: 裸API → 本书方案 → LangChain -->
+  <path d="M300,275 Q370,240 300,175" stroke="#475569" stroke-width="1" stroke-dasharray="5,3" fill="none"/>
+  <polygon points="297,175 304,185 308,174" fill="#475569"/>
+  <text x="340" y="228" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="9" fill="#475569">推荐路径</text>
+
+</svg>

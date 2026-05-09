@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 100% 70% at 50% 0%, #0a1520 0%, #050810 60%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,150,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,150,255,0.025) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; gap: 100px; }
+.left { flex: 1; display: flex; flex-direction: column; }
+.right { width: 700px; flex-shrink: 0; display: flex; flex-direction: column; gap: 28px; }
+
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 10px; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+
+/* Token bucket */
+.bucket-wrap { display: flex; align-items: center; gap: 40px; margin-bottom: 40px; }
+.bucket {
+  position: relative; width: 280px; height: 200px;
+  border: 2px solid rgba(0,200,255,0.3); border-radius: 12px;
+  background: rgba(0,200,255,0.04); padding: 20px;
+  display: flex; flex-direction: column;
+}
+.bucket::before { content: 'Semaphore(10)'; position: absolute; top: -14px; left: 16px; font-size: 12px; color: rgba(0,200,255,0.5); background: #050810; padding: 0 8px; letter-spacing: 0.05em; font-family: "SF Mono", monospace; }
+.tokens { display: flex; flex-wrap: wrap; gap: 8px; }
+.tok {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(0,200,255,0.3); border: 1px solid rgba(0,200,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #00c8ff; font-weight: 600;
+}
+.tok.used { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); }
+.bucket-label { font-size: 13px; color: rgba(255,255,255,0.3); margin-top: auto; }
+
+.flow-diagram { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.flow-step { display: flex; align-items: center; gap: 16px; padding: 14px 20px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+.flow-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.flow-text { font-size: 16px; color: rgba(255,255,255,0.7); }
+.flow-text code { font-family: "SF Mono", monospace; color: #00c8ff; font-size: 14px; background: rgba(0,200,255,0.08); padding: 1px 6px; border-radius: 4px; }
+.flow-text em { font-style: normal; color: rgba(255,200,0,0.8); }
+
+/* Reason cards */
+.reason-card { padding: 24px 28px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; }
+.reason-card .rnum { font-size: 11px; color: rgba(0,200,255,0.5); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+.reason-card h4 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.reason-card p { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+.env-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; padding: 10px 20px; background: rgba(0,200,255,0.08); border: 1px solid rgba(0,200,255,0.2); border-radius: 8px; font-family: "SF Mono", monospace; font-size: 16px; color: #00c8ff; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <div class="left">
+    <h2>并发上限 10 的设计</h2>
+    <p class="sub">toolOrchestration.ts:10 · CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY</p>
+
+    <div class="bucket-wrap">
+      <div class="bucket">
+        <div class="tokens">
+          <!-- 7 available, 3 in use -->
+          <div class="tok used">×</div>
+          <div class="tok used">×</div>
+          <div class="tok used">×</div>
+          <div class="tok">✓</div>
+          <div class="tok">✓</div>
+          <div class="tok">✓</div>
+          <div class="tok">✓</div>
+          <div class="tok">✓</div>
+          <div class="tok">✓</div>
+          <div class="tok">✓</div>
+        </div>
+        <span class="bucket-label">3 工具执行中，7 个令牌可用</span>
+      </div>
+
+      <div class="flow-diagram">
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(0,200,255,0.1)">🔑</div>
+          <span class="flow-text">addTool() 调用 → 令牌 &gt; 0 → <code>semaphore.acquire()</code> 立即放行</span>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(255,200,0,0.1)">⏳</div>
+          <span class="flow-text">令牌 = 0 → 进入等待队列 <em>（不报错，不丢失）</em></span>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon" style="background:rgba(0,200,100,0.1)">✅</div>
+          <span class="flow-text">工具完成 → <code>semaphore.release()</code> → 唤醒队列中下一个</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="env-badge">
+      <span>CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY</span>
+      <span style="color:rgba(255,255,255,0.4)">=</span>
+      <span style="color:#f78c6c; font-size:20px; font-weight:700">10</span>
+    </div>
+    <p style="margin-top:16px; font-size:15px; color:rgba(255,255,255,0.3)">可通过环境变量覆盖。但调高前先考虑以下三个设计理由。</p>
+  </div>
+
+  <div class="right">
+    <div style="font-size:14px; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px;">为什么是 10，不是 100？</div>
+    <div class="reason-card">
+      <div class="rnum">理由 1</div>
+      <h4>资源保护</h4>
+      <p>同时开 100 个 bash 进程或文件操作，会耗尽系统文件描述符（fd limit）。10 是大多数系统的安全上界。</p>
+    </div>
+    <div class="reason-card">
+      <div class="rnum">理由 2</div>
+      <h4>防 API Rate Limit</h4>
+      <p>如果工具调用外部 API（web_search、数据库、第三方服务），并发太高触发 429 Too Many Requests 反而更慢。</p>
+    </div>
+    <div class="reason-card">
+      <div class="rnum">理由 3</div>
+      <h4>控制工具副作用</h4>
+      <p>写文件、执行 shell 命令等有副作用的工具并发执行可能产生竞争条件（race condition）。10 的上限给人工介入留出空间。</p>
+    </div>
+    <div style="padding:16px 20px; background:rgba(0,200,255,0.05); border:1px solid rgba(0,200,255,0.15); border-radius:10px; font-size:15px; color:rgba(255,255,255,0.55); line-height:1.6;">
+      Python 实现：<span style="font-family:'SF Mono',monospace; color:#c3e88d; font-size:14px;">asyncio.Semaphore(MAX_CONCURRENT_TOOLS)</span><br>语言不同，思想一致。
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system, 'PingFang SC', sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(120,80,255,0.06) 0%, transparent 60%); }
+.title { position: absolute; top: 80px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 140px; left: 100px; font-size: 68px; font-weight: 900; line-height: 1.1; }
+.heading span { color: #9966ff; }
+.timeline {
+  position: absolute; top: 320px; left: 100px; right: 100px;
+  display: flex; align-items: center; gap: 0;
+}
+.tl-item {
+  flex: 1; position: relative;
+  text-align: center;
+}
+.tl-circle {
+  width: 56px; height: 56px; border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; font-family: monospace;
+}
+.tl-circle.done { background: rgba(153,102,255,0.15); border: 2px solid #9966ff; color: #9966ff; }
+.tl-circle.now  { background: rgba(153,102,255,0.3);  border: 2px solid #cc88ff; color: #cc88ff; box-shadow: 0 0 20px rgba(153,102,255,0.4); }
+.tl-label { font-size: 14px; color: rgba(255,255,255,0.45); letter-spacing: 0.05em; line-height: 1.6; }
+.tl-label.now-label { color: #cc88ff; font-weight: 600; }
+.tl-line { width: 60px; height: 2px; background: rgba(153,102,255,0.2); flex-shrink: 0; }
+
+.callout {
+  position: absolute; bottom: 100px; left: 100px; right: 100px;
+  border: 1px solid rgba(153,102,255,0.2);
+  background: rgba(153,102,255,0.04);
+  border-radius: 8px; padding: 36px 48px;
+  display: flex; align-items: center; gap: 48px;
+}
+.callout-icon { font-size: 48px; flex-shrink: 0; }
+.callout-text { font-size: 22px; line-height: 1.8; color: rgba(255,255,255,0.7); }
+.callout-text strong { color: #cc88ff; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="title">Part 4 · 开章宣告</div>
+<div class="heading">你已经有了一个<br><span>通用 agent</span></div>
+
+<div class="timeline">
+  <div class="tl-item">
+    <div class="tl-circle done">Ch3</div>
+    <div class="tl-label">50 行写出<br>最小 agent</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-item">
+    <div class="tl-circle done">Ch6</div>
+    <div class="tl-label">三层记忆<br>有了昨天</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-item">
+    <div class="tl-circle done">Ch9</div>
+    <div class="tl-label">Skills 注入<br>领域专家</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-item">
+    <div class="tl-circle done">Ch15</div>
+    <div class="tl-label">MCP 协议<br>万物皆连</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-item">
+    <div class="tl-circle done">Ch18</div>
+    <div class="tl-label">7×24 部署<br>生产就绪</div>
+  </div>
+  <div class="tl-line"></div>
+  <div class="tl-item">
+    <div class="tl-circle now">Ch19</div>
+    <div class="tl-label now-label">如何<br>复制它？</div>
+  </div>
+</div>
+
+<div class="callout">
+  <div class="callout-icon">🔱</div>
+  <div class="callout-text">
+    你的朋友问：帮我做一个<strong>量化交易 agent</strong>。另一个问：帮我做<strong>播客生产 agent</strong>。<br>
+    答案不是重写——而是<strong>派生</strong>。通用 runtime 是地基，专用 agent 是楼层。你只需要打好一次地基。
+  </div>
+</div>
+</body>
+</html>

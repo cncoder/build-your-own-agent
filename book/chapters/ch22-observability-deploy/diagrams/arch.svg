@@ -1,0 +1,100 @@
+<svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono', 'Fira Code', monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#040812"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L8,4 z" fill="#388bfd"/>
+    </marker>
+    <marker id="arrow-g" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L8,4 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="560" fill="url(#bg)"/>
+  <text x="500" y="32" text-anchor="middle" font-size="14" fill="#e6edf3" font-weight="700" letter-spacing="1">Lena v1.8 · 生产架构总览</text>
+  <text x="500" y="52" text-anchor="middle" font-size="11" fill="#6e7681">可观测性 · 预算控制 · 进程守护 · Hooks 自动化</text>
+
+  <!-- 用户层 -->
+  <rect x="420" y="70" width="160" height="48" rx="8" fill="rgba(56,139,253,0.1)" stroke="rgba(56,139,253,0.4)" stroke-width="1.5"/>
+  <text x="500" y="91" text-anchor="middle" font-size="12" fill="#58a6ff" font-weight="600">Discord / 飞书</text>
+  <text x="500" y="108" text-anchor="middle" font-size="10" fill="#6e7681">用户输入渠道</text>
+
+  <!-- 箭头 down -->
+  <line x1="500" y1="118" x2="500" y2="148" stroke="#388bfd" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Lena Agent Core -->
+  <rect x="200" y="148" width="600" height="200" rx="10" fill="rgba(22,27,34,0.7)" stroke="#30363d" stroke-width="1.5"/>
+  <text x="500" y="172" text-anchor="middle" font-size="11" fill="#8b949e" letter-spacing="1">LENA AGENT CORE · lena-v1.8</text>
+
+  <!-- 内部组件 -->
+  <rect x="220" y="182" width="130" height="50" rx="6" fill="#0d1117" stroke="#388bfd" stroke-width="1"/>
+  <text x="285" y="203" text-anchor="middle" font-size="10" fill="#58a6ff" font-weight="600">structlog</text>
+  <text x="285" y="220" text-anchor="middle" font-size="10" fill="#6e7681">JSON 结构化日志</text>
+
+  <rect x="366" y="182" width="130" height="50" rx="6" fill="#0d1117" stroke="#3fb950" stroke-width="1"/>
+  <text x="431" y="203" text-anchor="middle" font-size="10" fill="#3fb950" font-weight="600">OpenTelemetry</text>
+  <text x="431" y="220" text-anchor="middle" font-size="10" fill="#6e7681">Trace / Span / Metric</text>
+
+  <rect x="512" y="182" width="130" height="50" rx="6" fill="#0d1117" stroke="#d29922" stroke-width="1"/>
+  <text x="577" y="203" text-anchor="middle" font-size="10" fill="#d29922" font-weight="600">BudgetController</text>
+  <text x="577" y="220" text-anchor="middle" font-size="10" fill="#6e7681">Token 预算熔断</text>
+
+  <rect x="658" y="182" width="130" height="50" rx="6" fill="#0d1117" stroke="#bc8cff" stroke-width="1"/>
+  <text x="723" y="203" text-anchor="middle" font-size="10" fill="#bc8cff" font-weight="600">CC Hooks</text>
+  <text x="723" y="220" text-anchor="middle" font-size="10" fill="#6e7681">14 种自动化事件</text>
+
+  <!-- Agent Loop -->
+  <rect x="220" y="248" width="568" height="40" rx="6" fill="rgba(56,139,253,0.05)" stroke="rgba(56,139,253,0.2)" stroke-width="1"/>
+  <text x="504" y="272" text-anchor="middle" font-size="11" fill="#8b949e">Agent Loop · query.ts · 工具调用 · ReAct</text>
+
+  <!-- Process Management -->
+  <rect x="220" y="304" width="568" height="36" rx="6" fill="rgba(0,0,0,0.3)"/>
+  <text x="504" y="322" text-anchor="middle" font-size="10" fill="#6e7681">launchd plist / systemd service / Docker Compose</text>
+  <text x="504" y="336" text-anchor="middle" font-size="10" fill="#6e7681">KeepAlive + ThrottleInterval / StartLimitBurst</text>
+
+  <!-- 箭头 down from core -->
+  <line x1="285" y1="348" x2="285" y2="388" stroke="#388bfd" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <line x1="431" y1="348" x2="431" y2="388" stroke="#3fb950" stroke-width="1.2" marker-end="url(#arrow-g)"/>
+  <line x1="577" y1="348" x2="577" y2="388" stroke="#d29922" stroke-width="1.2" marker-end="url(#arrow)"/>
+  <line x1="723" y1="348" x2="723" y2="388" stroke="#bc8cff" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- 下方四个目标 -->
+  <rect x="210" y="388" width="150" height="50" rx="8" fill="rgba(56,139,253,0.08)" stroke="rgba(56,139,253,0.3)" stroke-width="1"/>
+  <text x="285" y="410" text-anchor="middle" font-size="10" fill="#58a6ff" font-weight="600">CloudWatch Logs</text>
+  <text x="285" y="428" text-anchor="middle" font-size="10" fill="#6e7681">JSON 日志 jq 查询</text>
+
+  <rect x="356" y="388" width="150" height="50" rx="8" fill="rgba(63,185,80,0.08)" stroke="rgba(63,185,80,0.3)" stroke-width="1"/>
+  <text x="431" y="410" text-anchor="middle" font-size="10" fill="#3fb950" font-weight="600">Jaeger / X-Ray</text>
+  <text x="431" y="428" text-anchor="middle" font-size="10" fill="#6e7681">Trace 可视化 UI</text>
+
+  <rect x="502" y="388" width="150" height="50" rx="8" fill="rgba(210,153,34,0.08)" stroke="rgba(210,153,34,0.3)" stroke-width="1"/>
+  <text x="577" y="410" text-anchor="middle" font-size="10" fill="#d29922" font-weight="600">Budget Webhook</text>
+  <text x="577" y="428" text-anchor="middle" font-size="10" fill="#6e7681">Discord / Telegram 告警</text>
+
+  <rect x="648" y="388" width="150" height="50" rx="8" fill="rgba(188,140,255,0.08)" stroke="rgba(188,140,255,0.3)" stroke-width="1"/>
+  <text x="723" y="410" text-anchor="middle" font-size="10" fill="#bc8cff" font-weight="600">Hooks Scripts</text>
+  <text x="723" y="428" text-anchor="middle" font-size="10" fill="#6e7681">ruff lint / notify</text>
+
+  <!-- Watchdog -->
+  <rect x="40" y="288" width="140" height="80" rx="8" fill="rgba(210,153,34,0.08)" stroke="rgba(210,153,34,0.35)" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="110" y="314" text-anchor="middle" font-size="11" fill="#d29922" font-weight="600">Watchdog</text>
+  <text x="110" y="332" text-anchor="middle" font-size="10" fill="#6e7681">独立 launchd</text>
+  <text x="110" y="348" text-anchor="middle" font-size="10" fill="#6e7681">独立 Telegram bot</text>
+  <text x="110" y="362" text-anchor="middle" font-size="10" fill="#6e7681">11 项检查 60s/次</text>
+
+  <!-- Watchdog → Core 监控连线 -->
+  <line x1="180" y1="328" x2="200" y2="328" stroke="#d29922" stroke-width="1.2" stroke-dasharray="3,2" marker-end="url(#arrow)"/>
+
+  <!-- Redis -->
+  <rect x="820" y="288" width="140" height="60" rx="8" fill="rgba(248,81,73,0.08)" stroke="rgba(248,81,73,0.3)" stroke-width="1"/>
+  <text x="890" y="314" text-anchor="middle" font-size="11" fill="#f85149" font-weight="600">Redis</text>
+  <text x="890" y="332" text-anchor="middle" font-size="10" fill="#6e7681">Budget 跨实例共享</text>
+  <text x="890" y="348" text-anchor="middle" font-size="10" fill="#6e7681">appendonly 持久化</text>
+
+  <line x1="800" y1="318" x2="820" y2="318" stroke="#f85149" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- 底部说明 -->
+  <text x="500" y="510" text-anchor="middle" font-size="11" fill="#6e7681">Lena v1.8 · 2026-05-05 · 第 18 章 · 可观测性与部署</text>
+</svg>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 100% 60% at 30% 0%, #1a0a00 0%, #050810 55%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(200,100,0,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(200,100,0,0.025) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; flex-direction: column; }
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 8px; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+
+.two-col { flex: 1; display: flex; gap: 48px; }
+.panel { flex: 1; display: flex; flex-direction: column; gap: 0; }
+.panel-title { font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.badge { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+
+/* Code blocks */
+.code-sm {
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 20px 24px; flex: 1;
+  position: relative;
+}
+.code-sm::before { content: attr(data-label); position: absolute; top: 10px; right: 14px; font-size: 10px; color: rgba(255,255,255,0.25); font-family: "SF Mono", monospace; letter-spacing: 0.05em; }
+pre { font-family: "SF Mono", "Fira Code", monospace; font-size: 14.5px; line-height: 1.75; }
+.kw  { color: #c792ea; }
+.fn  { color: #82aaff; }
+.str { color: #c3e88d; }
+.cmt { color: rgba(255,255,255,0.22); }
+.key { color: #f78c6c; }
+.hl  { background: rgba(255,200,0,0.07); border-left: 2px solid rgba(255,200,0,0.5); margin: 0 -24px; padding: 0 22px; display: block; }
+
+.lesson {
+  margin-top: 16px; padding: 16px 20px;
+  border-radius: 10px; font-size: 15px; line-height: 1.5;
+}
+.lesson.warn  { background: rgba(255,200,0,0.06); border: 1px solid rgba(255,200,0,0.2); color: rgba(255,200,0,0.8); }
+.lesson.info  { background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.2); color: rgba(0,200,255,0.8); }
+.lesson.good  { background: rgba(0,200,100,0.05); border: 1px solid rgba(0,200,100,0.2); color: rgba(0,200,100,0.8); }
+.lesson strong { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <h2>Edge Cases — 不读源码想不到</h2>
+  <p class="sub">signature_delta · reasoning_content · 三家 cache token 字段统一</p>
+
+  <div class="two-col">
+    <!-- Left: signature_delta -->
+    <div class="panel">
+      <div class="panel-title">
+        <span class="badge" style="background:rgba(199,146,234,0.15); color:#c792ea; border:1px solid rgba(199,146,234,0.3)">Anthropic</span>
+        <span style="color:rgba(255,255,255,0.5)">signature_delta — thinking block 签名</span>
+      </div>
+      <div class="code-sm" data-label="nanoClaw llm.py:383">
+        <pre><span class="cmt"># Extended Thinking + tool use 的 400 错误根因：</span>
+<span class="cmt"># thinking block 回传时必须携带签名</span>
+
+<span class="kw">elif</span> delta.get(<span class="str">"type"</span>) == <span class="str">"signature_delta"</span>:
+<span class="hl">    <span class="kw">if</span> current_block:
+        current_block[<span class="str">"signature"</span>] = delta[<span class="str">"signature"</span>]</span>
+
+<span class="cmt"># 之后把 thinking block 连同签名一起回传</span>
+<span class="kw">if</span> block.get(<span class="str">"type"</span>) == <span class="str">"thinking"</span>:
+    assistant_content.append({
+        <span class="str">"type"</span>: <span class="str">"thinking"</span>,
+        <span class="str">"thinking"</span>: block[<span class="str">"thinking"</span>],
+<span class="hl">        <span class="str">"signature"</span>: block[<span class="str">"signature"</span>],  <span class="cmt"># 必须！</span></span>
+    })</pre>
+      </div>
+      <div class="lesson warn">
+        <strong>不带签名回传 → 400 错误</strong>。这 4 行代码解决了 Extended Thinking + tool use 组合使用的 bug。
+      </div>
+    </div>
+
+    <!-- Middle: reasoning_content -->
+    <div class="panel">
+      <div class="panel-title">
+        <span class="badge" style="background:rgba(77,184,255,0.12); color:#4db8ff; border:1px solid rgba(77,184,255,0.3)">DeepSeek</span>
+        <span style="color:rgba(255,255,255,0.5)">reasoning_content — 两路流式分离</span>
+      </div>
+      <div class="code-sm" data-label="nanoClaw llm.py (_consume_openai_stream)">
+        <pre><span class="cmt"># DeepSeek-R1 的思维链和正文是两个独立字段</span>
+<span class="kw">async for</span> chunk <span class="kw">in</span> stream:
+    delta = chunk.choices[<span class="num">0</span>].delta
+
+    <span class="cmt"># 思维链（用于调试记录）</span>
+    reasoning = delta.get(<span class="str">"reasoning_content"</span>) <span class="kw">or</span> <span class="str">""</span>
+<span class="hl">    <span class="kw">if</span> reasoning:
+        current_reasoning += reasoning</span>
+
+    <span class="cmt"># 正文（展示给用户）</span>
+    content = delta.get(<span class="str">"content"</span>) <span class="kw">or</span> <span class="str">""</span>
+<span class="hl">    <span class="kw">if</span> content:
+        current_content += content
+        <span class="kw">yield</span> {<span class="str">"type"</span>: <span class="str">"text_delta"</span>, <span class="str">"text"</span>: content}</span></pre>
+      </div>
+      <div class="lesson info">
+        两路分开处理：<strong>reasoning_content</strong> 记录供调试，<strong>content</strong> 流式输出给用户。混淆会把推理过程直接暴露给用户。
+      </div>
+    </div>
+
+    <!-- Right: cache tokens -->
+    <div class="panel">
+      <div class="panel-title">
+        <span class="badge" style="background:rgba(0,200,100,0.1); color:#00c864; border:1px solid rgba(0,200,100,0.3)">三家通用</span>
+        <span style="color:rgba(255,255,255,0.5)">cache token 字段统一（llm.py:18-38）</span>
+      </div>
+      <div class="code-sm" data-label="nanoClaw llm.py:18-38">
+        <pre><span class="kw">def</span> <span class="fn">_parse_usage</span>(usage, provider):
+<span class="hl">    <span class="kw">if</span> provider == <span class="str">"anthropic"</span>:
+        cached = usage.get(<span class="str">"cache_read_input_tokens"</span>, <span class="num">0</span>)</span>
+    <span class="kw">elif</span> provider == <span class="str">"deepseek"</span>:
+<span class="hl">        cached = usage.get(<span class="str">"prompt_cache_hit_tokens"</span>, <span class="num">0</span>)</span>
+    <span class="kw">else</span>:  <span class="cmt"># openai</span>
+        details = usage.get(<span class="str">"prompt_tokens_details"</span>, {})
+<span class="hl">        cached = details.get(<span class="str">"cached_tokens"</span>, <span class="num">0</span>)</span>
+    <span class="kw">return</span> cached</pre>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;">
+        <div style="padding:10px 16px; background:rgba(199,146,234,0.08); border:1px solid rgba(199,146,234,0.2); border-radius:8px; font-family:'SF Mono',monospace; font-size:13px; color:#c792ea;">cache_read_input_tokens <span style="color:rgba(255,255,255,0.3); font-family:inherit">← Anthropic</span></div>
+        <div style="padding:10px 16px; background:rgba(77,184,255,0.08); border:1px solid rgba(77,184,255,0.2); border-radius:8px; font-family:'SF Mono',monospace; font-size:13px; color:#4db8ff;">prompt_cache_hit_tokens <span style="color:rgba(255,255,255,0.3); font-family:inherit">← DeepSeek</span></div>
+        <div style="padding:10px 16px; background:rgba(0,200,100,0.08); border:1px solid rgba(0,200,100,0.2); border-radius:8px; font-family:'SF Mono',monospace; font-size:13px; color:#00c864;">prompt_tokens_details.cached_tokens <span style="color:rgba(255,255,255,0.3); font-family:inherit">← OpenAI</span></div>
+      </div>
+      <div class="lesson good">
+        这 20 行代码让你的 agent 支持三家 provider 的 prompt cache 统计，监控成本时不会漏算。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

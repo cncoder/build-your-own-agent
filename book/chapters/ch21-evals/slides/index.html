@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 17 · Evals — 如何知道 Agent 变好了还是变坏了</title>
+<script>
+  window.DECK_MANIFEST = [
+    { file: "slides/01-cover.html",         label: "封面" },
+    { file: "slides/02-problem.html",       label: "问题引入" },
+    { file: "slides/03-three-methods.html", label: "三种 Eval 方法" },
+    { file: "slides/04-llm-judge.html",     label: "LLM-as-judge" },
+    { file: "slides/05-golden-dataset.html",label: "Golden Dataset" },
+    { file: "slides/06-three-dim.html",     label: "三维度评分" },
+    { file: "slides/07-ci.html",            label: "CI 集成" },
+    { file: "slides/08-verification.html",  label: "VERIFICATION_AGENT" },
+    { file: "slides/09-intersperse.html",   label: "Evals 穿插原则" },
+    { file: "slides/10-regression.html",    label: "版本回归曲线" },
+    { file: "slides/11-summary.html",       label: "本章小结" },
+  ];
+  window.DECK_WIDTH = 1920;
+  window.DECK_HEIGHT = 1080;
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0a0a0a; overflow: hidden; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #stage { position: fixed; top: 50%; left: 50%; transform-origin: top left; will-change: transform; background: #0a0d10; box-shadow: 0 10px 60px rgba(0,0,0,0.6); }
+  iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .counter { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.75); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 13px; letter-spacing: 0.05em; z-index: 100; user-select: none; opacity: 0.7; transition: opacity 0.2s; }
+  .counter:hover { opacity: 1; }
+  .counter .label { color: rgba(100,180,255,0.8); margin-left: 8px; }
+  .nav-zone { position: fixed; top: 0; bottom: 0; width: 15%; cursor: pointer; z-index: 50; }
+  .nav-zone.left { left: 0; }
+  .nav-zone.right { right: 0; }
+  .nav-hint { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 999px; background: rgba(100,180,255,0.1); color: rgba(100,180,255,0.6); display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0; transition: opacity 0.2s; }
+  .nav-zone.left .nav-hint { left: 20px; }
+  .nav-zone.right .nav-hint { right: 20px; }
+  .nav-zone:hover .nav-hint { opacity: 1; }
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { background: #fff; overflow: visible; height: auto; }
+    #stage { position: static; transform: none !important; box-shadow: none; }
+    .counter, .nav-zone { display: none !important; }
+    .print-stack { display: block; }
+    .print-stack iframe { width: 1920px; height: 1080px; page-break-after: always; display: block; }
+  }
+</style>
+</head>
+<body>
+<div id="stage"><iframe id="frame" src="about:blank"></iframe></div>
+<div class="nav-zone left" id="navL"><div class="nav-hint">‹</div></div>
+<div class="nav-zone right" id="navR"><div class="nav-hint">›</div></div>
+<div class="counter" id="counter">1 / 11</div>
+<div class="print-stack" id="printStack" style="display:none;"></div>
+<script>
+(function () {
+  const W = window.DECK_WIDTH || 1920, H = window.DECK_HEIGHT || 1080;
+  const deck = window.DECK_MANIFEST || [];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+
+  function scale() {
+    const sx = window.innerWidth / W, sy = window.innerHeight / H, s = Math.min(sx, sy);
+    const ox = (window.innerWidth - W * s) / 2, oy = (window.innerHeight - H * s) / 2;
+    stage.style.width = W + 'px'; stage.style.height = H + 'px';
+    stage.style.transform = `translate(${ox}px,${oy}px) scale(${s})`;
+  }
+  function go(i) {
+    if (i < 0 || i >= deck.length) return;
+    cur = i;
+    frame.src = deck[i].file;
+    counter.innerHTML = `${i + 1} / ${deck.length}<span class="label">${deck[i].label}</span>`;
+  }
+  window.addEventListener('resize', scale); scale();
+  document.getElementById('navR').addEventListener('click', () => go(cur + 1));
+  document.getElementById('navL').addEventListener('click', () => go(cur - 1));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(cur - 1);
+  });
+  // print stack
+  if (window.location.search.includes('print')) {
+    document.getElementById('printStack').style.display = 'block';
+    deck.forEach(d => {
+      const f = document.createElement('iframe');
+      f.src = d.file; f.style.cssText = 'width:1920px;height:1080px;border:0;display:block;page-break-after:always';
+      document.getElementById('printStack').appendChild(f);
+    });
+  }
+  go(0);
+})();
+</script>
+</body>
+</html>

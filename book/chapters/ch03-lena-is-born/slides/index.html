@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 03 · Lena 诞生 — Slide Deck</title>
+<style>
+:root {
+  --bg: #060612;
+  --surface: #0c0c1f;
+  --glass: rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.1);
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --text: #f1f5f9;
+  --dim: #64748b;
+  --accent: #7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,'SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif}
+
+/* Slide container */
+.deck{width:1920px;height:1080px;transform-origin:top left;position:absolute;top:0;left:0;}
+.slide{
+  width:1920px;height:1080px;position:absolute;top:0;left:0;
+  background:var(--bg);overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:opacity .4s;
+  opacity:0;pointer-events:none;
+}
+.slide.active{opacity:1;pointer-events:all}
+
+/* Global bg effects */
+.slide::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 100% 60% at 15% 15%, rgba(168,85,247,.07) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 85% 85%, rgba(34,211,238,.05) 0%, transparent 55%);
+  pointer-events:none;z-index:0;
+}
+.slide-inner{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;padding:80px 100px;}
+
+/* Chapter badge */
+.ch-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:999px;padding:8px 22px;font-size:14px;
+  color:var(--cyan);backdrop-filter:blur(10px);letter-spacing:.05em;
+  width:fit-content;margin-bottom:28px;
+}
+.ch-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+
+/* Large title */
+.main-title{
+  font-size:86px;font-weight:800;line-height:1.05;
+  background:linear-gradient(135deg,#a855f7 0%,#22d3ee 50%,#4ade80 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:24px;
+}
+.main-sub{font-size:28px;color:rgba(241,245,249,.6);font-weight:300;margin-bottom:40px}
+
+/* Section title */
+.sec-title{font-size:52px;font-weight:700;color:var(--text);margin-bottom:16px}
+.sec-sub{font-size:22px;color:var(--dim);margin-bottom:40px;font-weight:400}
+
+/* Tag */
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 18px;border-radius:999px;font-size:14px;font-weight:600;
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);
+  color:var(--purple);margin-bottom:40px;
+}
+
+/* Glass card */
+.glass-card{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:20px;padding:32px 36px;backdrop-filter:blur(12px);
+}
+
+/* Code block */
+.code{
+  background:rgba(0,0,0,.45);border-radius:14px;padding:28px 32px;
+  font-family:'Fira Code','Courier New',monospace;font-size:18px;
+  line-height:1.75;border:1px solid rgba(255,255,255,.08);
+  color:#e2e8f0;white-space:pre;
+}
+.kw{color:#a78bfa}.fn{color:var(--cyan)}.str{color:#86efac}.cm{color:var(--dim)}.kv{color:var(--orange)}.num{color:#fbbf24}
+
+/* Bullet list */
+.blist{list-style:none;display:flex;flex-direction:column;gap:18px}
+.blist li{display:flex;align-items:flex-start;gap:16px;font-size:24px;color:var(--text);line-height:1.5}
+.blist li::before{content:'▸';color:var(--purple);font-size:20px;margin-top:3px;flex-shrink:0}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:20px}
+.tbl th{padding:14px 20px;text-align:left;color:var(--cyan);font-weight:600;border-bottom:1px solid var(--glass-border)}
+.tbl td{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)}
+.tbl tr:hover td{background:rgba(255,255,255,.03)}
+
+/* Grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+
+/* Module card */
+.mod{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:16px;padding:24px 28px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:border-color .3s;
+}
+.mod-icon{font-size:32px}
+.mod-name{font-size:22px;font-weight:700;color:var(--text)}
+.mod-desc{font-size:16px;color:var(--dim);line-height:1.5}
+
+/* Neon highlight */
+.hl-p{color:var(--purple)} .hl-c{color:var(--cyan)} .hl-g{color:var(--green)} .hl-o{color:var(--orange)}
+
+/* Quote */
+.quote{
+  border-left:4px solid var(--purple);padding:20px 28px;
+  background:rgba(168,85,247,.06);border-radius:0 12px 12px 0;
+  font-size:22px;color:rgba(241,245,249,.8);line-height:1.6;font-style:italic;
+}
+.quote-src{font-size:15px;color:var(--dim);margin-top:10px;font-style:normal}
+
+/* Diff table */
+.diff{display:grid;grid-template-columns:1fr 1fr;gap:2px;border-radius:14px;overflow:hidden}
+.diff-col{padding:24px 28px;font-size:17px;line-height:1.7}
+.diff-left{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2)}
+.diff-right{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.15)}
+.diff-head{font-weight:700;font-size:18px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1)}
+
+/* Page number */
+.page-num{
+  position:absolute;bottom:36px;right:60px;
+  font-size:14px;color:var(--dim);
+  display:flex;align-items:center;gap:8px;
+}
+.page-dot{width:6px;height:6px;border-radius:50%;background:var(--purple)}
+
+/* Slide nav */
+#nav{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:14px;gap:12px;z-index:100;
+  background:linear-gradient(to top, rgba(0,0,0,.7), transparent);
+}
+.nav-btn{
+  padding:8px 20px;border-radius:10px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);
+  font-size:14px;cursor:pointer;transition:all .2s;
+}
+.nav-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.nav-info{font-size:14px;color:rgba(255,255,255,.4);min-width:80px;text-align:center}
+.nav-dots{display:flex;gap:6px}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .2s}
+.nav-dot.cur{background:var(--purple);width:20px}
+
+/* Speaker notes */
+.notes-panel{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  width:900px;background:rgba(0,0,0,.85);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:20px 24px;font-size:14px;color:rgba(255,255,255,.6);
+  line-height:1.6;display:none;z-index:99;backdrop-filter:blur(10px);
+}
+.notes-panel.show{display:block}
+.notes-label{font-size:11px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+
+/* Sequence diagram */
+.seq{display:grid;grid-template-columns:repeat(4,1fr);gap:0;height:300px;position:relative}
+.seq-col{display:flex;flex-direction:column;align-items:center;gap:0}
+.seq-head{padding:10px 16px;border-radius:10px;font-size:15px;font-weight:600;text-align:center}
+.seq-line{width:1px;background:rgba(255,255,255,.15);flex:1;margin-top:4px;position:relative}
+.seq-arrow{position:absolute;display:flex;align-items:center;font-size:12px;white-space:nowrap;color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- SLIDE 0: Cover -->
+<div class="slide active">
+  <div class="slide-inner" style="justify-content:center">
+    <div class="ch-badge"><div class="ch-dot"></div>第 3 章 · Part 0 入门</div>
+    <div class="main-title">Lena 诞生</div>
+    <div class="main-sub">50 行 Python 写出可跑的 Agent</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <span class="tag">⚡ 支柱 1：Tool 统一性</span>
+      <span class="tag" style="background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.3);color:var(--cyan)">🕹 可交互 Demo</span>
+      <span class="tag" style="background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:var(--green)">🐍 Python 3.11+</span>
+    </div>
+    <div style="margin-top:auto;font-size:17px;color:var(--dim)">《从零构建你的 AI Agent：Claude Code & OpenClaw 深度实战》</div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>01</div>
+</div>
+
+<!-- SLIDE 1: 本章你将 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>本章目标</div>
+    <div class="sec-title">本章你将</div>
+    <ul class="blist">
+      <li>亲手写出第一个可运行的 <strong class="hl-p">agent loop</strong>——while + 工具调用 + 结果回填</li>
+      <li>理解 <strong class="hl-c">MVA 6 模块共识</strong>：Config / Provider / Memory / ToolRegistry / AgentLoop / Skills</li>
+      <li>搞清楚 <strong class="hl-o">Anthropic vs OpenAI</strong> 工具调用格式的本质差异</li>
+      <li>跑通 <code style="color:var(--green);font-family:monospace">lena-v0.3/</code>：终端里问"现在几点"，Lena 会调用真实工具回答</li>
+      <li>建立直觉：<strong class="hl-g">"agent 的全部秘密 = 一个带工具的 while 循环"</strong></li>
+    </ul>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>02</div>
+</div>
+
+<!-- SLIDE 2: 为什么不用 LangChain -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>Design Note</div>
+    <div class="sec-title">为什么不直接用 LangChain？</div>
+    <div class="grid2" style="align-items:start">
+      <div>
+        <div class="quote">
+          "Start with prompting. If prompting doesn't work, start with the simplest agent architecture.
+          <strong>Don't add complexity until you demonstrably need it.</strong>"
+          <div class="quote-src">— Anthropic, Building Effective Agents (2024-12-19)</div>
+        </div>
+        <div style="margin-top:24px" class="glass-card">
+          <div style="font-size:18px;color:var(--dim);margin-bottom:12px">HuggingFace Agents Course 反面教材</div>
+          <ul class="blist" style="font-size:19px">
+            <li>概念层 → 直接跳框架层</li>
+            <li>没裸写过 ReAct，就包了 LangChain</li>
+            <li>结果：知其然不知其所以然</li>
+          </ul>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:20px">抽象遮蔽调试路径</div>
+        <div class="code" style="font-size:15px">LangChain 调用链：
+
+AgentExecutor
+  └─ BaseLLM
+       └─ ChatAnthropic
+            └─ AnthropicClient
+                 └─ <span class="cm">← 真正的 API 调用在这</span>
+<span class="cm">
+Lena 的调用链：
+
+agent_loop()  ← 完整调用，一目了然
+  └─ provider.chat(messages, tools)</span></div>
+        <div style="margin-top:16px;font-size:18px;color:var(--green)">✓ 先裸写，后框架——建立真实理解</div>
+      </div>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>03</div>
+</div>
+
+<!-- SLIDE 3: Agent 三元组 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>核心概念</div>
+    <div class="sec-title">agent = LLM + loop + tools</div>
+    <div class="grid2">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="mod" style="border-color:rgba(168,85,247,.3)">
+          <div class="mod-icon">🔁</div>
+          <div class="mod-name" style="color:var(--purple)">Loop（while 循环）</div>
+          <div class="mod-desc">让决策不止一步。每次工具调用后，把结果带给 LLM 继续推理。</div>
+        </div>
+        <div class="mod" style="border-color:rgba(34,211,238,.3)">
+          <div class="mod-icon">🧠</div>
+          <div class="mod-name" style="color:var(--cyan)">LLM（大脑）</div>
+          <div class="mod-desc">决定下一步做什么——用工具还是直接回答。</div>
+        </div>
+        <div class="mod" style="border-color:rgba(74,222,128,.3)">
+          <div class="mod-icon">🔧</div>
+          <div class="mod-name" style="color:var(--green)">Tools（双手）</div>
+          <div class="mod-desc">LLM 做不了的事——查时间、读文件、搜网页。</div>
+        </div>
+      </div>
+      <div class="code" style="font-size:16px;line-height:2">
+        用户输入
+           │
+    <span class="fn">messages</span>[] 加入用户消息
+           │
+           ▼
+        <span class="kw">while</span> True:
+           │
+           ├─ <span class="fn">provider.chat</span>(messages, tools)
+           │         │
+           │    tool_use? ──<span class="kv">是</span>──▶ <span class="fn">execute_tool</span>()
+           │         │                    │
+           │         │ <span class="kv">否</span>         <span class="fn">tool_result</span> 加入 messages
+           │         │                    │
+           │         └──────────────────┘
+           │
+           └─ stop_reason == "end_turn"
+              ──▶ 返回文字答复
+      </div>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>04</div>
+</div>
+
+<!-- SLIDE 4: MVA 6 模块 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>行业共识</div>
+    <div class="sec-title">MVA 6 模块共识</div>
+    <div class="sec-sub">三个开源实现（nano-claw / nanoClaw / Tian-NanoClaw）验证的公分母</div>
+    <div class="grid3">
+      <div class="mod" style="border-color:rgba(168,85,247,.3)">
+        <div class="mod-icon">⚙️</div>
+        <div class="mod-name">Config</div>
+        <div class="mod-desc">读取 .env / 命令行参数。argparse + python-dotenv</div>
+      </div>
+      <div class="mod" style="border-color:rgba(34,211,238,.3)">
+        <div class="mod-icon">🔌</div>
+        <div class="mod-name">Provider</div>
+        <div class="mod-desc">统一多家 LLM API 差异。Anthropic / OpenAI / Bedrock</div>
+      </div>
+      <div class="mod" style="border-color:rgba(74,222,128,.3)">
+        <div class="mod-icon">💾</div>
+        <div class="mod-name">Memory</div>
+        <div class="mod-desc">管理 messages[] 对话历史。本章用列表，Ch 6 升级 SQLite</div>
+      </div>
+      <div class="mod" style="border-color:rgba(251,146,60,.3)">
+        <div class="mod-icon">🔧</div>
+        <div class="mod-name">ToolRegistry</div>
+        <div class="mod-desc">注册工具 + 执行工具。schema 给 LLM，handler 给 Python</div>
+      </div>
+      <div class="mod" style="border-color:rgba(244,114,182,.3)">
+        <div class="mod-icon">🔁</div>
+        <div class="mod-name">AgentLoop</div>
+        <div class="mod-desc">while 循环核心。决策 → 工具 → 回填 → 再决策</div>
+      </div>
+      <div class="mod" style="border-color:rgba(148,163,184,.3)">
+        <div class="mod-icon">📚</div>
+        <div class="mod-name">Skills</div>
+        <div class="mod-desc">可复用能力包（SOP）。本章暂不使用，Ch 9 展开</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;font-size:17px;color:var(--dim);text-align:center">
+      引用：R2 nanoClaw <code style="color:var(--cyan)">core/agent.py</code>（155行）· nano-claw <code style="color:var(--cyan)">src/agent/loop.ts</code>（247行）· SPEC.md 第 2 节
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>05</div>
+</div>
+
+<!-- SLIDE 5: 工具 schema + handler -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>工具系统</div>
+    <div class="sec-title">工具 = schema + handler</div>
+    <div class="grid2">
+      <div>
+        <div class="glass-card" style="margin-bottom:20px">
+          <div style="font-size:22px;font-weight:700;color:var(--orange);margin-bottom:12px">为什么需要 schema？</div>
+          <div style="font-size:18px;color:var(--text);line-height:1.7">
+            LLM 无法直接调函数。<br>
+            它能做的：输出一个 JSON 块说"我想调用这个函数"。<br><br>
+            <span class="hl-c">Schema</span> = 交给 LLM 的"工具使用说明书"<br>
+            <span class="hl-g">Handler</span> = 真正执行的 Python 函数
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size:22px;font-weight:700;color:var(--green);margin-bottom:12px">input_schema = JSON Schema</div>
+          <div style="font-size:17px;color:var(--dim);line-height:1.7">
+            这是 RFC 标准格式，Pydantic 可以自动生成<br>
+            （Ch 4 会讲）。本章手写是为了理解细节。
+          </div>
+        </div>
+      </div>
+      <div class="code" style="font-size:15px">
+<span class="cm"># tools.py（核心片段）</span>
+
+TOOLS = [
+  {
+    <span class="str">"schema"</span>: {         <span class="cm"># ← 给 LLM 看</span>
+      <span class="str">"name"</span>: <span class="str">"get_time"</span>,
+      <span class="str">"description"</span>: <span class="str">"获取当前本地时间"</span>,
+      <span class="str">"input_schema"</span>: {
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {
+          <span class="str">"timezone"</span>: {
+            <span class="str">"type"</span>: <span class="str">"string"</span>,
+            <span class="str">"default"</span>: <span class="str">"local"</span>
+          }
+        },
+        <span class="str">"required"</span>: []
+      }
+    },
+    <span class="str">"handler"</span>: get_time_handler  <span class="cm"># ← 给 Python 运行</span>
+  }
+]
+      </div>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>06</div>
+</div>
+
+<!-- SLIDE 6: Anthropic vs OpenAI -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>协议差异</div>
+    <div class="sec-title">Anthropic vs OpenAI：工具调用格式</div>
+    <div class="diff" style="margin-bottom:20px">
+      <div class="diff-col diff-left">
+        <div class="diff-head" style="color:var(--purple)">🔷 Anthropic</div>
+        <div style="font-family:monospace;font-size:15px;line-height:1.9;color:var(--text)">
+          <span class="cm">// 工具调用在 content[] 里</span><br>
+          content = [<br>
+          &nbsp;&nbsp;{<span style="color:#86efac">"type": "tool_use"</span>,<br>
+          &nbsp;&nbsp; <span style="color:#86efac">"id": "toolu_xxx"</span>,<br>
+          &nbsp;&nbsp; <span style="color:#86efac">"name": "get_time"</span>,<br>
+          &nbsp;&nbsp; <span style="color:#86efac">"input": {}</span>}<br>
+          ]<br><br>
+          <span class="cm">// 结果回填：role = "user"</span><br>
+          {<span style="color:var(--purple)">"role": "user"</span>,<br>
+          &nbsp;"content": [{<br>
+          &nbsp;&nbsp;"type": <span style="color:#86efac">"tool_result"</span>,<br>
+          &nbsp;&nbsp;"tool_use_id": <span style="color:#86efac">"toolu_xxx"</span>}]}
+        </div>
+      </div>
+      <div class="diff-col diff-right">
+        <div class="diff-head" style="color:var(--cyan)">🔶 OpenAI</div>
+        <div style="font-family:monospace;font-size:15px;line-height:1.9;color:var(--text)">
+          <span class="cm">// 工具调用在顶层字段</span><br>
+          message.tool_calls = [<br>
+          &nbsp;&nbsp;ToolCall(<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;id=<span style="color:#86efac">"call_abc"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;function=Function(<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name=<span style="color:#86efac">"get_time"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arguments=<span style="color:#86efac">"{}"</span>)<br>
+          &nbsp;&nbsp;)<br>
+          ]<br><br>
+          <span class="cm">// 结果回填：role = "tool"</span><br>
+          {<span style="color:var(--cyan)">"role": "tool"</span>,<br>
+          &nbsp;"tool_call_id": <span style="color:#86efac">"call_abc"</span>,<br>
+          &nbsp;"content": "..."}
+        </div>
+      </div>
+    </div>
+    <table class="tbl glass-card" style="padding:0;overflow:hidden">
+      <tr><th>对比项</th><th>Anthropic</th><th>OpenAI</th></tr>
+      <tr><td>工具调用位置</td><td><span class="hl-p">content[] 数组</span></td><td><span class="hl-c">顶层 tool_calls 字段</span></td></tr>
+      <tr><td>参数字段</td><td>input（dict）</td><td>arguments（JSON 字符串）</td></tr>
+      <tr><td>结果回填角色</td><td><span class="hl-p">user</span></td><td><span class="hl-c">tool</span></td></tr>
+      <tr><td>关联 ID 字段</td><td>tool_use_id</td><td>tool_call_id</td></tr>
+    </table>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>07</div>
+</div>
+
+<!-- SLIDE 7: AgentLoop 核心代码 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>核心实现</div>
+    <div class="sec-title">AgentLoop 核心——28 行</div>
+    <div class="code" style="font-size:17px">
+<span class="kw">def</span> <span class="fn">agent_loop</span>(user_input, provider, max_turns=<span class="num">10</span>):
+    messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: user_input})
+    tools = <span class="fn">get_tool_schemas</span>()
+
+    <span class="kw">for</span> turn <span class="kw">in</span> range(max_turns):
+        response = provider.<span class="fn">chat</span>(messages, tools)
+
+        <span class="kw">if</span> response.tool_calls:
+            <span class="cm"># 1. 存入 assistant 消息（含工具调用决策）</span>
+            messages.append(provider.<span class="fn">make_assistant_with_tool_use</span>(response))
+            <span class="cm"># 2. 执行工具，回填结果</span>
+            <span class="kw">for</span> tc <span class="kw">in</span> response.tool_calls:
+                result = <span class="fn">execute_tool</span>(tc[<span class="str">"name"</span>], tc[<span class="str">"inputs"</span>])
+                messages.append(provider.<span class="fn">make_tool_result_message</span>(tc[<span class="str">"id"</span>], result))
+            <span class="kw">continue</span>  <span class="cm"># 再次问 LLM</span>
+
+        <span class="cm"># 无工具调用：返回最终答复</span>
+        messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+        <span class="kw">return</span> response.content
+    </div>
+    <div style="margin-top:16px;font-size:20px;color:var(--green);font-weight:600">
+      ✓ 这就是 agent 循环的全部秘密。所有 agent 框架的核心都是这 28 行。
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>08</div>
+</div>
+
+<!-- SLIDE 8: 时序图 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>执行流程</div>
+    <div class="sec-title">一次"现在几点"的完整时序</div>
+    <div class="glass-card" style="flex:1">
+      <table class="tbl">
+        <tr>
+          <th style="width:12%;text-align:center">步骤</th>
+          <th style="width:20%">发起方</th>
+          <th style="width:25%">目标</th>
+          <th>内容</th>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(168,85,247,.2);padding:2px 10px;border-radius:999px;color:var(--purple);font-size:13px">1</span></td>
+          <td>👤 用户</td><td>💬 messages[]</td>
+          <td>"现在几点了？"</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(34,211,238,.2);padding:2px 10px;border-radius:999px;color:var(--cyan);font-size:13px">2</span></td>
+          <td>🔁 AgentLoop</td><td>🧠 LLM</td>
+          <td>chat(messages, tools=[get_time])</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(251,146,60,.2);padding:2px 10px;border-radius:999px;color:var(--orange);font-size:13px">3</span></td>
+          <td>🧠 LLM</td><td>🔁 AgentLoop</td>
+          <td>stop_reason="tool_use"  content=[tool_use{name="get_time"}]</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(74,222,128,.2);padding:2px 10px;border-radius:999px;color:var(--green);font-size:13px">4</span></td>
+          <td>🔁 AgentLoop</td><td>⚡ get_time()</td>
+          <td>execute_tool("get_time", {})</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(74,222,128,.2);padding:2px 10px;border-radius:999px;color:var(--green);font-size:13px">5</span></td>
+          <td>⚡ get_time()</td><td>🔁 AgentLoop</td>
+          <td>"当前时间是 2026年05月06日 00:24:31"</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(34,211,238,.2);padding:2px 10px;border-radius:999px;color:var(--cyan);font-size:13px">6</span></td>
+          <td>🔁 AgentLoop</td><td>🧠 LLM</td>
+          <td>chat(messages + tool_result)</td>
+        </tr>
+        <tr>
+          <td style="text-align:center"><span style="background:rgba(168,85,247,.2);padding:2px 10px;border-radius:999px;color:var(--purple);font-size:13px">7</span></td>
+          <td>🧠 LLM</td><td>👤 用户</td>
+          <td>stop_reason="end_turn"  "现在是 2026年5月6日 00:24 🌙"</td>
+        </tr>
+      </table>
+      <div style="margin-top:16px;font-size:18px;color:var(--orange);font-weight:600">
+        ⚡ LLM 被调用了 2 次：第一次决策工具，第二次生成答复
+      </div>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>09</div>
+</div>
+
+<!-- SLIDE 9: 跑通 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>实战验证</div>
+    <div class="sec-title">跑通的样子</div>
+    <div class="grid2">
+      <div class="code" style="font-size:16px">
+<span class="cm">$ python lena.py --provider bedrock</span>
+
+Lena v0.3 ✦ provider=bedrock
+输入 'exit' 或按 Ctrl-C 退出
+
+<span class="fn">你：</span>现在几点了？
+  <span class="kv">[工具]</span> get_time({}) → 当前时间是 2026年05月06日 00:24:31（local）
+<span class="fn">Lena：</span>现在是 <span class="str">**2026年5月6日 00:24**</span>，
+      已经是深夜了哦！🌙
+
+<span class="fn">你：</span>今天是星期几？
+<span class="fn">Lena：</span><span class="str">2026年5月6日</span> 是 <span class="str">星期三</span>！📅
+<span class="cm">     （没有再次调工具，从上下文推断）</span>
+
+<span class="fn">你：</span>exit
+再见！
+      </div>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="glass-card" style="border-color:rgba(74,222,128,.2)">
+          <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:12px">✓ 注意第二个问题</div>
+          <div style="font-size:18px;color:var(--text);line-height:1.7">
+            问"星期几"时，Lena 没有再次调用 get_time。<br><br>
+            因为 messages[] 里已有时间，LLM 从<strong>上下文推断</strong>——这是 Memory 的价值：减少不必要的工具调用。
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size:20px;font-weight:700;color:var(--cyan);margin-bottom:12px">运行命令</div>
+          <div class="code" style="font-size:15px">
+cd code/lena-v0.3
+pip install -r requirements.txt
+cp .env.example .env
+
+<span class="cm"># Anthropic</span>
+python lena.py
+
+<span class="cm"># OpenAI</span>
+python lena.py --provider openai
+
+<span class="cm"># AWS Bedrock</span>
+python lena.py --provider bedrock
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>10</div>
+</div>
+
+<!-- SLIDE 10: 本章小结 -->
+<div class="slide">
+  <div class="slide-inner" style="justify-content:center">
+    <div class="ch-badge"><div class="ch-dot"></div>本章小结</div>
+    <div class="main-title" style="font-size:60px;margin-bottom:36px">五条金句</div>
+    <div style="display:flex;flex-direction:column;gap:20px;max-width:1100px">
+      <div class="glass-card" style="border-color:rgba(168,85,247,.3)">
+        <span class="hl-p">①</span> <strong>agent = LLM + loop + tools</strong>。掌握这个三元组，你就掌握了所有 agent 框架的本质。
+      </div>
+      <div class="glass-card" style="border-color:rgba(34,211,238,.3)">
+        <span class="hl-c">②</span> <strong>MVA 6 模块</strong>（Config / Provider / Memory / ToolRegistry / AgentLoop / Skills）是行业共识。三个开源实现都有对应体。
+      </div>
+      <div class="glass-card" style="border-color:rgba(74,222,128,.3)">
+        <span class="hl-g">③</span> <strong>tool_use 是 agent 的神经接口</strong>。Anthropic 和 OpenAI 格式不同，但逻辑相同：输出意图 → 执行 → 回填。
+      </div>
+      <div class="glass-card" style="border-color:rgba(251,146,60,.3)">
+        <span class="hl-o">④</span> <strong>messages[] 是唯一的真相源</strong>。用户输入、LLM 决策、工具结果——全在这个列表里。
+      </div>
+      <div class="glass-card" style="border-color:rgba(244,114,182,.3)">
+        <span style="color:var(--pink)">⑤</span> <strong>先裸写，后框架</strong>。等你写通 50 行，再看 LangChain 的源码，你会发现它只是这 50 行的装饰版本。
+      </div>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>11</div>
+</div>
+
+<!-- SLIDE 11: 下一章 -->
+<div class="slide">
+  <div class="slide-inner" style="justify-content:center;align-items:center;text-align:center">
+    <div class="ch-badge" style="margin:0 auto 28px"><div class="ch-dot"></div>下一章预告</div>
+    <div class="main-title" style="font-size:70px">Ch 4 · Tool 系统</div>
+    <div class="main-sub">任何能力都是工具</div>
+    <div style="display:flex;gap:20px;justify-content:center;margin:32px 0;flex-wrap:wrap">
+      <div class="glass-card" style="text-align:left;width:220px">
+        <div style="font-size:28px;margin-bottom:8px">📁</div>
+        <div style="font-weight:700;margin-bottom:4px">read_file</div>
+        <div style="font-size:15px;color:var(--dim)">读取文件内容</div>
+      </div>
+      <div class="glass-card" style="text-align:left;width:220px">
+        <div style="font-size:28px;margin-bottom:8px">✏️</div>
+        <div style="font-weight:700;margin-bottom:4px">write_file</div>
+        <div style="font-size:15px;color:var(--dim)">写入文件</div>
+      </div>
+      <div class="glass-card" style="text-align:left;width:220px">
+        <div style="font-size:28px;margin-bottom:8px">💻</div>
+        <div style="font-weight:700;margin-bottom:4px">shell_exec</div>
+        <div style="font-size:15px;color:var(--dim)">执行命令行</div>
+      </div>
+      <div class="glass-card" style="text-align:left;width:220px">
+        <div style="font-size:28px;margin-bottom:8px">🔍</div>
+        <div style="font-weight:700;margin-bottom:4px">web_search</div>
+        <div style="font-size:15px;color:var(--dim)">搜索网页</div>
+      </div>
+    </div>
+    <div style="font-size:20px;color:var(--dim)">
+      加工具不改核心 · Pydantic → JSON Schema 自动生成 · 并发执行
+    </div>
+    <div style="margin-top:40px;font-size:16px;color:var(--text-dim)">
+      代码：<code style="color:var(--cyan)">book/chapters/ch03-lena-is-born/code/lena-v0.3/</code>
+    </div>
+  </div>
+  <div class="page-num"><div class="page-dot"></div>12</div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div id="nav">
+  <button class="nav-btn" onclick="goSlide(-1)" id="prevBtn">← 上一张</button>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="nav-info" id="navInfo">1 / 12</div>
+  <button class="nav-btn" onclick="goSlide(1)" id="nextBtn">下一张 →</button>
+  <button class="nav-btn" onclick="toggleNotes()">📝 Notes</button>
+</div>
+<div class="notes-panel" id="notesPanel">
+  <div class="notes-label">Speaker Notes</div>
+  <div id="notesContent"></div>
+</div>
+
+<script>
+const NOTES=[
+  "封面页。强调本章是全书最关键的「亲手写」章节。等你写完 50 行，再去看任何框架都会清晰很多。",
+  "把这 5 条打印出来贴在学员面前。本章结束时逐条确认。「跑通」是最重要的一条。",
+  "可以现场展示 LangChain AgentExecutor 的调用链深度，让学员感受「需要扒开几层才能找到真正的 API 调用」。核心论点：学习阶段不引入框架，生产阶段可以用。",
+  "用手指从上往下走这张图，强调「循环」——不是一次调用，是 while 循环。这个心智模型是本书最核心的一个。",
+  "这 6 个模块是 LangChain、CrewAI、AutoGen 的公分母。框架只是在这 6 个模块外面加了一层 API。引用：R2 研究报告，三个开源实现的对比分析。",
+  "可以现场演示：不带 schema 调 API（LLM 不知道有工具）和带 schema 调 API（LLM 会决策调用工具），让学员看到差异。",
+  "这两种格式如果搞混，API 会直接报错。核心区别：Anthropic 用 user 角色回填结果，OpenAI 用 tool 角色。工具 ID 的字段名也不同（tool_use_id vs tool_call_id）。",
+  "逐行过代码。重点讲「必须先存 assistant 消息再存 tool_result」——这是最容易出错的地方。如果直接 append tool_result 而没有 assistant 消息，Anthropic API 会报 400 错误。",
+  "用手指指着时序图，配合代码讲，让学员把代码和时序图对应起来。关键洞察：LLM 被调用了 2 次，这是工具调用的基本开销。",
+  "让学员自己运行。看到「[工具]」这行输出时，鼓励庆祝——这是他们第一个 agent 工具调用！第二个问题的对比很重要：Memory 减少了不必要的工具调用。",
+  "让学员抄下这 5 条，作为本章的「出门证」。特别强调第 4 条：LLM 调用次数 = 工具轮数 + 1，这是成本计算的基础。",
+  "给学员一个期待：下章结束后，Lena 就能帮你查代码、执行命令了。从「知道几点」到「能干活」，是能力的一次质的飞跃。"
+];
+
+let cur=0,showNotes=false;
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+const dotsC=document.getElementById('navDots');
+
+// 初始化导航点
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='nav-dot'+(i===0?' cur':'');
+  d.onclick=()=>goTo(i);
+  dotsC.appendChild(d);
+});
+
+function goTo(n){
+  slides[cur].classList.remove('active');
+  dotsC.children[cur].classList.remove('cur');
+  cur=Math.max(0,Math.min(n,total-1));
+  slides[cur].classList.add('active');
+  dotsC.children[cur].classList.add('cur');
+  document.getElementById('navInfo').textContent=`${cur+1} / ${total}`;
+  document.getElementById('notesContent').textContent=NOTES[cur]||'';
+  document.getElementById('prevBtn').style.opacity=cur===0?.3:1;
+  document.getElementById('nextBtn').style.opacity=cur===total-1?.3:1;
+}
+
+function goSlide(d){goTo(cur+d)}
+function toggleNotes(){
+  showNotes=!showNotes;
+  document.getElementById('notesPanel').className='notes-panel'+(showNotes?' show':'');
+}
+
+// Scale to viewport
+function scale(){
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const s=Math.min(vw/1920,vh/1080);
+  document.getElementById('deck').style.transform=`scale(${s})`;
+  document.getElementById('deck').style.left=`${(vw-1920*s)/2}px`;
+  document.getElementById('deck').style.top=`${(vh-1080*s)/2}px`;
+}
+scale();
+window.addEventListener('resize',scale);
+
+// Keyboard navigation
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown')goSlide(1);
+  if(e.key==='ArrowLeft'||e.key==='PageUp')goSlide(-1);
+  if(e.key==='n'||e.key==='N')toggleNotes();
+});
+
+goTo(0);
+</script>
+</body>
+</html>

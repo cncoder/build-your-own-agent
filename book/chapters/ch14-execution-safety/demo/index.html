@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 14 · 执行安全</title>
+<style>
+/* ── 深空霓虹 · neon-rose accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #fb7185;        /* neon-rose */
+  --cyan: #22d3ee;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --violet: #a78bfa;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 64px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(251,113,133,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(167,139,250,0.04) 0%, transparent 50%);
+}
+header { text-align: center; margin-bottom: 32px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 14px; color: var(--dim); max-width: 620px; margin: 0 auto; line-height: 1.65; }
+
+/* ── 场景选择 ── */
+.scenario-bar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 28px;
+}
+.scenario-btn {
+  padding: 7px 16px; border-radius: 9px; cursor: pointer; font-size: 13px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim); transition: all 0.2s; font-family: var(--sans);
+}
+.scenario-btn:hover { border-color: rgba(251,113,133,0.35); color: var(--accent); }
+.scenario-btn.active { background: rgba(251,113,133,0.1); border-color: rgba(251,113,133,0.5); color: var(--accent); }
+
+/* ── 主布局 ── */
+.main { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+@media (max-width: 700px) { .main { grid-template-columns: 1fr; } }
+
+/* ── 三层安全门（左侧）── */
+.gates-col { display: flex; flex-direction: column; gap: 12px; }
+.gate-card {
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(6,12,28,0.85); padding: 14px 16px;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.gate-card.active { border-color: rgba(251,113,133,0.4); box-shadow: 0 0 20px rgba(251,113,133,0.08); }
+.gate-card.pass { border-color: rgba(52,211,153,0.35); box-shadow: 0 0 14px rgba(52,211,153,0.07); }
+.gate-card.block { border-color: rgba(251,113,133,0.5); box-shadow: 0 0 18px rgba(251,113,133,0.12); animation: pulse 0.5s ease 2; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.01)} }
+.gate-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.gate-icon { font-size: 18px; }
+.gate-name { font-size: 14px; font-weight: 600; }
+.gate-badge {
+  margin-left: auto; font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+}
+.badge-wait   { background: rgba(255,255,255,0.06); color: var(--muted); }
+.badge-check  { background: rgba(251,191,36,0.15); color: var(--amber); }
+.badge-pass   { background: rgba(52,211,153,0.2); color: var(--green); }
+.badge-block  { background: rgba(251,113,133,0.2); color: var(--accent); }
+.gate-desc { font-size: 12px; color: var(--dim); line-height: 1.5; }
+
+/* ── 右侧执行流 ── */
+.exec-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* Agent 代码卡 */
+.code-card {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; overflow: hidden;
+}
+.code-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.code-title { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.code-badge { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-left: auto; }
+.badge-agent { background: rgba(167,139,250,0.15); color: var(--violet); }
+.badge-sandbox { background: rgba(34,211,238,0.15); color: var(--cyan); }
+.badge-vault { background: rgba(251,191,36,0.15); color: var(--amber); }
+.code-body { font-family: var(--mono); font-size: 13px; padding: 14px 16px; line-height: 1.7; }
+.code-line { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 2px; }
+.code-ln { color: var(--muted); font-size: 11px; width: 20px; text-align: right; flex-shrink: 0; padding-top: 2px; }
+.code-text { flex: 1; }
+.code-line.highlight { background: rgba(251,113,133,0.08); border-radius: 4px; padding: 1px 4px; margin: 0 -4px; }
+.code-line.blocked { background: rgba(251,113,133,0.15); text-decoration: line-through; opacity: 0.7; border-radius: 4px; padding: 1px 4px; margin: 0 -4px; }
+.code-kw { color: var(--violet); }
+.code-fn { color: var(--cyan); }
+.code-str { color: var(--green); }
+.code-cmt { color: var(--muted); font-style: italic; }
+.code-bad { color: var(--accent); }
+
+/* 执行输出流 */
+.output-stream { display: flex; flex-direction: column; gap: 6px; }
+.out-row {
+  display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px;
+  border-radius: 8px; font-size: 13px;
+  opacity: 0; transform: translateX(8px);
+  transition: all 0.35s;
+}
+.out-row.show { opacity: 1; transform: translateX(0); }
+.out-info  { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); color: var(--dim); }
+.out-pass  { background: rgba(52,211,153,0.06);  border: 1px solid rgba(52,211,153,0.2); color: var(--green); }
+.out-warn  { background: rgba(251,191,36,0.06);  border: 1px solid rgba(251,191,36,0.2); color: var(--amber); }
+.out-block { background: rgba(251,113,133,0.08); border: 1px solid rgba(251,113,133,0.3); color: var(--accent); font-weight: 600; }
+.out-icon { font-size: 14px; flex-shrink: 0; }
+.out-time { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+/* 审批弹窗 */
+.approval-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.approval-overlay.show { opacity: 1; pointer-events: auto; }
+.approval-modal {
+  background: #0d1524; border: 1px solid rgba(251,191,36,0.35);
+  border-radius: 16px; padding: 28px; max-width: 440px; width: 90%;
+  box-shadow: 0 0 40px rgba(251,191,36,0.1);
+  transform: scale(0.95); transition: transform 0.3s;
+}
+.approval-overlay.show .approval-modal { transform: scale(1); }
+.appr-title { font-size: 16px; font-weight: 700; color: var(--amber); margin-bottom: 6px; }
+.appr-sub { font-size: 13px; color: var(--dim); margin-bottom: 16px; line-height: 1.5; }
+.appr-code { font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; color: var(--text); margin-bottom: 18px; }
+.appr-btns { display: flex; gap: 10px; }
+.btn-approve {
+  flex: 1; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;
+  background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4); color: var(--green);
+  transition: all 0.2s;
+}
+.btn-approve:hover { background: rgba(52,211,153,0.22); }
+.btn-deny {
+  flex: 1; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;
+  background: rgba(251,113,133,0.1); border: 1px solid rgba(251,113,133,0.4); color: var(--accent);
+  transition: all 0.2s;
+}
+.btn-deny:hover { background: rgba(251,113,133,0.2); }
+
+/* Controls */
+.controls { max-width: 960px; margin: 20px auto 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn-primary {
+  padding: 10px 24px; border-radius: 9px;
+  background: rgba(251,113,133,0.12); border: 1px solid rgba(251,113,133,0.4);
+  color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.btn-primary:hover { background: rgba(251,113,133,0.22); }
+.btn-reset {
+  padding: 10px 16px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s;
+}
+.btn-reset:hover { color: var(--dim); }
+.status-txt { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)} }
+.shake { animation: shake 0.4s ease; }
+
+footer { text-align: center; margin-top: 48px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Ch 14 · 执行安全</div>
+  <h1>三层安全门：沙盒 · 审批 · 凭据隔离</h1>
+  <p>通用 agent 能执行任意代码，这意味着它也能误删文件、泄露密钥。三层安全机制从不同维度守卫执行边界，让「强大」和「可控」同时成立。</p>
+</header>
+
+<!-- 场景选择 -->
+<div class="scenario-bar">
+  <button class="scenario-btn active" data-scene="0" onclick="selectScene(0)">正常代码执行</button>
+  <button class="scenario-btn" data-scene="1" onclick="selectScene(1)">恶意命令拦截</button>
+  <button class="scenario-btn" data-scene="2" onclick="selectScene(2)">高风险操作审批</button>
+  <button class="scenario-btn" data-scene="3" onclick="selectScene(3)">凭据隔离演示</button>
+</div>
+
+<div class="main">
+  <!-- 左：三层安全门 -->
+  <div class="gates-col">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px">三层防御</div>
+    <div class="gate-card" id="gate-approval">
+      <div class="gate-header">
+        <span class="gate-icon">🔐</span>
+        <span class="gate-name">Approval Gate</span>
+        <span class="gate-badge badge-wait" id="badge-approval">待触发</span>
+      </div>
+      <div class="gate-desc">高风险操作（删除/部署/外发）需人工审批后才能继续执行。</div>
+    </div>
+    <div class="gate-card" id="gate-sandbox">
+      <div class="gate-header">
+        <span class="gate-icon">📦</span>
+        <span class="gate-name">Sandbox</span>
+        <span class="gate-badge badge-wait" id="badge-sandbox">待触发</span>
+      </div>
+      <div class="gate-desc">代码在隔离容器中执行，无网络、无宿主文件系统访问，token 不可达。</div>
+    </div>
+    <div class="gate-card" id="gate-vault">
+      <div class="gate-header">
+        <span class="gate-icon">🗝️</span>
+        <span class="gate-name">Vault（凭据隔离）</span>
+        <span class="gate-badge badge-wait" id="badge-vault">待触发</span>
+      </div>
+      <div class="gate-desc">API Key / Secret 不注入 agent context，仅在执行层按需取用，沙盒内永不可读原文。</div>
+    </div>
+
+    <!-- 安全状态汇总 -->
+    <div style="margin-top:8px;padding:14px;background:rgba(6,12,28,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px">安全状态</div>
+      <div id="status-summary" style="font-size:13px;color:var(--dim);line-height:1.6">等待执行…</div>
+    </div>
+  </div>
+
+  <!-- 右：代码 + 执行输出 -->
+  <div class="exec-col">
+    <!-- 代码区 -->
+    <div class="code-card" id="code-card"><!-- 动态填充 --></div>
+    <!-- 输出流 -->
+    <div style="background:rgba(6,12,28,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:12px">执行日志</div>
+      <div class="output-stream" id="output-stream">
+        <div style="font-size:13px;color:var(--muted)">点击"开始演示"运行场景</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 控制栏 -->
+<div class="controls">
+  <button class="btn-primary" id="btn-run" onclick="runScene()">▶ 开始演示</button>
+  <button class="btn-reset" onclick="resetScene()">重置</button>
+  <span class="status-txt" id="status-txt"></span>
+</div>
+
+<!-- 审批弹窗 -->
+<div class="approval-overlay" id="approval-overlay">
+  <div class="approval-modal">
+    <div class="appr-title">⚠️ 需要人工审批</div>
+    <div class="appr-sub" id="appr-sub">Agent 请求执行高风险操作，请确认是否允许继续：</div>
+    <div class="appr-code" id="appr-code"></div>
+    <div class="appr-btns">
+      <button class="btn-approve" onclick="approveAction(true)">✓ 批准执行</button>
+      <button class="btn-deny" onclick="approveAction(false)">✗ 拒绝</button>
+    </div>
+  </div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 14 章 · 执行安全 · 交互式 Demo</footer>
+
+<script>
+// ── 场景数据 ──
+const SCENES = [
+  {
+    name: '正常代码执行',
+    codeTitle: 'agent_task.py',
+    codeType: 'agent',
+    lines: [
+      { text: '<span class="code-kw">import</span> subprocess', normal: true },
+      { text: '<span class="code-kw">import</span> os', normal: true },
+      { text: '', normal: true },
+      { text: '<span class="code-cmt"># 在沙盒中执行：列出文件</span>', normal: true },
+      { text: 'result = subprocess.<span class="code-fn">run</span>(', normal: true },
+      { text: '    [<span class="code-str">"ls"</span>, <span class="code-str">"-la"</span>, <span class="code-str">"/workspace"</span>],', normal: true },
+      { text: '    capture_output=<span class="code-kw">True</span>', normal: true },
+      { text: ')', normal: true },
+      { text: '<span class="code-fn">print</span>(result.stdout)', normal: true },
+    ],
+    outputs: [
+      { cls: 'out-info', icon: '→', text: 'Agent 生成代码，提交至沙盒执行器', time: '0ms' },
+      { cls: 'out-pass', icon: '✓', text: 'Approval Gate：ls 命令为只读操作，自动放行', time: '12ms' },
+      { cls: 'out-pass', icon: '✓', text: 'Sandbox：在隔离容器 #4f2a 中启动（无网络，挂载 /workspace 只读）', time: '48ms' },
+      { cls: 'out-pass', icon: '✓', text: 'Vault：本次操作无需凭据，跳过', time: '49ms' },
+      { cls: 'out-info', icon: '▶', text: '执行 ls -la /workspace…', time: '55ms' },
+      { cls: 'out-pass', icon: '✓', text: '执行成功，返回 12 行文件列表', time: '89ms' },
+    ],
+    gates: { approval: 'pass', sandbox: 'pass', vault: 'skip' },
+    summary: '✓ 全部通过<br>沙盒隔离保障了宿主机安全',
+  },
+  {
+    name: '恶意命令拦截',
+    codeTitle: 'agent_task.py（注入检测）',
+    codeType: 'agent',
+    lines: [
+      { text: '<span class="code-kw">import</span> subprocess', normal: true },
+      { text: '', normal: true },
+      { text: '<span class="code-cmt"># 用户注入的恶意 payload</span>', normal: true },
+      { text: 'cmd = <span class="code-bad">"ls /; rm -rf /"</span>  <span class="code-cmt"># ← 危险！</span>', highlight: true },
+      { text: 'subprocess.<span class="code-fn">run</span>(cmd, shell=<span class="code-kw">True</span>)', blocked: true },
+    ],
+    outputs: [
+      { cls: 'out-info', icon: '→', text: 'Agent 生成代码（含用户注入 payload），提交审查', time: '0ms' },
+      { cls: 'out-warn', icon: '⚠', text: 'Approval Gate：静态分析检测到 rm -rf 模式', time: '8ms' },
+      { cls: 'out-block', icon: '✗', text: '⛔ BLOCKED — 命令包含破坏性操作（rm -rf /），已拦截，不进入沙盒', time: '9ms' },
+      { cls: 'out-block', icon: '✗', text: '错误已记录至审计日志，用户收到告警', time: '10ms' },
+    ],
+    gates: { approval: 'block', sandbox: 'skip', vault: 'skip' },
+    summary: '🛡️ 在第一层拦截<br>恶意命令未进入沙盒',
+  },
+  {
+    name: '高风险操作审批',
+    codeTitle: 'deploy_task.py',
+    codeType: 'agent',
+    lines: [
+      { text: '<span class="code-kw">import</span> boto3', normal: true },
+      { text: '', normal: true },
+      { text: '<span class="code-cmt"># 删除生产数据库快照</span>', normal: true },
+      { text: 'rds = boto3.<span class="code-fn">client</span>(<span class="code-str">"rds"</span>)', normal: true },
+      { text: 'rds.<span class="code-fn">delete_db_snapshot</span>(  <span class="code-cmt"># ⚠ 高风险</span>', highlight: true },
+      { text: '    DBSnapshotIdentifier=<span class="code-str">"prod-db-2025-05"</span>', highlight: true },
+      { text: ')', highlight: true },
+    ],
+    outputs: [], // 由审批弹窗控制
+    gates: { approval: 'check', sandbox: 'wait', vault: 'wait' },
+    summary: '⏳ 等待人工审批…',
+    requiresApproval: true,
+    approvalCode: 'rds.delete_db_snapshot(\n    DBSnapshotIdentifier="prod-db-2025-05"\n)',
+    approvalDesc: 'Agent 请求删除生产环境 RDS 快照，此操作不可逆。',
+  },
+  {
+    name: '凭据隔离演示',
+    codeTitle: 'api_call.py（Vault 模式）',
+    codeType: 'agent',
+    lines: [
+      { text: '<span class="code-kw">from</span> vault <span class="code-kw">import</span> get_secret', normal: true },
+      { text: '', normal: true },
+      { text: '<span class="code-cmt"># ✓ 正确：通过 Vault 获取，agent context 不含原文</span>', normal: true },
+      { text: 'token = get_secret(<span class="code-str">"openai-api-key"</span>)', normal: true },
+      { text: '<span class="code-cmt"># token = "sk-..." ← agent 永远看不到</span>', normal: true },
+      { text: '', normal: true },
+      { text: '<span class="code-cmt"># ✗ 错误示范（被 PromptGuard 拦截）</span>', normal: true },
+      { text: '<span class="code-bad">API_KEY = <span class="code-str">"sk-proj-abc123..."</span></span>  <span class="code-cmt"># ← 明文泄露</span>', blocked: true },
+    ],
+    outputs: [
+      { cls: 'out-info', icon: '→', text: 'Agent 尝试通过 Vault API 获取凭据', time: '0ms' },
+      { cls: 'out-pass', icon: '✓', text: 'Approval Gate：只读 API 调用，自动放行', time: '5ms' },
+      { cls: 'out-pass', icon: '✓', text: 'Sandbox：在隔离容器中运行，无法访问宿主机 ~/.aws', time: '20ms' },
+      { cls: 'out-pass', icon: '✓', text: 'Vault：注入临时 token（TTL=5min），原始 key 不可达', time: '35ms' },
+      { cls: 'out-warn', icon: '⚠', text: 'PromptGuard：检测到明文 API Key 模式 sk-proj-...', time: '36ms' },
+      { cls: 'out-block', icon: '✗', text: '⛔ 明文凭据注入 context 已拦截，建议改用 vault.get_secret()', time: '37ms' },
+    ],
+    gates: { approval: 'pass', sandbox: 'pass', vault: 'block' },
+    summary: '✓ 沙盒通过<br>⛔ 明文凭据被拦截',
+  },
+];
+
+let currentScene = 0;
+let running = false;
+let approvalCallback = null;
+
+function selectScene(idx) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.toggle('active', +b.dataset.scene === idx));
+  currentScene = idx;
+  resetScene();
+}
+
+function resetScene() {
+  running = false;
+  renderCode(currentScene);
+  document.getElementById('output-stream').innerHTML = '<div style="font-size:13px;color:var(--muted)">点击"开始演示"运行场景</div>';
+  document.getElementById('status-txt').textContent = '';
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('status-summary').innerHTML = '等待执行…';
+  ['approval','sandbox','vault'].forEach(g => setGate(g, 'wait'));
+}
+
+function renderCode(idx) {
+  const s = SCENES[idx];
+  const badgeType = s.codeType === 'agent' ? 'badge-agent' : 'badge-sandbox';
+  const lines = s.lines.map((l, i) => {
+    const cls = l.blocked ? 'code-line blocked' : l.highlight ? 'code-line highlight' : 'code-line';
+    return `<div class="${cls}"><span class="code-ln">${i+1}</span><span class="code-text">${l.text || '&nbsp;'}</span></div>`;
+  }).join('');
+  document.getElementById('code-card').innerHTML = `
+    <div class="code-header">
+      <span class="code-title">${s.codeTitle}</span>
+      <span class="code-badge ${badgeType}">AGENT</span>
+    </div>
+    <div class="code-body">${lines}</div>`;
+}
+
+function setGate(name, state) {
+  const card = document.getElementById('gate-' + name);
+  const badge = document.getElementById('badge-' + name);
+  card.className = 'gate-card' + (state !== 'wait' ? ' ' + state : '');
+  const labels = { wait: '待触发', check: '检查中…', pass: '✓ 通过', block: '✗ 拦截', skip: '— 跳过' };
+  const clss = { wait: 'badge-wait', check: 'badge-check', pass: 'badge-pass', block: 'badge-block', skip: 'badge-wait' };
+  badge.textContent = labels[state] || state;
+  badge.className = 'gate-badge ' + (clss[state] || 'badge-wait');
+  if (state === 'block') { card.classList.add('shake'); setTimeout(() => card.classList.remove('shake'), 500); }
+}
+
+function addOutput(out, delay) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const stream = document.getElementById('output-stream');
+      if (stream.querySelector('[data-placeholder]')) stream.innerHTML = '';
+      const row = document.createElement('div');
+      row.className = 'out-row ' + out.cls;
+      row.innerHTML = `<span class="out-icon">${out.icon}</span><span>${out.text}</span><span class="out-time">${out.time}</span>`;
+      stream.appendChild(row);
+      requestAnimationFrame(() => requestAnimationFrame(() => row.classList.add('show')));
+      resolve();
+    }, delay);
+  });
+}
+
+async function runScene() {
+  if (running) return;
+  running = true;
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('output-stream').innerHTML = '';
+
+  const s = SCENES[currentScene];
+  const gates = s.gates;
+
+  // 激活门
+  ['approval','sandbox','vault'].forEach(g => setGate(g, 'check'));
+
+  if (s.requiresApproval) {
+    // 显示审批弹窗
+    await delay(600);
+    setGate('approval', 'check');
+    await new Promise(resolve => {
+      approvalCallback = (approved) => {
+        if (approved) {
+          setGate('approval', 'pass');
+          setGate('sandbox', 'pass');
+          setGate('vault', 'pass');
+          document.getElementById('status-summary').innerHTML = '✓ 审批通过<br>继续执行';
+          const postOutputs = [
+            { cls: 'out-pass', icon: '✓', text: 'Approval Gate：人工审批通过', time: '—' },
+            { cls: 'out-pass', icon: '✓', text: 'Sandbox：在隔离容器中执行删除操作', time: '+120ms' },
+            { cls: 'out-pass', icon: '✓', text: 'Vault：RDS 访问凭据按需注入（临时 token）', time: '+130ms' },
+            { cls: 'out-pass', icon: '✓', text: '快照删除成功，操作记录至审计日志', time: '+890ms' },
+          ];
+          postOutputs.forEach((o, i) => addOutput(o, i * 400));
+        } else {
+          setGate('approval', 'block');
+          setGate('sandbox', 'skip');
+          setGate('vault', 'skip');
+          document.getElementById('status-summary').innerHTML = '✗ 人工拒绝<br>操作未执行';
+          addOutput({ cls: 'out-block', icon: '✗', text: '⛔ 人工拒绝，操作取消，记录至审计日志', time: '—' }, 100);
+        }
+        resolve();
+      };
+      showApproval(s.approvalDesc, s.approvalCode);
+    });
+  } else {
+    // 普通场景
+    let delay_ms = 300;
+    for (const out of s.outputs) {
+      await addOutput(out, delay_ms);
+      delay_ms += 500;
+    }
+    await delay(delay_ms);
+    setGate('approval', gates.approval || 'wait');
+    setGate('sandbox', gates.sandbox || 'wait');
+    setGate('vault', gates.vault || 'wait');
+    document.getElementById('status-summary').innerHTML = s.summary || '完成';
+  }
+
+  document.getElementById('btn-run').disabled = false;
+  running = false;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showApproval(desc, code) {
+  document.getElementById('appr-sub').textContent = desc;
+  document.getElementById('appr-code').textContent = code;
+  document.getElementById('approval-overlay').classList.add('show');
+}
+
+function approveAction(approved) {
+  document.getElementById('approval-overlay').classList.remove('show');
+  if (approvalCallback) { approvalCallback(approved); approvalCallback = null; }
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', e => {
+  if (e.key === 'r' || e.key === 'R') resetScene();
+  if (e.key === 'Escape') document.getElementById('approval-overlay').classList.remove('show');
+});
+
+// 初始化
+renderCode(0);
+</script>
+</body>
+</html>

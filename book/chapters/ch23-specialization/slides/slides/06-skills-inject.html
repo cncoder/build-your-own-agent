@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+.tag { display: inline-block; background: rgba(153,102,255,0.15); border: 1px solid rgba(153,102,255,0.4); border-radius: 4px; padding: 4px 14px; font-size: 14px; color: #cc88ff; vertical-align: middle; margin-right: 16px; }
+
+.layout { position: absolute; top: 240px; left: 100px; right: 100px; display: flex; gap: 40px; }
+.col { flex: 1; }
+.col-title { font-size: 13px; letter-spacing: 0.25em; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 16px; }
+
+.sop-box {
+  background: #0c0e18; border: 1px solid rgba(153,102,255,0.15);
+  border-radius: 6px; padding: 20px 22px; font-family: 'SF Mono','Fira Code',monospace;
+  font-size: 12px; line-height: 1.85; color: #9099b0;
+  height: 640px; overflow: hidden;
+}
+.sop-h1 { color: #cc88ff; font-weight: 700; }
+.sop-h2 { color: #9966ff; }
+.sop-key { color: #66bbff; }
+.sop-val { color: #88ddaa; }
+.sop-warn { color: #ff9966; }
+
+.benefits {
+  display: flex; flex-direction: column; gap: 16px;
+}
+.benefit-item {
+  padding: 18px 20px;
+  border-radius: 6px;
+  background: rgba(153,102,255,0.04); border: 1px solid rgba(153,102,255,0.12);
+}
+.benefit-num { font-size: 28px; font-weight: 900; color: #9966ff; margin-bottom: 6px; font-family: monospace; }
+.benefit-label { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+.benefit-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+.warning {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: rgba(255,150,0,0.05); border: 1px solid rgba(255,150,0,0.2);
+  border-radius: 6px; font-size: 13px; color: rgba(255,200,120,0.75); line-height: 1.7;
+}
+.warning strong { color: #ffaa44; }
+</style>
+</head>
+<body>
+<div class="title">派生姿势 ③ · 领域专家化</div>
+<div class="heading"><span class="tag">③ Skills 注入</span>把 SOP 文档注入 agent</div>
+
+<div class="layout">
+  <div class="col">
+    <div class="col-title">trading-sop.md（注入 TradingBot 的 skill）</div>
+    <div class="sop-box">
+<span class="sop-h1"># Trading SOP</span>
+
+<span class="sop-h2">## Step 1：市场扫描（每 5 分钟）</span>
+- 调用 <span class="sop-key">get_price</span> 获取实时价格
+- 调用 <span class="sop-key">get_indicators</span> 获取 RSI(14)、MACD(12/26/9)、BB(20,2)
+
+<span class="sop-h2">## Step 2：信号确认（≥2/3 指标共振）</span>
+多头：RSI &lt; 60 + <span class="sop-val">MACD 金叉</span> + BB 中轨以上
+空头：RSI &gt; 40 + <span class="sop-val">MACD 死叉</span> + BB 中轨以下
+
+<span class="sop-h2">## Step 3：风控（代码层硬编码，不可绕过）</span>
+<span class="sop-warn">单笔敞口 ≤ 总资金 2%</span>
+<span class="sop-warn">连续亏损 3 次 → 熔断 24h</span>
+<span class="sop-warn">每日最大亏损 ≤ 5%</span>
+
+<span class="sop-h2">## Step 4：执行</span>
+1. 记录决策理由到 <span class="sop-key">trade_log.jsonl</span>
+2. 调用 <span class="sop-key">place_order</span>
+3. 设置止损 -1.5% + 止盈 +3%
+
+<span class="sop-h2">## 熔断状态机</span>
+<span class="sop-val">CLOSED</span> → (连续亏 3) → <span class="sop-warn">OPEN</span>
+<span class="sop-warn">OPEN</span>   → (冷却 24h) → <span class="sop-val">HALF_OPEN</span>
+<span class="sop-val">HALF_OPEN</span> → (1 笔盈利 + 清零计数) → <span class="sop-val">CLOSED</span>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="col-title">Skills 注入的三大好处</div>
+    <div class="benefits">
+      <div class="benefit-item">
+        <div class="benefit-num">01</div>
+        <div class="benefit-label">可版本管理</div>
+        <div class="benefit-desc">SOP 是 markdown 文件，可以 git 追踪变更历史，可以 code review，可以 A/B 测试不同策略版本</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-num">02</div>
+        <div class="benefit-label">热加载更新</div>
+        <div class="benefit-desc">auto_eval 机制可以在不重启 agent 的情况下更新策略参数，实时生效</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-num">03</div>
+        <div class="benefit-label">结构化比 prompt 更好</div>
+        <div class="benefit-desc">Step-by-step SOP 比散文式 prompt 更能让 LLM 按顺序执行，减少遗漏关键步骤</div>
+      </div>
+    </div>
+    <div class="warning">
+      <strong>血泪教训 [案例 19.1]：</strong>auto_eval 热加载会覆盖 <code>config.py</code>——热加载只能更新 <code>eval_params</code> 命名空间，不能碰 <code>base_config</code>。<br>
+      加 version lock：<code>config._locked = True</code> 后不允许 eval 覆盖。
+    </div>
+  </div>
+</div>
+</body>
+</html>

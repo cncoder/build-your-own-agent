@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 04 · LLM 内部机制可视化</title>
+<style>
+/* ── 深空霓虹 · neon-cyan accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #22d3ee;        /* neon-cyan */
+  --green: #34d399;
+  --violet: #a78bfa;
+  --amber: #fbbf24;
+  --rose: #fb7185;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 64px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(34,211,238,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(167,139,250,0.04) 0%, transparent 50%);
+}
+header { text-align: center; margin-bottom: 32px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 14px; color: var(--dim); max-width: 600px; margin: 0 auto; line-height: 1.65; }
+
+/* ── 输入区 ── */
+.input-section {
+  max-width: 860px; margin: 0 auto 28px;
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(34,211,238,0.15);
+  border-radius: 14px; padding: 20px;
+}
+.input-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.input-row label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+#text-input {
+  flex: 1; min-width: 200px; padding: 9px 14px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 8px; color: var(--text); font-size: 14px; font-family: var(--sans);
+  outline: none; transition: border-color 0.2s;
+}
+#text-input:focus { border-color: rgba(34,211,238,0.5); }
+.btn-run {
+  padding: 9px 22px; border-radius: 8px;
+  background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.4);
+  color: var(--accent); font-size: 14px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.btn-run:hover { background: rgba(34,211,238,0.22); }
+.sample-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.sample-btn {
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--dim);
+  transition: all 0.2s;
+}
+.sample-btn:hover { border-color: rgba(34,211,238,0.35); color: var(--accent); }
+
+/* ── 四阶段面板 ── */
+.pipeline {
+  max-width: 860px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.phase-card {
+  background: rgba(6,12,28,0.85);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; overflow: hidden;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.phase-card.active {
+  border-color: rgba(34,211,238,0.35);
+  box-shadow: 0 0 24px rgba(34,211,238,0.08);
+}
+.phase-card.done { border-color: rgba(34,211,238,0.18); }
+.phase-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.2);
+}
+.phase-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--muted); flex-shrink: 0;
+  transition: all 0.3s;
+}
+.phase-card.active .phase-num, .phase-card.done .phase-num {
+  background: rgba(34,211,238,0.15); border-color: rgba(34,211,238,0.5);
+  color: var(--accent);
+}
+.phase-title { font-size: 15px; font-weight: 600; }
+.phase-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+.phase-body { padding: 18px; min-height: 80px; }
+
+/* ── Phase 1: Tokenizer ── */
+.token-stream { display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; align-items: center; }
+.token-chip {
+  padding: 4px 10px; border-radius: 6px; font-family: var(--mono); font-size: 13px;
+  background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.25);
+  color: var(--accent);
+  opacity: 0; transform: scale(0.8);
+  transition: all 0.2s;
+}
+.token-chip.show { opacity: 1; transform: scale(1); }
+.token-chip .tid { font-size: 9px; color: var(--muted); display: block; text-align: center; margin-top: 1px; }
+.token-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+/* ── Phase 2: Embedding ── */
+.embedding-grid {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start;
+}
+.emb-token-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.emb-label { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+.emb-bars { display: flex; gap: 2px; align-items: flex-end; height: 50px; }
+.emb-bar {
+  width: 6px; border-radius: 2px 2px 0 0;
+  background: rgba(34,211,238,0.4);
+  transition: height 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.emb-dim { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.emb-note { font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.5; }
+
+/* ── Phase 3: Attention ── */
+.attn-wrap { overflow-x: auto; }
+.attn-table { border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+.attn-table th { padding: 6px 10px; color: var(--muted); font-weight: 500; text-align: center; white-space: nowrap; }
+.attn-table td { width: 44px; height: 44px; text-align: center; border: 1px solid rgba(255,255,255,0.05); position: relative; }
+.attn-cell {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; border-radius: 4px;
+  transition: background 0.5s;
+}
+.attn-row-label { padding: 6px 10px; color: var(--dim); white-space: nowrap; text-align: right; font-size: 12px; }
+.attn-note { font-size: 12px; color: var(--dim); margin-top: 12px; line-height: 1.5; }
+
+/* ── Phase 4: Logits ── */
+.logits-list { display: flex; flex-direction: column; gap: 7px; }
+.logit-row { display: flex; align-items: center; gap: 10px; }
+.logit-token { font-family: var(--mono); font-size: 13px; color: var(--text); width: 80px; text-align: right; flex-shrink: 0; }
+.logit-bar-wrap { flex: 1; background: rgba(255,255,255,0.04); border-radius: 4px; height: 22px; overflow: hidden; }
+.logit-bar { height: 100%; border-radius: 4px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); display: flex; align-items: center; padding-left: 8px; }
+.logit-pct { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.logit-top { --c: var(--accent); }
+.logit-bar { background: linear-gradient(90deg, rgba(34,211,238,0.25), rgba(34,211,238,0.12)); }
+.logit-row.top1 .logit-bar { background: linear-gradient(90deg, rgba(34,211,238,0.5), rgba(34,211,238,0.2)); }
+.logit-row.top1 .logit-pct { color: var(--accent); }
+
+/* ── Cost counter ── */
+.cost-bar {
+  max-width: 860px; margin: 18px auto 0;
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(34,211,238,0.1);
+  border-radius: 12px; padding: 14px 20px;
+  display: flex; gap: 32px; flex-wrap: wrap; align-items: center;
+}
+.cost-item { display: flex; flex-direction: column; }
+.cost-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2px; }
+.cost-val { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--accent); }
+.cost-val.sub { font-size: 14px; color: var(--dim); }
+.ctx-slider-row { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-wrap: wrap; }
+.ctx-label { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+#ctx-slider { width: 160px; accent-color: var(--accent); cursor: pointer; }
+
+@keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.fadein { animation: fadein 0.4s ease both; }
+
+footer { text-align: center; margin-top: 48px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Ch 04 · LLM 内部机制</div>
+  <h1>Token → Embedding → Attention → Logits</h1>
+  <p>输入一段文字，观察大语言模型如何将文字拆成 token、映射到高维空间、计算注意力权重、最终预测下一个词。</p>
+</header>
+
+<!-- 输入区 -->
+<div class="input-section">
+  <div class="input-row">
+    <label>输入文本：</label>
+    <input id="text-input" type="text" value="今天北京天气怎样" maxlength="30" placeholder="输入中文或英文...">
+    <button class="btn-run" onclick="runPipeline()">▶ 运行流水线</button>
+  </div>
+  <div class="sample-btns">
+    <span class="sample-btn" onclick="setSample('今天北京天气怎样')">今天北京天气怎样</span>
+    <span class="sample-btn" onclick="setSample('The quick brown fox')">The quick brown fox</span>
+    <span class="sample-btn" onclick="setSample('agent 如何调用工具')">agent 如何调用工具</span>
+    <span class="sample-btn" onclick="setSample('Hello World')">Hello World</span>
+  </div>
+</div>
+
+<!-- 四阶段流水线 -->
+<div class="pipeline">
+
+  <!-- Phase 1: Tokenizer -->
+  <div class="phase-card" id="phase1">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <div>
+        <div class="phase-title">Tokenizer — 文字拆成 Token</div>
+      </div>
+      <div class="phase-sub" id="ph1-sub">等待输入…</div>
+    </div>
+    <div class="phase-body">
+      <div class="token-stream" id="token-stream">
+        <span style="color:var(--muted);font-size:13px">点击"运行流水线"开始</span>
+      </div>
+      <div class="token-meta" id="token-meta"></div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Embedding -->
+  <div class="phase-card" id="phase2">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <div>
+        <div class="phase-title">Embedding — 映射到高维向量空间</div>
+      </div>
+      <div class="phase-sub" id="ph2-sub">等待 Phase 1…</div>
+    </div>
+    <div class="phase-body">
+      <div class="embedding-grid" id="emb-grid">
+        <span style="color:var(--muted);font-size:13px">Phase 1 完成后显示</span>
+      </div>
+      <div class="emb-note" id="emb-note"></div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Attention -->
+  <div class="phase-card" id="phase3">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <div>
+        <div class="phase-title">Attention — 每个词关注哪些词？</div>
+      </div>
+      <div class="phase-sub" id="ph3-sub">等待 Phase 2…</div>
+    </div>
+    <div class="phase-body">
+      <div class="attn-wrap" id="attn-wrap">
+        <span style="color:var(--muted);font-size:13px">Phase 2 完成后显示</span>
+      </div>
+      <div class="attn-note" id="attn-note"></div>
+    </div>
+  </div>
+
+  <!-- Phase 4: Logits -->
+  <div class="phase-card" id="phase4">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <div>
+        <div class="phase-title">Logits — 预测下一个 Token 的概率分布</div>
+      </div>
+      <div class="phase-sub" id="ph4-sub">等待 Phase 3…</div>
+    </div>
+    <div class="phase-body">
+      <div class="logits-list" id="logits-list">
+        <span style="color:var(--muted);font-size:13px">Phase 3 完成后显示</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 成本计数器 -->
+<div class="cost-bar">
+  <div class="cost-item">
+    <div class="cost-label">Token 数量</div>
+    <div class="cost-val" id="cost-tokens">0</div>
+  </div>
+  <div class="cost-item">
+    <div class="cost-label">Context Window 使用</div>
+    <div class="cost-val sub" id="cost-ctx">0 / 200k tokens</div>
+  </div>
+  <div class="cost-item">
+    <div class="cost-label">推理成本估算</div>
+    <div class="cost-val" id="cost-usd">$0.000000</div>
+  </div>
+  <div class="ctx-slider-row">
+    <span class="ctx-label">模拟上下文：</span>
+    <input type="range" id="ctx-slider" min="0" max="200000" step="1000" value="0" oninput="updateCostBar()">
+    <span class="cost-label" id="ctx-val">0k</span>
+  </div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 04 章 · LLM 内部机制 · 交互式 Demo</footer>
+
+<script>
+// ── 简化 tokenizer（演示用）──
+// 中文按字拆，英文按空格/常用子词拆
+function tokenize(text) {
+  const tokens = [];
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (/[一-鿿]/.test(ch)) {
+      // 中文字符：单字 token
+      tokens.push({ text: ch, id: 10000 + Math.floor(Math.random() * 50000) });
+      i++;
+    } else if (/[a-zA-Z]/.test(ch)) {
+      // 英文：贪心收集单词，可能拆为 2 个 subword
+      let word = '';
+      while (i < text.length && /[a-zA-Z]/.test(text[i])) { word += text[i++]; }
+      if (word.length > 5) {
+        // 长词拆成两段模拟 BPE
+        const mid = Math.ceil(word.length * 0.6);
+        tokens.push({ text: word.slice(0, mid), id: 5000 + Math.floor(Math.random() * 20000) });
+        tokens.push({ text: '##' + word.slice(mid), id: 5000 + Math.floor(Math.random() * 20000) });
+      } else {
+        tokens.push({ text: word, id: 5000 + Math.floor(Math.random() * 20000) });
+      }
+    } else if (ch === ' ') {
+      i++;
+    } else {
+      tokens.push({ text: ch, id: 1000 + ch.charCodeAt(0) });
+      i++;
+    }
+  }
+  return tokens;
+}
+
+// 伪随机可重复
+function seededRand(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 4294967296;
+  };
+}
+
+let TOKENS = [];
+
+function runPipeline() {
+  const text = document.getElementById('text-input').value.trim();
+  if (!text) return;
+  TOKENS = tokenize(text);
+  // 重置所有阶段
+  ['phase1','phase2','phase3','phase4'].forEach(id => {
+    document.getElementById(id).className = 'phase-card';
+  });
+
+  phase1(TOKENS);
+}
+
+function setSample(s) {
+  document.getElementById('text-input').value = s;
+  runPipeline();
+}
+
+// ── Phase 1 ──
+function phase1(tokens) {
+  const card = document.getElementById('phase1');
+  card.classList.add('active');
+  document.getElementById('ph1-sub').textContent = `分析中…`;
+
+  const stream = document.getElementById('token-stream');
+  stream.innerHTML = '';
+  document.getElementById('token-meta').textContent = '';
+
+  tokens.forEach((t, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'token-chip';
+    chip.innerHTML = `${t.text}<span class="tid">#${t.id}</span>`;
+    stream.appendChild(chip);
+    setTimeout(() => chip.classList.add('show'), i * 120 + 50);
+  });
+
+  const delay = tokens.length * 120 + 300;
+  setTimeout(() => {
+    document.getElementById('ph1-sub').textContent = `${tokens.length} tokens`;
+    document.getElementById('token-meta').textContent =
+      `序列长度 ${tokens.length} · 词表大小约 100k · BPE 编码`;
+    card.classList.remove('active');
+    card.classList.add('done');
+    // 更新成本
+    document.getElementById('cost-tokens').textContent = tokens.length;
+    updateCostBar();
+    phase2(tokens);
+  }, delay);
+}
+
+// ── Phase 2 ──
+function phase2(tokens) {
+  const card = document.getElementById('phase2');
+  card.classList.add('active');
+  document.getElementById('ph2-sub').textContent = '生成向量…';
+
+  const grid = document.getElementById('emb-grid');
+  grid.innerHTML = '';
+
+  // 只展示前 6 个 token
+  const display = tokens.slice(0, 6);
+  display.forEach((t, ti) => {
+    const rnd = seededRand(t.id);
+    const col = document.createElement('div');
+    col.className = 'emb-token-col';
+    col.innerHTML = `<div class="emb-label">${t.text}</div>`;
+    const bars = document.createElement('div');
+    bars.className = 'emb-bars';
+    for (let d = 0; d < 12; d++) {
+      const bar = document.createElement('div');
+      bar.className = 'emb-bar';
+      bar.style.height = '0px';
+      bars.appendChild(bar);
+      const h = Math.floor(rnd() * 45 + 5);
+      setTimeout(() => { bar.style.height = h + 'px'; }, ti * 100 + d * 20 + 200);
+    }
+    col.appendChild(bars);
+    if (tokens.length > 6 && ti === display.length - 1) {
+      col.innerHTML += `<div class="emb-dim">…+${tokens.length-6}更多</div>`;
+    } else {
+      col.innerHTML += `<div class="emb-dim">4096-dim</div>`;
+    }
+    grid.appendChild(col);
+  });
+
+  setTimeout(() => {
+    document.getElementById('emb-note').textContent =
+      `每个 token 被映射到 4096 维向量空间（GPT-4 实际用 12288 维）。`
+      + ` 含义相近的词（如"北京""首都"）在向量空间中距离更近。`;
+    card.classList.remove('active');
+    card.classList.add('done');
+    document.getElementById('ph2-sub').textContent = `${tokens.length}×4096 矩阵`;
+    phase3(tokens);
+  }, display.length * 100 + 12 * 20 + 600);
+}
+
+// ── Phase 3: Attention heatmap ──
+function phase3(tokens) {
+  const card = document.getElementById('phase3');
+  card.classList.add('active');
+  document.getElementById('ph3-sub').textContent = '计算注意力…';
+
+  const wrap = document.getElementById('attn-wrap');
+  wrap.innerHTML = '';
+
+  // 展示前 5 个 token 的注意力矩阵
+  const n = Math.min(tokens.length, 5);
+  const toks = tokens.slice(0, n);
+
+  // 生成伪注意力权重（按 token ID 决定，保证一致性）
+  const matrix = [];
+  for (let i = 0; i < n; i++) {
+    const row = [];
+    let sum = 0;
+    const rnd = seededRand(toks[i].id * 31 + i);
+    for (let j = 0; j <= i; j++) { // 因果 mask
+      const v = rnd() * 0.8 + 0.1;
+      row.push(v); sum += v;
+    }
+    // softmax 归一化
+    const norm = row.map(v => v / sum);
+    // 填充未来 token 为 0（因果 mask）
+    while (norm.length < n) norm.push(0);
+    matrix.push(norm);
+  }
+
+  const table = document.createElement('table');
+  table.className = 'attn-table';
+
+  // 表头
+  const thead = document.createElement('tr');
+  thead.innerHTML = '<th></th>' + toks.map(t => `<th>${t.text}</th>`).join('');
+  table.appendChild(thead);
+
+  // 数据行
+  toks.forEach((t, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="attn-row-label">${t.text}</td>`;
+    toks.forEach((_, j) => {
+      const val = matrix[i][j];
+      const opacity = val.toFixed(2);
+      const td = document.createElement('td');
+      td.innerHTML = `<div class="attn-cell" style="background:rgba(34,211,238,${opacity * 0.7})">${val > 0 ? (val * 100).toFixed(0) + '%' : '—'}</div>`;
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+
+  setTimeout(() => { wrap.innerHTML = ''; wrap.appendChild(table); wrap.classList.add('fadein'); }, 200);
+
+  setTimeout(() => {
+    document.getElementById('attn-note').textContent =
+      `上表为简化的 Self-Attention 矩阵（单头，因果 mask）。`
+      + ` 每行表示"当前 token 关注其前文 token 的权重分布"。`
+      + ` GPT-4 实际有 128 个注意力头并行计算。`;
+    card.classList.remove('active');
+    card.classList.add('done');
+    document.getElementById('ph3-sub').textContent = `${n}×${n} 矩阵 (1 head)`;
+    phase4(tokens);
+  }, 800);
+}
+
+// ── Phase 4: Logits ──
+function phase4(tokens) {
+  const card = document.getElementById('phase4');
+  card.classList.add('active');
+  document.getElementById('ph4-sub').textContent = '采样预测…';
+
+  // 根据最后一个 token 生成伪下一词候选
+  const last = tokens[tokens.length - 1];
+  const candidates = getNextCandidates(last.text);
+
+  const list = document.getElementById('logits-list');
+  list.innerHTML = '';
+
+  const total = candidates.reduce((s, c) => s + c.score, 0);
+  candidates.forEach((c, i) => {
+    const pct = (c.score / total * 100).toFixed(1);
+    const row = document.createElement('div');
+    row.className = 'logit-row' + (i === 0 ? ' top1' : '');
+    row.innerHTML = `
+      <div class="logit-token">${c.token}</div>
+      <div class="logit-bar-wrap">
+        <div class="logit-bar" style="width:0%">
+          <span class="logit-pct">${pct}%</span>
+        </div>
+      </div>`;
+    list.appendChild(row);
+    setTimeout(() => {
+      row.querySelector('.logit-bar').style.width = (c.score / total * 100) + '%';
+    }, i * 80 + 100);
+  });
+
+  setTimeout(() => {
+    card.classList.remove('active');
+    card.classList.add('done');
+    document.getElementById('ph4-sub').textContent = `Top-${candidates.length} ·温度=0.7`;
+  }, candidates.length * 80 + 600);
+}
+
+// 根据输入末字生成合理的预测候选
+function getNextCandidates(lastToken) {
+  const maps = {
+    '样': [
+      { token: '？', score: 38 }, { token: '如何', score: 22 }, { token: '，', score: 18 },
+      { token: '呢', score: 12 }, { token: '啊', score: 6 }, { token: '！', score: 4 }
+    ],
+    'fox': [
+      { token: ' jumps', score: 42 }, { token: ' runs', score: 20 }, { token: ' is', score: 15 },
+      { token: '.', score: 10 }, { token: ' and', score: 8 }, { token: ' was', score: 5 }
+    ],
+    '具': [
+      { token: '？', score: 35 }, { token: '调用', score: 25 }, { token: '，', score: 18 },
+      { token: '系统', score: 12 }, { token: '设计', score: 6 }, { token: '。', score: 4 }
+    ],
+    'ld': [  // World
+      { token: '!', score: 45 }, { token: '.', score: 30 }, { token: ' from', score: 12 },
+      { token: ',', score: 8 }, { token: ' -', score: 3 }, { token: '\n', score: 2 }
+    ],
+  };
+  // 默认候选
+  const def = [
+    { token: '。', score: 35 }, { token: '的', score: 25 }, { token: '，', score: 20 },
+    { token: '了', score: 10 }, { token: '是', score: 6 }, { token: '在', score: 4 }
+  ];
+  // 匹配尾部字符
+  for (const key of Object.keys(maps)) {
+    if (lastToken.endsWith(key)) return maps[key];
+  }
+  return def;
+}
+
+// ── Cost bar ──
+function updateCostBar() {
+  const tokenCount = TOKENS.length;
+  const ctxVal = parseInt(document.getElementById('ctx-slider').value);
+  const totalTokens = tokenCount + ctxVal;
+  document.getElementById('ctx-val').textContent = (ctxVal / 1000).toFixed(0) + 'k';
+  document.getElementById('cost-ctx').textContent = `${totalTokens.toLocaleString()} / 200,000 tokens`;
+  // Sonnet 4.5 定价：$3/MTok input
+  const cost = totalTokens * 3 / 1_000_000;
+  document.getElementById('cost-usd').textContent = '$' + cost.toFixed(6);
+}
+
+// 初始化
+updateCostBar();
+</script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 08 Demo · 多 Agent 拓扑实时可视化</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600;700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f0f1a; --bg2: #13131f; --bg3: #1e1e3a;
+    --purple: #a78bfa; --cyan: #34d399; --amber: #f59e0b; --red: #f87171;
+    --text: #e0e7ff; --text-dim: #94a3b8; --text-muted: #6b7280;
+    --border: #374151;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  }
+  .header {
+    width: 100%; max-width: 1200px; padding: 32px 48px 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 800; }
+  .header h1 span { color: var(--purple); }
+  .badge { font-family: var(--mono); font-size: 12px; color: var(--cyan); border: 1px solid rgba(52,211,153,0.3); padding: 4px 12px; border-radius: 20px; }
+
+  .main {
+    width: 100%; max-width: 1200px; padding: 32px 48px;
+    display: grid; grid-template-columns: 1fr 420px; gap: 32px;
+  }
+
+  /* ── Input ── */
+  .input-row {
+    display: flex; gap: 12px; margin-bottom: 32px; align-items: stretch;
+  }
+  .task-input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    font-family: var(--mono); font-size: 14px; color: var(--text);
+    outline: none; transition: border-color 0.2s;
+  }
+  .task-input:focus { border-color: var(--purple); }
+  .run-btn {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: white; border: none; border-radius: 10px;
+    padding: 14px 28px; font-family: var(--mono); font-size: 14px;
+    font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .run-btn:hover:not(:disabled) { opacity: 0.9; }
+  .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Topology ── */
+  .topology-area {
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  #topo-canvas {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; height: 400px; position: relative;
+    overflow: hidden;
+  }
+  #topo-svg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+  }
+
+  /* ── Node styles ── */
+  .node {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    transition: all 0.5s ease;
+  }
+  .node-circle {
+    border-radius: 50%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; cursor: pointer; transition: all 0.4s ease;
+    gap: 2px;
+  }
+  .node-circle:hover { transform: scale(1.05); }
+
+  .node-orchestrator .node-circle {
+    width: 110px; height: 110px;
+    background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, rgba(30,30,58,0.9) 100%);
+    border: 2px solid var(--purple);
+    box-shadow: 0 0 0 0 rgba(167,139,250,0.4);
+  }
+  .node-orchestrator.active .node-circle {
+    animation: pulseOrch 1.5s infinite;
+  }
+  @keyframes pulseOrch {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
+    50% { box-shadow: 0 0 0 16px rgba(167,139,250,0); }
+  }
+
+  .node-worker .node-circle {
+    width: 88px; height: 88px;
+    background: rgba(30,30,58,0.9);
+    border: 2px solid rgba(52,211,153,0.3);
+  }
+  .node-worker.waiting .node-circle { border-color: var(--border); opacity: 0.5; }
+  .node-worker.running .node-circle {
+    border-color: var(--cyan);
+    animation: pulseWorker 1s infinite;
+  }
+  @keyframes pulseWorker {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(52,211,153,0); }
+  }
+  .node-worker.done .node-circle {
+    border-color: var(--cyan);
+    background: rgba(52,211,153,0.1);
+    box-shadow: 0 0 16px rgba(52,211,153,0.2);
+  }
+  .node-worker.error .node-circle { border-color: var(--red); }
+
+  .node-label {
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    text-align: center; margin-top: 4px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    position: absolute; top: 6px; right: 6px;
+  }
+
+  /* ── Timeline log ── */
+  .timeline-log {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; height: 180px; overflow-y: auto;
+    font-family: var(--mono); font-size: 13px; line-height: 1.7;
+  }
+  .log-entry { display: flex; gap: 10px; }
+  .log-time { color: var(--text-muted); min-width: 52px; }
+  .log-msg { color: var(--text-dim); }
+  .log-msg.ok { color: var(--cyan); }
+  .log-msg.warn { color: var(--amber); }
+  .log-msg.plan { color: var(--purple); }
+  .log-msg.start { color: var(--text); }
+
+  /* ── Right panel: output ── */
+  .output-panel {
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .worker-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+    transition: all 0.4s ease;
+  }
+  .worker-card.running { border-color: rgba(52,211,153,0.4); }
+  .worker-card.done { border-color: rgba(52,211,153,0.6); background: rgba(52,211,153,0.04); }
+  .worker-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .worker-card-name { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .worker-card-id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+  .worker-card-status {
+    font-family: var(--mono); font-size: 10px; padding: 3px 8px;
+    border-radius: 10px;
+  }
+  .worker-card-status.waiting { color: var(--text-muted); border: 1px solid var(--border); }
+  .worker-card-status.running { color: var(--cyan); border: 1px solid rgba(52,211,153,0.3); background: rgba(52,211,153,0.08); }
+  .worker-card-status.done { color: var(--cyan); border: 1px solid rgba(52,211,153,0.4); background: rgba(52,211,153,0.1); }
+  .worker-card-output {
+    font-size: 12px; color: var(--text-muted); line-height: 1.6;
+    min-height: 40px; max-height: 80px; overflow-y: auto;
+    border-left: 2px solid var(--border); padding-left: 10px;
+    font-family: var(--mono);
+    transition: border-color 0.3s;
+  }
+  .worker-card.done .worker-card-output { border-color: var(--cyan); color: var(--text-dim); }
+  .worker-card-elapsed { font-family: var(--mono); font-size: 10px; color: var(--text-muted); margin-top: 6px; text-align: right; }
+
+  .final-result {
+    background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 12px; padding: 16px 18px;
+    font-size: 13px; color: var(--text-dim); line-height: 1.7;
+    display: none;
+  }
+  .final-result.visible { display: block; }
+  .final-result h4 { color: var(--purple); font-size: 13px; margin-bottom: 8px; font-family: var(--mono); }
+
+  .total-time {
+    background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 10px; padding: 12px 16px;
+    display: none; justify-content: space-between; align-items: center;
+  }
+  .total-time.visible { display: flex; }
+  .total-time-label { font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
+  .total-time-val { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>多 <span>Agent</span> 拓扑实时可视化</h1>
+  <div class="badge">Ch 08 · lena-v0.8 Demo</div>
+</div>
+
+<div class="main">
+
+  <!-- LEFT: topology + log -->
+  <div class="topology-area">
+    <div class="input-row">
+      <input class="task-input" id="task-input"
+        value="调研 2026 年 AI Agent 三大框架（LangGraph / CrewAI / AutoGen）并对比"
+        placeholder="输入任务..." />
+      <button class="run-btn" id="run-btn" onclick="runDemo()">▶ 执行</button>
+    </div>
+
+    <!-- Topology canvas -->
+    <div id="topo-canvas">
+      <svg id="topo-svg">
+        <defs>
+          <marker id="arr-dispatch" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+          </marker>
+          <marker id="arr-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/>
+          </marker>
+        </defs>
+        <!-- Lines drawn by JS -->
+        <g id="lines"></g>
+      </svg>
+
+      <!-- Nodes -->
+      <div class="node node-orchestrator" id="node-orch" style="left:50%;top:30%;">
+        <div class="node-circle" style="position:relative;">
+          <div style="font-size:12px;font-weight:800;color:var(--text);font-family:var(--mono);">Lena</div>
+          <div style="font-size:10px;color:var(--purple);font-family:var(--mono);">Orchestrator</div>
+        </div>
+        <div class="node-label" id="orch-status">等待中</div>
+      </div>
+
+      <div class="node node-worker waiting" id="node-w1" style="left:22%;top:72%;">
+        <div class="node-circle" style="position:relative;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--mono);">Worker-1</div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:var(--mono);">LangGraph</div>
+        </div>
+        <div class="node-label" id="w1-status">待命</div>
+      </div>
+
+      <div class="node node-worker waiting" id="node-w2" style="left:50%;top:72%;">
+        <div class="node-circle" style="position:relative;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--mono);">Worker-2</div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:var(--mono);">CrewAI</div>
+        </div>
+        <div class="node-label" id="w2-status">待命</div>
+      </div>
+
+      <div class="node node-worker waiting" id="node-w3" style="left:78%;top:72%;">
+        <div class="node-circle" style="position:relative;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);font-family:var(--mono);">Worker-3</div>
+          <div style="font-size:9px;color:var(--text-muted);font-family:var(--mono);">AutoGen</div>
+        </div>
+        <div class="node-label" id="w3-status">待命</div>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="timeline-log" id="timeline-log">
+      <div class="log-entry"><span class="log-time">--:--</span><span class="log-msg">等待输入任务...</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: worker cards + result -->
+  <div class="output-panel">
+    <div class="worker-card waiting" id="card-w1">
+      <div class="worker-card-header">
+        <div>
+          <div class="worker-card-name">Worker-1 · LangGraph</div>
+          <div class="worker-card-id" id="w1-id">agentId: —</div>
+        </div>
+        <div class="worker-card-status waiting" id="w1-badge">待命</div>
+      </div>
+      <div class="worker-card-output" id="w1-output">等待任务分配...</div>
+      <div class="worker-card-elapsed" id="w1-elapsed"></div>
+    </div>
+
+    <div class="worker-card waiting" id="card-w2">
+      <div class="worker-card-header">
+        <div>
+          <div class="worker-card-name">Worker-2 · CrewAI</div>
+          <div class="worker-card-id" id="w2-id">agentId: —</div>
+        </div>
+        <div class="worker-card-status waiting" id="w2-badge">待命</div>
+      </div>
+      <div class="worker-card-output" id="w2-output">等待任务分配...</div>
+      <div class="worker-card-elapsed" id="w2-elapsed"></div>
+    </div>
+
+    <div class="worker-card waiting" id="card-w3">
+      <div class="worker-card-header">
+        <div>
+          <div class="worker-card-name">Worker-3 · AutoGen</div>
+          <div class="worker-card-id" id="w3-id">agentId: —</div>
+        </div>
+        <div class="worker-card-status waiting" id="w3-badge">待命</div>
+      </div>
+      <div class="worker-card-output" id="w3-output">等待任务分配...</div>
+      <div class="worker-card-elapsed" id="w3-elapsed"></div>
+    </div>
+
+    <div class="total-time" id="total-time">
+      <span class="total-time-label">⚡ 并发总耗时（模拟）</span>
+      <span class="total-time-val" id="total-time-val">—</span>
+    </div>
+
+    <div class="final-result" id="final-result">
+      <h4>Orchestrator 汇总结果</h4>
+      <div id="final-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Draw SVG connector lines ──────────────────────
+function drawLines(state) {
+  const canvas = document.getElementById('topo-canvas');
+  const svg = document.getElementById('lines');
+  const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
+
+  function pct(node) {
+    const s = node.style;
+    return {
+      x: parseFloat(s.left) / 100 * cw,
+      y: parseFloat(s.top)  / 100 * ch
+    };
+  }
+  const orch = pct(document.getElementById('node-orch'));
+  const workers = [
+    pct(document.getElementById('node-w1')),
+    pct(document.getElementById('node-w2')),
+    pct(document.getElementById('node-w3'))
+  ];
+
+  svg.innerHTML = '';
+  workers.forEach((w, i) => {
+    const ws = ['node-w1','node-w2','node-w3'][i];
+    const nodeEl = document.getElementById(ws);
+    const isRunning = nodeEl.classList.contains('running');
+    const isDone = nodeEl.classList.contains('done');
+    const showReturn = isDone;
+    const showDispatch = state !== 'idle';
+
+    if (showDispatch) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', orch.x); line.setAttribute('y1', orch.y + 55);
+      line.setAttribute('x2', w.x); line.setAttribute('y2', w.y - 44);
+      line.setAttribute('stroke', isRunning || isDone ? '#a78bfa' : 'rgba(167,139,250,0.3)');
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke-dasharray', '6,3');
+      line.setAttribute('marker-end', 'url(#arr-dispatch)');
+      svg.appendChild(line);
+    }
+
+    if (showReturn) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', w.x); line.setAttribute('y1', w.y - 44);
+      line.setAttribute('x2', orch.x); line.setAttribute('y2', orch.y + 55);
+      line.setAttribute('stroke', '#34d399');
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('stroke-dasharray', '4,4');
+      line.setAttribute('marker-end', 'url(#arr-return)');
+      svg.appendChild(line);
+    }
+  });
+}
+
+// ─── Logging ──────────────────────────────────────
+const logEl = document.getElementById('timeline-log');
+function addLog(msg, cls = '') {
+  const now = new Date();
+  const t = now.getHours().toString().padStart(2,'0') + ':' +
+            now.getMinutes().toString().padStart(2,'0') + ':' +
+            now.getSeconds().toString().padStart(2,'0');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${t}</span><span class="log-msg ${cls}">${msg}</span>`;
+  logEl.appendChild(entry);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ─── Worker state machine ─────────────────────────
+function setWorkerState(idx, state) {
+  const nodes = ['node-w1','node-w2','node-w3'];
+  const statusEls = ['w1-status','w2-status','w3-status'];
+  const badgeEls = ['w1-badge','w2-badge','w3-badge'];
+  const cardEls = ['card-w1','card-w2','card-w3'];
+
+  const nodeEl = document.getElementById(nodes[idx]);
+  nodeEl.classList.remove('waiting','running','done','error');
+  nodeEl.classList.add(state);
+  document.getElementById(statusEls[idx]).textContent = {
+    waiting:'待命', running:'执行中', done:'完成 ✓', error:'失败'
+  }[state];
+  const badge = document.getElementById(badgeEls[idx]);
+  badge.className = 'worker-card-status ' + state;
+  badge.textContent = { waiting:'待命', running:'执行中', done:'完成', error:'失败' }[state];
+
+  const card = document.getElementById(cardEls[idx]);
+  card.className = 'worker-card ' + state;
+}
+
+// ─── Simulated worker results ─────────────────────
+const WORKER_RESULTS = [
+  {
+    id: 'sub-' + Math.random().toString(36).slice(2,8),
+    framework: 'LangGraph',
+    elapsed: 3.2,
+    summary: '基于有向无环图的 agent workflow。核心 API：Graph / Node / Edge。原生支持 checkpoint，生产就绪度 ⭐⭐⭐⭐⭐。适合：复杂多步骤 pipeline、需要可视化调试的场景。',
+    xml: '<task-notification agent_id="sub-XXX" status="completed">\n## LangGraph\n生产就绪度: 5/5\n核心: 有向图 workflow\n</task-notification>'
+  },
+  {
+    id: 'sub-' + Math.random().toString(36).slice(2,8),
+    framework: 'CrewAI',
+    elapsed: 4.7,
+    summary: '角色扮演团队模式。每个 Agent 有 Role / Goal / Backstory。学习曲线最平缓，适合快速原型。生产就绪度 ⭐⭐⭐⭐。适合：内容生成、多角色协作场景。',
+    xml: '<task-notification agent_id="sub-YYY" status="completed">\n## CrewAI\n生产就绪度: 4/5\n核心: 角色团队\n</task-notification>'
+  },
+  {
+    id: 'sub-' + Math.random().toString(36).slice(2,8),
+    framework: 'AutoGen',
+    elapsed: 5.1,
+    summary: '对话式多 agent 协作。GroupChat 模式让多个 LLM 互相对话收敛。微软出品，生态成熟。生产就绪度 ⭐⭐⭐⭐。适合：代码生成、对话式问题求解。',
+    xml: '<task-notification agent_id="sub-ZZZ" status="completed">\n## AutoGen\n生产就绪度: 4/5\n核心: 对话协作\n</task-notification>'
+  }
+];
+
+const FINAL_SUMMARY = `
+<strong>2026 AI Agent 框架横向对比</strong><br><br>
+<span style="color:var(--text);">LangGraph</span>：有向图 workflow，生产最成熟，适合复杂 pipeline。⭐⭐⭐⭐⭐<br>
+<span style="color:var(--text);">CrewAI</span>：角色团队模式，上手最快，适合内容生成。⭐⭐⭐⭐<br>
+<span style="color:var(--text);">AutoGen</span>：对话协作，微软生态，适合代码生成。⭐⭐⭐⭐<br><br>
+<span style="color:var(--cyan);">推荐</span>：生产优先选 LangGraph；快速验证选 CrewAI；代码任务选 AutoGen。
+`;
+
+// ─── Main demo flow ───────────────────────────────
+let running = false;
+
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runDemo() {
+  if (running) return;
+  running = true;
+  document.getElementById('run-btn').disabled = true;
+
+  // Reset
+  logEl.innerHTML = '';
+  document.getElementById('final-result').classList.remove('visible');
+  document.getElementById('total-time').classList.remove('visible');
+  for (let i = 0; i < 3; i++) {
+    setWorkerState(i, 'waiting');
+    document.getElementById(['w1','w2','w3'][i]+'-output').textContent = '等待任务分配...';
+    document.getElementById(['w1','w2','w3'][i]+'-elapsed').textContent = '';
+    document.getElementById(['w1','w2','w3'][i]+'-id').textContent = 'agentId: —';
+  }
+  document.getElementById('node-orch').classList.remove('active');
+  document.getElementById('orch-status').textContent = '等待中';
+  drawLines('idle');
+
+  const startTime = Date.now();
+  addLog('用户任务：' + document.getElementById('task-input').value, 'start');
+  await sleep(600);
+
+  // Phase 1: Planning
+  document.getElementById('node-orch').classList.add('active');
+  document.getElementById('orch-status').textContent = '规划中';
+  addLog('[Orchestrator] 分析任务...', 'plan');
+  await sleep(1000);
+  addLog('[Orchestrator] 检测到 3 个独立子任务，可并发执行', 'plan');
+  await sleep(800);
+  addLog('[Orchestrator] 构造四要素 Prompt × 3', 'plan');
+  await sleep(600);
+  drawLines('dispatching');
+
+  // Phase 2: Dispatch all at once
+  addLog('[Orchestrator] 并发派发 3 个 Worker...', 'plan');
+  for (let i = 0; i < 3; i++) {
+    const r = WORKER_RESULTS[i];
+    setWorkerState(i, 'running');
+    document.getElementById(['w1','w2','w3'][i]+'-id').textContent = 'agentId: ' + r.id;
+    document.getElementById(['w1','w2','w3'][i]+'-output').textContent = '正在调用 Bedrock API...';
+    addLog(`[${r.id}] 启动 → 目标: 查 ${r.framework}`, 'start');
+  }
+  drawLines('running');
+  await sleep(400);
+  document.getElementById('orch-status').textContent = '等待回传';
+
+  // Phase 3: Workers complete (simulated at different times)
+  const finishOrder = [0, 1, 2]; // w1 first, then w2, w3
+  const finishDelays = [3200, 4700, 5100];
+
+  finishDelays.forEach((delay, i) => {
+    setTimeout(() => {
+      const r = WORKER_RESULTS[i];
+      setWorkerState(i, 'done');
+      document.getElementById(['w1','w2','w3'][i]+'-output').textContent = r.summary;
+      document.getElementById(['w1','w2','w3'][i]+'-elapsed').textContent =
+        `耗时 ${r.elapsed}s · <task-notification> 已回传`;
+      addLog(`[${r.id}] 完成 ✓ (${r.elapsed}s)`, 'ok');
+      drawLines('running');
+    }, delay);
+  });
+
+  // Wait for all workers
+  await sleep(5500);
+
+  // Phase 4: Aggregate
+  document.getElementById('orch-status').textContent = '汇总中';
+  document.getElementById('node-orch').classList.add('active');
+  addLog('[Orchestrator] 收到全部 <task-notification>，开始汇总...', 'plan');
+  await sleep(1400);
+
+  // Phase 5: Done
+  const totalMs = Date.now() - startTime;
+  const totalSec = (totalMs / 1000).toFixed(1);
+
+  document.getElementById('node-orch').classList.remove('active');
+  document.getElementById('orch-status').textContent = '完成';
+
+  addLog('[Orchestrator] 汇总完成', 'ok');
+  addLog(`总耗时：${totalSec}s（估计串行需 ${(5.1 + 1.4 + 1.0).toFixed(1)}s × 3 = ${(3*(5.1+1.4+1.0)/3*3).toFixed(1)}s）`, 'ok');
+
+  document.getElementById('total-time-val').textContent = totalSec + 's';
+  document.getElementById('total-time').classList.add('visible');
+
+  document.getElementById('final-content').innerHTML = FINAL_SUMMARY;
+  document.getElementById('final-result').classList.add('visible');
+
+  running = false;
+  document.getElementById('run-btn').disabled = false;
+  document.getElementById('run-btn').textContent = '↺ 重新执行';
+}
+
+// Draw initial lines
+window.addEventListener('load', () => {
+  drawLines('idle');
+  window.addEventListener('resize', () => drawLines('idle'));
+});
+</script>
+</body>
+</html>

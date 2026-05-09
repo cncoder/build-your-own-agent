@@ -1,0 +1,355 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2480 3508" width="2480" height="3508">
+  <!-- A3 Portrait: 297mm × 420mm at 210 DPI → 2480 × 3508 -->
+  <defs>
+    <style>
+      * { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+      .h1 { font-size: 80px; font-weight: bold; fill: #e8ecf4; }
+      .h2 { font-size: 40px; font-weight: bold; }
+      .h3 { font-size: 28px; font-weight: bold; }
+      .body { font-size: 22px; fill: rgba(232,236,244,0.65); }
+      .small { font-size: 18px; fill: rgba(232,236,244,0.4); }
+      .code { font-size: 20px; fill: #a8b5cc; }
+      .cyan { fill: #00d4ff; }
+      .pink { fill: #ff2d78; }
+      .green { fill: #00ff88; }
+      .blue { fill: #4169e1; }
+      .purple { fill: #9f7aea; }
+      .yellow { fill: #ffcb6b; }
+    </style>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#050810"/>
+      <stop offset="100%" style="stop-color:#0a0e1a"/>
+    </linearGradient>
+    <radialGradient id="glow-top" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" style="stop-color:rgba(65,105,225,0.15)"/>
+      <stop offset="100%" style="stop-color:transparent"/>
+    </radialGradient>
+    <radialGradient id="glow-bottom" cx="50%" cy="100%" r="80%">
+      <stop offset="0%" style="stop-color:rgba(0,212,255,0.1)"/>
+      <stop offset="100%" style="stop-color:transparent"/>
+    </radialGradient>
+    <filter id="glow-fx">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="2480" height="3508" fill="url(#bg)"/>
+  <rect width="2480" height="3508" fill="url(#glow-top)"/>
+  <rect width="2480" height="3508" fill="url(#glow-bottom)"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.02" stroke="white" stroke-width="1">
+    <line x1="0" y1="200" x2="2480" y2="200"/>
+    <line x1="0" y1="400" x2="2480" y2="400"/>
+    <line x1="0" y1="600" x2="2480" y2="600"/>
+    <line x1="0" y1="800" x2="2480" y2="800"/>
+    <line x1="0" y1="1000" x2="2480" y2="1000"/>
+    <line x1="0" y1="1200" x2="2480" y2="1200"/>
+    <line x1="0" y1="1400" x2="2480" y2="1400"/>
+    <line x1="0" y1="1600" x2="2480" y2="1600"/>
+    <line x1="0" y1="1800" x2="2480" y2="1800"/>
+    <line x1="0" y1="2000" x2="2480" y2="2000"/>
+    <line x1="0" y1="2200" x2="2480" y2="2200"/>
+    <line x1="0" y1="2400" x2="2480" y2="2400"/>
+    <line x1="0" y1="2600" x2="2480" y2="2600"/>
+    <line x1="0" y1="2800" x2="2480" y2="2800"/>
+    <line x1="0" y1="3000" x2="2480" y2="3000"/>
+    <line x1="0" y1="3200" x2="2480" y2="3200"/>
+    <line x1="200" y1="0" x2="200" y2="3508"/>
+    <line x1="400" y1="0" x2="400" y2="3508"/>
+    <line x1="600" y1="0" x2="600" y2="3508"/>
+    <line x1="800" y1="0" x2="800" y2="3508"/>
+    <line x1="1000" y1="0" x2="1000" y2="3508"/>
+    <line x1="1200" y1="0" x2="1200" y2="3508"/>
+    <line x1="1400" y1="0" x2="1400" y2="3508"/>
+    <line x1="1600" y1="0" x2="1600" y2="3508"/>
+    <line x1="1800" y1="0" x2="1800" y2="3508"/>
+    <line x1="2000" y1="0" x2="2000" y2="3508"/>
+    <line x1="2200" y1="0" x2="2200" y2="3508"/>
+  </g>
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <text x="1240" y="160" text-anchor="middle" font-size="24" fill="rgba(0,212,255,0.6)" letter-spacing="8">CH 04 · TOOL SYSTEM</text>
+
+  <!-- Glow line under chip -->
+  <rect x="440" y="195" width="1600" height="2" rx="1" fill="url(#glow-top)" opacity="0.8"/>
+  <rect x="440" y="195" width="1600" height="1" rx="0.5" fill="rgba(0,212,255,0.3)"/>
+
+  <text x="1240" y="320" text-anchor="middle" font-size="100" font-weight="bold" fill="#e8ecf4">任何能力都是工具</text>
+
+  <text x="1240" y="400" text-anchor="middle" font-size="34">
+    <tspan fill="rgba(0,212,255,0.8)">注册</tspan>
+    <tspan fill="rgba(255,255,255,0.2)"> × </tspan>
+    <tspan fill="rgba(159,122,234,0.8)">权限</tspan>
+    <tspan fill="rgba(255,255,255,0.2)"> × </tspan>
+    <tspan fill="rgba(0,255,136,0.8)">并发</tspan>
+    <tspan fill="rgba(255,255,255,0.2)"> × </tspan>
+    <tspan fill="rgba(255,45,120,0.8)">持久化</tspan>
+  </text>
+
+  <!-- ═══════════ SECTION 1: Registration ═══════════ -->
+  <rect x="80" y="460" width="2320" height="560" rx="16" fill="rgba(0,212,255,0.03)" stroke="rgba(0,212,255,0.1)" stroke-width="2"/>
+
+  <!-- Section label -->
+  <rect x="80" y="460" width="400" height="60" rx="8" fill="rgba(0,212,255,0.1)" stroke="rgba(0,212,255,0.3)" stroke-width="1"/>
+  <text x="280" y="499" text-anchor="middle" font-size="26" font-weight="bold" fill="#00d4ff">01 · 注册流程</text>
+
+  <!-- Flow boxes horizontal -->
+  <!-- Box 1: @tool -->
+  <rect x="130" y="560" width="420" height="160" rx="10" fill="rgba(0,212,255,0.06)" stroke="#00d4ff" stroke-width="1.5" stroke-opacity="0.4"/>
+  <text x="340" y="608" text-anchor="middle" font-size="28" font-weight="bold" fill="#00d4ff">@registry.tool()</text>
+  <text x="340" y="640" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">description=</text>
+  <text x="340" y="668" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">is_read_only, max_result_size</text>
+  <text x="340" y="700" text-anchor="middle" font-size="16" fill="rgba(0,212,255,0.4)">装饰器工厂</text>
+
+  <!-- Arrow -->
+  <line x1="550" y1="640" x2="630" y2="640" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+  <polygon points="630,640 615,630 615,650" fill="rgba(255,255,255,0.2)"/>
+  <text x="590" y="628" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.3)">inspect</text>
+
+  <!-- Box 2: Pydantic -->
+  <rect x="630" y="560" width="420" height="160" rx="10" fill="rgba(159,122,234,0.06)" stroke="#9f7aea" stroke-width="1.5" stroke-opacity="0.4"/>
+  <text x="840" y="608" text-anchor="middle" font-size="28" font-weight="bold" fill="#9f7aea">Pydantic Model</text>
+  <text x="840" y="640" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">path: str = Field(</text>
+  <text x="840" y="668" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">  description="文件路径"</text>
+  <text x="840" y="696" text-anchor="middle" font-size="16" fill="rgba(159,122,234,0.4)">类型 + 文档 + 验证</text>
+
+  <!-- Arrow -->
+  <line x1="1050" y1="640" x2="1130" y2="640" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+  <polygon points="1130,640 1115,630 1115,650" fill="rgba(255,255,255,0.2)"/>
+  <text x="1090" y="628" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.3)">.schema()</text>
+
+  <!-- Box 3: JSON Schema -->
+  <rect x="1130" y="560" width="420" height="160" rx="10" fill="rgba(0,255,136,0.05)" stroke="#00ff88" stroke-width="1.5" stroke-opacity="0.4"/>
+  <text x="1340" y="608" text-anchor="middle" font-size="28" font-weight="bold" fill="#00ff88">JSON Schema</text>
+  <text x="1340" y="640" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">{type: "object",</text>
+  <text x="1340" y="668" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)"> properties: {...}}</text>
+  <text x="1340" y="696" text-anchor="middle" font-size="16" fill="rgba(0,255,136,0.4)">LLM 理解工具接口</text>
+
+  <!-- Arrow -->
+  <line x1="1550" y1="640" x2="1630" y2="640" stroke="rgba(255,255,255,0.2)" stroke-width="3"/>
+  <polygon points="1630,640 1615,630 1615,650" fill="rgba(255,255,255,0.2)"/>
+  <text x="1590" y="628" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.3)">register</text>
+
+  <!-- Box 4: ToolRegistry -->
+  <rect x="1630" y="540" width="720" height="200" rx="10" fill="rgba(65,105,225,0.08)" stroke="#4169e1" stroke-width="2" stroke-opacity="0.5"/>
+  <text x="1990" y="600" text-anchor="middle" font-size="32" font-weight="bold" fill="#4169e1">ToolRegistry</text>
+  <text x="1990" y="638" text-anchor="middle" font-size="20" fill="rgba(0,212,255,0.7)">._tools: dict[str, ToolMeta]</text>
+  <text x="1990" y="668" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">.get_schemas() → list[dict]</text>
+  <text x="1990" y="698" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">.execute(name, inputs) → str</text>
+  <text x="1990" y="724" text-anchor="middle" font-size="16" fill="rgba(65,105,225,0.5)">参考 Tool.ts:783 buildTool(def)</text>
+
+  <!-- Principle label -->
+  <text x="1240" y="800" text-anchor="middle" font-size="26" fill="rgba(232,236,244,0.3)">核心原则：</text>
+  <text x="1240" y="835" text-anchor="middle" font-size="30" font-weight="bold" fill="rgba(0,212,255,0.8)">加工具只改 tools.py · 核心 agent loop 一字不变</text>
+  <text x="1240" y="870" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.3)">开闭原则 (Open/Closed Principle) — Bertrand Meyer 1988</text>
+  <text x="1240" y="900" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.25)">v0.4: import tools  # 副作用导入触发所有 @tool 注册</text>
+
+  <!-- ═══════════ SECTION 2: Three Flags ═══════════ -->
+  <rect x="80" y="1060" width="2320" height="480" rx="16" fill="rgba(159,122,234,0.02)" stroke="rgba(159,122,234,0.1)" stroke-width="2"/>
+
+  <rect x="80" y="1060" width="400" height="60" rx="8" fill="rgba(159,122,234,0.1)" stroke="rgba(159,122,234,0.3)" stroke-width="1"/>
+  <text x="280" y="1099" text-anchor="middle" font-size="26" font-weight="bold" fill="#9f7aea">02 · 三标志设计 · Tool.ts:362</text>
+
+  <!-- Flag 1 -->
+  <rect x="130" y="1160" width="680" height="340" rx="12" fill="rgba(0,212,255,0.04)" stroke="#00d4ff" stroke-width="1.5" stroke-opacity="0.3"/>
+  <text x="470" y="1215" text-anchor="middle" font-size="20" fill="rgba(0,212,255,0.5)" letter-spacing="3">READ ONLY</text>
+  <text x="470" y="1270" text-anchor="middle" font-size="36" font-weight="bold" fill="#00d4ff">isReadOnly</text>
+  <text x="470" y="1315" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">true → 只读操作</text>
+  <text x="470" y="1345" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">权限系统自动批准</text>
+  <text x="470" y="1375" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">无需用户确认</text>
+  <text x="470" y="1420" text-anchor="middle" font-size="17" fill="rgba(0,212,255,0.4)">服务于：权限决策系统 (Ch10)</text>
+  <text x="470" y="1450" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.25)">read_file ✓ · web_search ✓</text>
+  <text x="470" y="1480" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.2)">write_file ✗ · shell ✗</text>
+
+  <!-- Flag 2 -->
+  <rect x="890" y="1160" width="680" height="340" rx="12" fill="rgba(255,45,120,0.03)" stroke="#ff2d78" stroke-width="1.5" stroke-opacity="0.3"/>
+  <text x="1230" y="1215" text-anchor="middle" font-size="20" fill="rgba(255,45,120,0.5)" letter-spacing="3">DESTRUCTIVE</text>
+  <text x="1230" y="1270" text-anchor="middle" font-size="36" font-weight="bold" fill="#ff2d78">isDestructive</text>
+  <text x="1230" y="1315" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">true → 不可逆操作</text>
+  <text x="1230" y="1345" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">必须暂停等用户确认</text>
+  <text x="1230" y="1375" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">弹出确认框</text>
+  <text x="1230" y="1420" text-anchor="middle" font-size="17" fill="rgba(255,45,120,0.4)">服务于：权限决策系统 (Ch10)</text>
+  <text x="1230" y="1450" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.25)">write_file ✓ · shell ✓</text>
+  <text x="1230" y="1480" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.2)">read_file ✗ · web_search ✗</text>
+
+  <!-- Flag 3 -->
+  <rect x="1650" y="1160" width="700" height="340" rx="12" fill="rgba(0,255,136,0.03)" stroke="#00ff88" stroke-width="1.5" stroke-opacity="0.3"/>
+  <text x="2000" y="1215" text-anchor="middle" font-size="20" fill="rgba(0,255,136,0.5)" letter-spacing="3">CONCURRENCY</text>
+  <text x="2000" y="1270" text-anchor="middle" font-size="36" font-weight="bold" fill="#00ff88">isConcurrencySafe</text>
+  <text x="2000" y="1315" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">true → 可并发执行</text>
+  <text x="2000" y="1345" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">asyncio.gather() 同时跑</text>
+  <text x="2000" y="1375" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.5)">false → 串行等待</text>
+  <text x="2000" y="1420" text-anchor="middle" font-size="17" fill="rgba(0,255,136,0.4)">服务于：并发调度系统 (Ch5)</text>
+  <text x="2000" y="1450" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.25)">read_file ✓ · web_search ✓</text>
+  <text x="2000" y="1480" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.2)">write_file ✗ · shell ✗</text>
+
+  <!-- ═══════════ SECTION 3: Four Tools ═══════════ -->
+  <rect x="80" y="1580" width="2320" height="620" rx="16" fill="rgba(0,255,136,0.02)" stroke="rgba(0,255,136,0.08)" stroke-width="2"/>
+
+  <rect x="80" y="1580" width="400" height="60" rx="8" fill="rgba(0,255,136,0.08)" stroke="rgba(0,255,136,0.25)" stroke-width="1"/>
+  <text x="280" y="1619" text-anchor="middle" font-size="26" font-weight="bold" fill="#00ff88">03 · lena-v0.4 四工具</text>
+
+  <!-- Tool 1: read_file -->
+  <rect x="130" y="1680" width="530" height="480" rx="12" fill="rgba(0,212,255,0.04)" stroke="#00d4ff" stroke-width="1.5" stroke-opacity="0.35"/>
+  <circle cx="230" cy="1730" r="16" fill="rgba(0,212,255,0.15)" stroke="#00d4ff" stroke-width="1"/>
+  <text x="230" y="1736" text-anchor="middle" font-size="14" fill="#00d4ff">01</text>
+  <text x="395" y="1740" text-anchor="middle" font-size="28" font-weight="bold" fill="#00d4ff">read_file</text>
+  <text x="395" y="1772" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.4)">读取本地文件内容</text>
+  <line x1="160" y1="1790" x2="630" y2="1790" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+  <text x="395" y="1820" text-anchor="middle" font-size="18" fill="rgba(0,212,255,0.7)">isReadOnly: true</text>
+  <text x="395" y="1848" text-anchor="middle" font-size="18" fill="rgba(0,255,136,0.7)">isConcurrencySafe: true</text>
+  <text x="395" y="1876" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.5)">isDestructive: false</text>
+  <line x1="160" y1="1900" x2="630" y2="1900" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="395" y="1935" text-anchor="middle" font-size="22" font-weight="bold" fill="rgba(0,212,255,0.9)">max = None = ∞</text>
+  <text x="395" y="1963" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">防 Read 循环</text>
+  <text x="395" y="1991" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">FileReadTool.maxResultSizeChars</text>
+  <text x="395" y="2019" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">= Infinity (Claude Code)</text>
+  <text x="395" y="2055" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">path: str · encoding: str="utf-8"</text>
+  <text x="395" y="2130" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">返回：行数头 + 完整内容</text>
+
+  <!-- Tool 2: write_file -->
+  <rect x="710" y="1680" width="530" height="480" rx="12" fill="rgba(255,45,120,0.03)" stroke="#ff2d78" stroke-width="1.5" stroke-opacity="0.3"/>
+  <circle cx="810" cy="1730" r="16" fill="rgba(255,45,120,0.12)" stroke="#ff2d78" stroke-width="1"/>
+  <text x="810" y="1736" text-anchor="middle" font-size="14" fill="#ff2d78">02</text>
+  <text x="975" y="1740" text-anchor="middle" font-size="28" font-weight="bold" fill="#ff2d78">write_file</text>
+  <text x="975" y="1772" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.4)">写入本地文件</text>
+  <line x1="740" y1="1790" x2="1210" y2="1790" stroke="rgba(255,45,120,0.15)" stroke-width="1"/>
+  <text x="975" y="1820" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.5)">isReadOnly: false</text>
+  <text x="975" y="1848" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.7)">isDestructive: true</text>
+  <text x="975" y="1876" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.7)">isConcurrencySafe: false</text>
+  <line x1="740" y1="1900" x2="1210" y2="1900" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="975" y="1935" text-anchor="middle" font-size="22" font-weight="bold" fill="rgba(255,45,120,0.9)">max = 500</text>
+  <text x="975" y="1963" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">串行防竞态</text>
+  <text x="975" y="1991" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">Ch10 弹框确认</text>
+  <text x="975" y="2055" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">path: str · content: str</text>
+  <text x="975" y="2083" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">append: bool = False</text>
+  <text x="975" y="2130" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">自动创建父目录</text>
+
+  <!-- Tool 3: shell -->
+  <rect x="1290" y="1680" width="530" height="480" rx="12" fill="rgba(255,45,120,0.03)" stroke="#ff2d78" stroke-width="1.5" stroke-opacity="0.3"/>
+  <circle cx="1390" cy="1730" r="16" fill="rgba(255,45,120,0.12)" stroke="#ff2d78" stroke-width="1"/>
+  <text x="1390" y="1736" text-anchor="middle" font-size="14" fill="#ff2d78">03</text>
+  <text x="1555" y="1740" text-anchor="middle" font-size="28" font-weight="bold" fill="#ff2d78">shell</text>
+  <text x="1555" y="1772" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.4)">执行 shell 命令（白名单）</text>
+  <line x1="1320" y1="1790" x2="1790" y2="1790" stroke="rgba(255,45,120,0.15)" stroke-width="1"/>
+  <text x="1555" y="1820" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.5)">isReadOnly: false</text>
+  <text x="1555" y="1848" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.7)">isDestructive: true</text>
+  <text x="1555" y="1876" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.7)">isConcurrencySafe: false</text>
+  <line x1="1320" y1="1900" x2="1790" y2="1900" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="1555" y="1935" text-anchor="middle" font-size="22" font-weight="bold" fill="rgba(255,45,120,0.9)">max = 4000</text>
+  <text x="1555" y="1963" text-anchor="middle" font-size="17" fill="rgba(255,45,120,0.5)">两层安全检查</text>
+  <text x="1555" y="1991" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">黑名单：rm sudo curl...</text>
+  <text x="1555" y="2019" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">白名单：ls cat grep find...</text>
+  <text x="1555" y="2055" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">command: str · timeout: int=30</text>
+  <text x="1555" y="2130" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">生产场景需 Docker 沙箱</text>
+
+  <!-- Tool 4: web_search -->
+  <rect x="1870" y="1680" width="490" height="480" rx="12" fill="rgba(0,255,136,0.03)" stroke="#00ff88" stroke-width="1.5" stroke-opacity="0.3"/>
+  <circle cx="1970" cy="1730" r="16" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="1"/>
+  <text x="1970" y="1736" text-anchor="middle" font-size="14" fill="#00ff88">04</text>
+  <text x="2115" y="1740" text-anchor="middle" font-size="28" font-weight="bold" fill="#00ff88">web_search</text>
+  <text x="2115" y="1772" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.4)">DuckDuckGo 搜索</text>
+  <line x1="1900" y1="1790" x2="2330" y2="1790" stroke="rgba(0,255,136,0.15)" stroke-width="1"/>
+  <text x="2115" y="1820" text-anchor="middle" font-size="18" fill="rgba(0,212,255,0.7)">isReadOnly: true</text>
+  <text x="2115" y="1848" text-anchor="middle" font-size="18" fill="rgba(255,45,120,0.5)">isDestructive: false</text>
+  <text x="2115" y="1876" text-anchor="middle" font-size="18" fill="rgba(0,255,136,0.7)">isConcurrencySafe: true</text>
+  <line x1="1900" y1="1900" x2="2330" y2="1900" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="2115" y="1935" text-anchor="middle" font-size="22" font-weight="bold" fill="rgba(0,255,136,0.9)">max = 3000</text>
+  <text x="2115" y="1963" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">无需 API Key</text>
+  <text x="2115" y="1991" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">并发安全，与 read_file</text>
+  <text x="2115" y="2019" text-anchor="middle" font-size="17" fill="rgba(232,236,244,0.35)">可同时执行（Ch5）</text>
+  <text x="2115" y="2055" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">query: str · max_results: int=5</text>
+  <text x="2115" y="2130" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.2)">Instant Answer API</text>
+
+  <!-- ═══════════ SECTION 4: Concurrency Timeline ═══════════ -->
+  <rect x="80" y="2250" width="2320" height="360" rx="16" fill="rgba(0,255,136,0.02)" stroke="rgba(0,255,136,0.07)" stroke-width="2"/>
+
+  <rect x="80" y="2250" width="500" height="60" rx="8" fill="rgba(0,255,136,0.07)" stroke="rgba(0,255,136,0.25)" stroke-width="1"/>
+  <text x="330" y="2289" text-anchor="middle" font-size="26" font-weight="bold" fill="#00ff88">04 · 并发执行时序 · Ch5 预告</text>
+
+  <!-- Timeline -->
+  <text x="130" y="2370" font-size="20" fill="rgba(232,236,244,0.5)">read_file</text>
+  <rect x="350" y="2346" width="700" height="40" rx="6" fill="rgba(0,212,255,0.2)" stroke="#00d4ff" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="700" y="2372" text-anchor="middle" font-size="16" fill="#00d4ff">并发 · 200ms</text>
+  <text x="350" y="2430" font-size="14" fill="rgba(232,236,244,0.2)">时间轴 →</text>
+
+  <text x="130" y="2430" font-size="20" fill="rgba(232,236,244,0.5)">web_search</text>
+  <rect x="350" y="2406" width="700" height="40" rx="6" fill="rgba(0,255,136,0.15)" stroke="#00ff88" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="700" y="2432" text-anchor="middle" font-size="16" fill="#00ff88">并发 · 200ms</text>
+
+  <text x="130" y="2490" font-size="20" fill="rgba(232,236,244,0.5)">write_file</text>
+  <rect x="350" y="2466" width="340" height="40" rx="6" fill="rgba(255,45,120,0.15)" stroke="#ff2d78" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="520" y="2492" text-anchor="middle" font-size="16" fill="#ff2d78">串行 · 100ms</text>
+
+  <text x="130" y="2550" font-size="20" fill="rgba(232,236,244,0.5)">shell</text>
+  <rect x="690" y="2526" width="360" height="40" rx="6" fill="rgba(255,45,120,0.15)" stroke="#ff2d78" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="870" y="2552" text-anchor="middle" font-size="16" fill="#ff2d78">等待 write 完成 → 串行</text>
+
+  <!-- Time annotations -->
+  <line x1="1060" y1="2330" x2="1060" y2="2570" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="1080" y="2370" font-size="18" fill="rgba(0,212,255,0.6)">T=200ms 同时完成</text>
+  <text x="1080" y="2430" font-size="18" fill="rgba(0,255,136,0.6)">(vs 400ms 串行)</text>
+
+  <!-- Speed gain -->
+  <rect x="1400" y="2330" width="900" height="240" rx="12" fill="rgba(0,212,255,0.04)" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+  <text x="1850" y="2390" text-anchor="middle" font-size="26" font-weight="bold" fill="rgba(0,212,255,0.8)">并发加速效果</text>
+  <text x="1850" y="2430" text-anchor="middle" font-size="60" font-weight="bold" fill="#00d4ff">3-5×</text>
+  <text x="1850" y="2480" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.4)">isConcurrencySafe 工具组合</text>
+  <text x="1850" y="2510" text-anchor="middle" font-size="18" fill="rgba(232,236,244,0.25)">Claude Code StreamingToolExecutor.ts:40</text>
+  <text x="1850" y="2540" text-anchor="middle" font-size="18" fill="rgba(232,236,244,0.2)">Python: asyncio.gather()</text>
+
+  <!-- ═══════════ SECTION 5: maxResultSize ═══════════ -->
+  <rect x="80" y="2660" width="2320" height="360" rx="16" fill="rgba(255,45,120,0.02)" stroke="rgba(255,45,120,0.08)" stroke-width="2"/>
+
+  <rect x="80" y="2660" width="600" height="60" rx="8" fill="rgba(255,45,120,0.08)" stroke="rgba(255,45,120,0.25)" stroke-width="1"/>
+  <text x="380" y="2699" text-anchor="middle" font-size="26" font-weight="bold" fill="#ff2d78">05 · maxResultSizeChars · toolResultStorage.ts:30</text>
+
+  <!-- Left: flow -->
+  <text x="130" y="2790" font-size="22" fill="rgba(232,236,244,0.5)">超限处理：</text>
+  <text x="400" y="2790" font-size="22" fill="#ffcb6b">len(result) &gt; maxResultSizeChars</text>
+  <line x1="130" y1="2810" x2="1200" y2="2810" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="400" y="2848" font-size="20" fill="rgba(255,45,120,0.7)">是 → 写磁盘 → &lt;persisted-output&gt; 替代</text>
+  <text x="400" y="2880" font-size="20" fill="rgba(0,255,136,0.6)">否 → 直接放入 messages[] (tool_result)</text>
+
+  <!-- Read loop warning -->
+  <rect x="130" y="2900" width="1000" height="90" rx="8" fill="rgba(255,45,120,0.04)" stroke="rgba(255,45,120,0.2)" stroke-width="1"/>
+  <text x="630" y="2940" text-anchor="middle" font-size="20" fill="#ff2d78">⚠ Read 循环</text>
+  <text x="630" y="2968" text-anchor="middle" font-size="18" fill="rgba(232,236,244,0.4)">截断 read_file → LLM 反复调用 → 无限循环</text>
+
+  <!-- Right: table -->
+  <rect x="1250" y="2730" width="1100" height="260" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <text x="1800" y="2765" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.4)">工具 maxResultSizeChars 对照</text>
+  <line x1="1280" y1="2780" x2="2320" y2="2780" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="1500" y="2815" text-anchor="middle" font-size="18" fill="#00d4ff">read_file</text>
+  <text x="2100" y="2815" text-anchor="middle" font-size="24" font-weight="bold" fill="#00d4ff">None (∞)</text>
+  <text x="1500" y="2855" text-anchor="middle" font-size="18" fill="#ff2d78">write_file</text>
+  <text x="2100" y="2855" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.6)">500</text>
+  <text x="1500" y="2895" text-anchor="middle" font-size="18" fill="#ff2d78">shell</text>
+  <text x="2100" y="2895" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.6)">4000</text>
+  <text x="1500" y="2935" text-anchor="middle" font-size="18" fill="#00ff88">web_search</text>
+  <text x="2100" y="2935" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.6)">3000</text>
+
+  <!-- ═══════════ FOOTER ═══════════ -->
+  <line x1="80" y1="3070" x2="2400" y2="3070" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+
+  <text x="400" y="3150" text-anchor="middle" font-size="22" fill="rgba(232,236,244,0.6)">lena-v0.4 产物</text>
+  <text x="400" y="3185" text-anchor="middle" font-size="18" fill="rgba(0,212,255,0.5)">registry.py · tools.py</text>
+  <text x="400" y="3215" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.25)">lena.py 核心一字未改</text>
+
+  <text x="1240" y="3150" text-anchor="middle" font-size="22" fill="rgba(232,236,244,0.6)">案例 4.2</text>
+  <text x="1240" y="3185" text-anchor="middle" font-size="18" fill="rgba(255,203,107,0.5)">华为空调 MQTT 类型 bug</text>
+  <text x="1240" y="3215" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.25)">{"on":true} vs {"on":1} · Pydantic 预防</text>
+
+  <text x="2080" y="3150" text-anchor="middle" font-size="22" fill="rgba(232,236,244,0.6)">下一章</text>
+  <text x="2080" y="3185" text-anchor="middle" font-size="18" fill="rgba(65,105,225,0.7)">Ch 05 · 并发执行</text>
+  <text x="2080" y="3215" text-anchor="middle" font-size="16" fill="rgba(232,236,244,0.25)">asyncio.gather() + StreamingToolExecutor</text>
+
+  <line x1="80" y1="3250" x2="2400" y2="3250" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <text x="1240" y="3330" text-anchor="middle" font-size="20" fill="rgba(232,236,244,0.2)">从零构建你的 AI Agent: Claude Code &amp; OpenClaw 深度实战</text>
+  <text x="1240" y="3365" text-anchor="middle" font-size="18" fill="rgba(232,236,244,0.12)">Tool.ts:362 · toolResultStorage.ts:30 · R1-claude-code-architecture.md</text>
+  <text x="1240" y="3440" text-anchor="middle" font-size="18" fill="rgba(0,212,255,0.15)">Ch 04 · Tool 系统：任何能力都是工具</text>
+</svg>

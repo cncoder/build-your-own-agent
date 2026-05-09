@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 06 CC Hooks</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: 1fr 1.1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .header {
+    grid-column: 1 / -1; padding: 46px 100px 28px;
+    border-bottom: 1px solid rgba(48,54,61,0.6);
+  }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #bc8cff; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #bc8cff; }
+  .subtitle { font-size: 17px; color: #8b949e; margin-top: 6px; }
+
+  .panel { padding: 32px 60px 32px 100px; display: flex; flex-direction: column; gap: 16px; }
+  .panel.right { padding: 32px 100px 32px 60px; border-left: 1px solid rgba(48,54,61,0.6); }
+
+  /* Hook 分类表 */
+  .hook-group { margin-bottom: 8px; }
+  .group-label {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #6e7681; margin-bottom: 6px;
+  }
+  .hook-row {
+    display: flex; align-items: baseline; gap: 16px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(30,37,44,0.8);
+  }
+  .hook-name {
+    font-family: 'SF Mono', monospace; font-size: 13px;
+    color: #bc8cff; min-width: 220px;
+  }
+  .hook-use { font-size: 13px; color: #8b949e; }
+
+  /* 代码 */
+  .code {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+    padding: 18px 22px; font-family: 'SF Mono', monospace;
+    font-size: 13px; line-height: 1.7; flex: 1;
+  }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .st { color: #a5d6ff; }
+  .cm { color: #6e7681; font-style: italic; }
+  .nu { color: #f2cc60; }
+  .ki { color: #79c0ff; }
+
+  .note {
+    background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.2);
+    border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #8b949e;
+  }
+  .note strong { color: #bc8cff; }
+  .src-ref { font-size: 11px; color: #30363d; margin-top: 4px; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">Claude Code Hooks · utils/hooks.ts · 5022 行</div>
+    <h1>14 种事件<span> · 驱动一切自动化</span></h1>
+    <p class="subtitle">child_process.spawn() IPC · JSON stdin/stdout · 支持 async:true</p>
+  </div>
+
+  <div class="panel">
+    <div class="hook-group">
+      <div class="group-label">工具执行</div>
+      <div class="hook-row">
+        <span class="hook-name">PreToolUse</span>
+        <span class="hook-use">权限审批 / 防注入检查</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">PostToolUse</span>
+        <span class="hook-use">自动代码审计 / 埋点（成功）</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">PostToolUseFailure</span>
+        <span class="hook-use">失败告警 / 详细日志记录</span>
+      </div>
+    </div>
+    <div class="hook-group">
+      <div class="group-label">会话生命周期</div>
+      <div class="hook-row">
+        <span class="hook-name">SessionStart</span>
+        <span class="hook-use">加载额外上下文 / 打招呼</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">Setup</span>
+        <span class="hook-use">安装依赖 / 检查环境</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">Stop</span>
+        <span class="hook-use">发 Discord 通知 / 保存摘要</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">StopFailure</span>
+        <span class="hook-use">异常告警 / 重试逻辑</span>
+      </div>
+    </div>
+    <div class="hook-group">
+      <div class="group-label">子 Agent · 用户输入 · 其他</div>
+      <div class="hook-row">
+        <span class="hook-name">SubagentStart / SubagentStop</span>
+        <span class="hook-use">子任务追踪与统计</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">UserPromptSubmit</span>
+        <span class="hook-use">日志 / 过滤敏感词</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">InstructionsLoaded</span>
+        <span class="hook-use">验证 CLAUDE.md 加载</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">FileChanged / CwdChanged</span>
+        <span class="hook-use">触发 lint / 记录上下文切换</span>
+      </div>
+      <div class="hook-row">
+        <span class="hook-name">Notification</span>
+        <span class="hook-use">中继到外部渠道</span>
+      </div>
+    </div>
+    <div class="src-ref">来源：utils/hooks.ts:85 · child_process.spawn() hooks.ts:967 · JSON stdin hooks.ts:1006</div>
+  </div>
+
+  <div class="panel right">
+    <div class="code">
+<span class="cm">// settings.json · PostToolUse hook 示例</span>
+{
+  <span class="ki">"hooks"</span>: {
+    <span class="ki">"PostToolUse"</span>: [{
+      <span class="ki">"matcher"</span>: <span class="st">"Write"</span>,
+      <span class="ki">"hooks"</span>: [{
+        <span class="ki">"type"</span>: <span class="st">"command"</span>,
+        <span class="ki">"command"</span>: <span class="st">"python3 lint_on_write.py"</span>
+      }]
+    }],
+    <span class="ki">"Stop"</span>: [{
+      <span class="ki">"matcher"</span>: <span class="st">".*"</span>,
+      <span class="ki">"hooks"</span>: [{
+        <span class="ki">"type"</span>: <span class="st">"command"</span>,
+        <span class="ki">"command"</span>: <span class="st">"python3 notify_discord.py"</span>
+      }]
+    }]
+  }
+}
+    </div>
+    <div class="code" style="flex: unset;">
+<span class="cm"># hooks/lint_on_write.py</span>
+<span class="kw">import</span> json, subprocess, sys
+
+data = json.<span class="fn">loads</span>(sys.stdin.<span class="fn">read</span>())
+path = data[<span class="st">"tool_input"</span>][<span class="st">"file_path"</span>]
+
+<span class="kw">if</span> path.<span class="fn">endswith</span>(<span class="st">".py"</span>):
+    result = subprocess.<span class="fn">run</span>(
+        [<span class="st">"ruff"</span>, <span class="st">"check"</span>, <span class="st">"--fix"</span>, path],
+        capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>)
+    <span class="kw">if</span> result.returncode != <span class="nu">0</span>:
+        <span class="fn">print</span>(json.<span class="fn">dumps</span>({
+            <span class="st">"decision"</span>: <span class="st">"block"</span>,
+            <span class="st">"reason"</span>: result.stdout}))
+        <span class="kw">return</span>
+<span class="fn">print</span>(json.<span class="fn">dumps</span>({<span class="st">"decision"</span>: <span class="st">"approve"</span>}))
+    </div>
+    <div class="note">
+      <strong>Stop Hook 阻断循环</strong>：返回 <code>blockingErrors</code> 时
+      loop 继续（query.ts:1283），实现「验证通过才允许结束」。
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · CC Hooks</div>
+</body>
+</html>

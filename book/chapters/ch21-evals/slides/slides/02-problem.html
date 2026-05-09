@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','PingFang SC',sans-serif; color: #e0e8ff; }
+.bg { position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(100,180,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(100,180,255,0.03) 1px,transparent 1px);
+  background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 80px; }
+h1 { font-size: 56px; font-weight: 900; margin-bottom: 16px; }
+h1 span { color: #64b4ff; }
+.sub { font-size: 22px; color: rgba(255,255,255,0.4); margin-bottom: 60px; letter-spacing: 0.05em; }
+.cols { display: flex; gap: 40px; flex: 1; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.scenario { background: rgba(100,180,255,0.06); border: 1px solid rgba(100,180,255,0.15); border-radius: 12px; padding: 28px; }
+.scenario-title { font-size: 18px; color: #64b4ff; letter-spacing: 0.1em; margin-bottom: 12px; text-transform: uppercase; }
+.scenario-body { font-size: 22px; line-height: 1.6; color: rgba(255,255,255,0.75); }
+.scenario-body .good { color: #00ff88; }
+.scenario-body .bad { color: #ff4444; }
+.quote-box { background: rgba(255,200,50,0.06); border-left: 3px solid #ffc832; border-radius: 0 8px 8px 0; padding: 24px 28px; margin-top: auto; }
+.quote-box p { font-size: 20px; color: rgba(255,255,255,0.7); line-height: 1.7; }
+.quote-src { font-size: 14px; color: #ffc832; margin-top: 10px; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>你<span>怎么知道</span> Lena 变好了还是变坏了？</h1>
+  <p class="sub">升级模型、加新 Skill、调整 Prompt… 每次改动都是盲目的吗？</p>
+  <div class="cols">
+    <div class="col">
+      <div class="scenario">
+        <div class="scenario-title">场景一：模型升级</div>
+        <div class="scenario-body">
+          Sonnet 4.5 → 4.6<br>
+          <span class="good">✓ Quality: 0.72 → 0.89</span><br>
+          <span class="bad">✗ Latency: 1.2s → 8.4s</span><br>
+          <span class="bad">✗ Cost: $0.001 → $0.020 (20x)</span>
+        </div>
+      </div>
+      <div class="scenario">
+        <div class="scenario-title">场景二：加新 Skill</div>
+        <div class="scenario-body">
+          Planning 能力 <span class="good">↑ 15%</span><br>
+          Tool 调用成本 <span class="bad">↑ 40%</span><br>
+          某些格式输出 <span class="bad">突然乱了</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="scenario">
+        <div class="scenario-title">场景三：系统退化</div>
+        <div class="scenario-body">
+          你什么都没改<br>
+          但 agent 的回答<br>
+          <span class="bad">悄悄变差了</span><br>
+          你不知道，用户知道
+        </div>
+      </div>
+      <div class="quote-box">
+        <p>"Evals are not a phase at the end of development — they are the instrument that tells you whether development is working."</p>
+        <div class="quote-src">— Anthropic《Demystifying Evals》2026-01-09</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

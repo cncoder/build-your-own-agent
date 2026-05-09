@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 01 问题引入</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812;
+    font-family: 'SF Pro Display', -apple-system, 'Helvetica Neue', sans-serif;
+    color: #e6edf3;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scene {
+    width: 100%; height: 100%; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* 深空背景网格 */
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(56,139,253,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,139,253,0.06) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+  /* 光晕 */
+  .glow-l {
+    position: absolute; left: -200px; top: 50%;
+    width: 600px; height: 600px; transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(56,139,253,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow-r {
+    position: absolute; right: -100px; top: 30%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(63,185,80,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* 主内容 */
+  .content {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 40px; text-align: center; max-width: 1200px;
+  }
+  .tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(56,139,253,0.12); border: 1px solid rgba(56,139,253,0.3);
+    padding: 8px 20px; border-radius: 100px;
+    font-size: 14px; letter-spacing: 0.15em; color: #58a6ff;
+    text-transform: uppercase;
+  }
+  .tag-dot { width: 6px; height: 6px; background: #58a6ff; border-radius: 50%; }
+  h1 {
+    font-size: 80px; font-weight: 700; line-height: 1.1;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #e6edf3 0%, #58a6ff 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    font-size: 28px; color: #8b949e; font-weight: 300; line-height: 1.5;
+    max-width: 800px;
+  }
+  /* 问题卡片 */
+  .problem-cards {
+    display: flex; gap: 24px; margin-top: 16px;
+  }
+  .card {
+    background: rgba(22,27,34,0.8); border: 1px solid rgba(48,54,61,1);
+    border-radius: 12px; padding: 24px 32px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+    min-width: 220px;
+    transition: border-color 0.2s;
+  }
+  .card-icon { font-size: 28px; }
+  .card-text { font-size: 16px; color: #8b949e; line-height: 1.5; }
+  .card-q { font-size: 18px; color: #e6edf3; font-weight: 500; }
+  /* 章节标记 */
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d; letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="grid"></div>
+  <div class="glow-l"></div>
+  <div class="glow-r"></div>
+  <div class="content">
+    <div class="tag"><div class="tag-dot"></div>Ch 18 · 可观测性与部署</div>
+    <h1>Lena 上线了<br>但我怎么知道她挂了？</h1>
+    <p class="subtitle">从开发机到 7×24 生产环境的三大挑战</p>
+    <div class="problem-cards">
+      <div class="card">
+        <span class="card-icon">👁</span>
+        <div class="card-q">可见性</div>
+        <div class="card-text">发生了什么？<br>token 花了多少？</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔄</span>
+        <div class="card-q">持续性</div>
+        <div class="card-text">关了终端<br>Lena 还活着吗？</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🛡</span>
+        <div class="card-q">可控性</div>
+        <div class="card-text">token 要超预算时<br>怎么自动刹车？</div>
+      </div>
+    </div>
+  </div>
+  <div class="chapter-badge">Ch 18 · Lena v1.8 · 可观测性与部署</div>
+</div>
+</body>
+</html>

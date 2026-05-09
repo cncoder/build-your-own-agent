@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lena v0.3 — Agent 循环可视化 Demo</title>
+<style>
+  :root {
+    --bg: #070714;
+    --bg2: #0d0d24;
+    --glass: rgba(255,255,255,0.05);
+    --glass-border: rgba(255,255,255,0.12);
+    --neon-purple: #a855f7;
+    --neon-cyan: #22d3ee;
+    --neon-green: #4ade80;
+    --neon-orange: #fb923c;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(168,85,247,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(34,211,238,0.05) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 24px; }
+  header { text-align: center; margin-bottom: 32px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 999px; padding: 6px 16px; font-size: 12px;
+    color: var(--neon-cyan); margin-bottom: 16px; backdrop-filter: blur(10px);
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--neon-cyan); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+  h1 {
+    font-size: 2.2rem; font-weight: 700;
+    background: linear-gradient(135deg, #a855f7, #22d3ee, #4ade80);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: var(--text-dim); font-size: 13px; }
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .card {
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 16px; padding: 20px; backdrop-filter: blur(10px);
+    transition: border-color .3s, box-shadow .3s;
+  }
+  .card.highlight { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(34,211,238,.2); }
+  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .card-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .quick-hints { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .chip {
+    padding: 4px 10px; border-radius: 20px;
+    background: rgba(168,85,247,.1); border: 1px solid rgba(168,85,247,.2);
+    font-size: 12px; color: var(--neon-purple); cursor: pointer;
+    transition: background .2s;
+  }
+  .chip:hover { background: rgba(168,85,247,.2); }
+  .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .input-field {
+    flex: 1; background: rgba(255,255,255,.06); border: 1px solid var(--glass-border);
+    border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none;
+  }
+  .input-field:focus { border-color: var(--neon-purple); }
+  .input-field::placeholder { color: var(--text-dim); }
+  .btn {
+    padding: 10px 16px; border-radius: 10px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+  }
+  .btn-run {
+    background: linear-gradient(135deg, var(--neon-purple), #7c3aed);
+    color: white; box-shadow: 0 0 12px rgba(168,85,247,.3);
+  }
+  .btn-run:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 20px rgba(168,85,247,.5); }
+  .btn-run:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-sec { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text-dim); }
+  .btn-sec:hover { color: var(--text); }
+  .ctrls { display: flex; gap: 8px; margin-bottom: 14px; }
+  .msgs { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .msgs::-webkit-scrollbar{width:4px} .msgs::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:4px}
+  .msg-item {
+    border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.6;
+    border: 1px solid transparent;
+    animation: fadeUp .3s forwards; opacity: 0; transform: translateY(6px);
+  }
+  @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+  .msg-u { background: rgba(168,85,247,.1); border-color: rgba(168,85,247,.2); }
+  .msg-a { background: rgba(34,211,238,.08); border-color: rgba(34,211,238,.15); }
+  .msg-t { background: rgba(251,146,60,.08); border-color: rgba(251,146,60,.2); }
+  .msg-r { background: rgba(74,222,128,.08); border-color: rgba(74,222,128,.2); }
+  .msg-role { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .role-u{color:var(--neon-purple)} .role-a{color:var(--neon-cyan)} .role-t{color:var(--neon-orange)} .role-r{color:var(--neon-green)}
+  .msg-cnt { color: var(--text); font-family: 'Fira Code','Courier New',monospace; word-break: break-all; }
+  .empty { text-align:center; padding:40px 20px; color:var(--text-dim); }
+  .empty-icon{font-size:36px; margin-bottom:10px}
+  .json-view {
+    background: rgba(0,0,0,.35); border-radius: 10px; padding: 14px;
+    font-family: 'Fira Code','Courier New',monospace; font-size: 12px; line-height: 1.7;
+    max-height: 260px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+  }
+  .json-view::-webkit-scrollbar{width:4px} .json-view::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:4px}
+  .jk{color:var(--neon-cyan)} .js{color:#86efac} .jn{color:#fbbf24} .jb{color:var(--neon-orange)} .jc{color:var(--text-dim)}
+  .tool-box {
+    background: rgba(74,222,128,.06); border: 1px solid rgba(74,222,128,.2);
+    border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 12px; display: none;
+  }
+  .tool-name { color: var(--neon-green); font-weight: 600; margin-bottom: 6px; }
+  .tool-res { color: var(--text); font-family:'Fira Code',monospace; background:rgba(0,0,0,.2); border-radius:6px; padding:6px 8px; }
+  .final-box {
+    background: rgba(168,85,247,.08); border: 1px solid rgba(168,85,247,.25);
+    border-radius: 12px; padding: 14px; margin-top: 10px;
+    font-size: 14px; line-height: 1.7; display: none;
+  }
+  .final-label { font-size: 11px; color: var(--neon-purple); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .status-bar {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: var(--glass); border: 1px solid var(--glass-border);
+    border-radius: 12px; margin-bottom: 20px; font-size: 13px;
+  }
+  .st-icon{font-size:18px} .st-text{flex:1}
+  .st-badge{padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600}
+  .sb-wait{background:rgba(100,116,139,.2);color:var(--text-dim);border:1px solid rgba(100,116,139,.3)}
+  .sb-think{background:rgba(251,146,60,.15);color:var(--neon-orange);border:1px solid rgba(251,146,60,.3);animation:pulse 1s infinite}
+  .sb-tool{background:rgba(74,222,128,.15);color:var(--neon-green);border:1px solid rgba(74,222,128,.3)}
+  .sb-done{background:rgba(168,85,247,.15);color:var(--neon-purple);border:1px solid rgba(168,85,247,.3)}
+  /* Timeline */
+  .tl-card { margin-top: 0; }
+  .tl-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .tl-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .tl-cnt { font-size: 12px; color: var(--text-dim); }
+  .tl-track { position: relative; padding: 0 8px; }
+  .tl-line { position: absolute; top: 20px; left: 28px; right: 28px; height: 2px; background: var(--glass-border); z-index: 0; }
+  .tl-prog {
+    position: absolute; top: 20px; left: 28px; height: 2px;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+    z-index: 1; transition: width .5s ease; box-shadow: 0 0 8px rgba(168,85,247,.6);
+  }
+  .tl-steps { display: flex; justify-content: space-between; position: relative; z-index: 2; }
+  .tl-step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; cursor: pointer; }
+  .tl-dot {
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; background: var(--bg2); border: 2px solid var(--glass-border); transition: all .3s;
+  }
+  .tl-dot.done{background:rgba(168,85,247,.15);border-color:var(--neon-purple);box-shadow:0 0 16px rgba(168,85,247,.4)}
+  .tl-dot.active{background:rgba(34,211,238,.15);border-color:var(--neon-cyan);box-shadow:0 0 16px rgba(34,211,238,.4);animation:stepP 1.5s infinite}
+  @keyframes stepP{0%,100%{box-shadow:0 0 16px rgba(34,211,238,.4)}50%{box-shadow:0 0 30px rgba(34,211,238,.8)}}
+  .tl-label { font-size: 10px; color: var(--text-dim); text-align: center; max-width: 80px; line-height: 1.3; }
+  .tl-step.active .tl-label{color:var(--neon-cyan)} .tl-step.done .tl-label{color:var(--neon-purple)}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="badge"><div class="dot"></div>Ch 03 · 交互 Demo</div>
+    <h1>Lena Agent 循环可视化</h1>
+    <p class="subtitle">单步执行 · 每次 LLM 调用前后可暂停 · 实时查看 messages[] 数组</p>
+  </header>
+
+  <div class="status-bar" id="sb">
+    <span class="st-icon">💤</span>
+    <span class="st-text" id="stText">等待用户输入</span>
+    <span class="st-badge sb-wait" id="stBadge">待机中</span>
+  </div>
+
+  <div class="layout">
+    <!-- 左：输入 + messages -->
+    <div>
+      <div class="card" id="lcCard">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(168,85,247,.15)">💬</div>
+          <div>
+            <div class="card-title">用户输入 + Messages[]</div>
+            <div class="card-sub">对话历史 · Agent 的唯一状态</div>
+          </div>
+        </div>
+        <div class="quick-hints">
+          <div class="chip" onclick="qi('现在几点了？')">现在几点了？</div>
+          <div class="chip" onclick="qi('今天是星期几？')">今天是星期几？</div>
+          <div class="chip" onclick="qi('你有什么工具？')">你有什么工具？</div>
+          <div class="chip" onclick="qi('帮我介绍 Agent')">介绍 Agent</div>
+        </div>
+        <div class="input-row">
+          <input type="text" class="input-field" id="uInput" placeholder="输入问题（如：现在几点了？）" onkeydown="if(event.key==='Enter')startRun()"/>
+          <button class="btn btn-run" id="runBtn" onclick="startRun()">发送</button>
+        </div>
+        <div class="ctrls">
+          <button class="btn btn-sec" id="nxtBtn" onclick="nextStep()" disabled>▶ 下一步</button>
+          <button class="btn btn-sec" id="autoBtn" onclick="toggleAuto()">⚡ 自动</button>
+          <button class="btn btn-sec" onclick="resetAll()">↺ 重置</button>
+        </div>
+        <div class="msgs" id="msgs">
+          <div class="empty"><div class="empty-icon">📭</div>messages[] 为空<br>输入问题后开始</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：JSON + 工具执行 -->
+    <div>
+      <div class="card" id="rcCard">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(34,211,238,.15)">🔍</div>
+          <div>
+            <div class="card-title">LLM 响应 + 工具执行</div>
+            <div class="card-sub">原始 JSON · tool_use block · 执行结果</div>
+          </div>
+        </div>
+        <div class="json-view" id="jsonView"><span class="jc">// 等待 LLM 响应...</span></div>
+        <div class="tool-box" id="toolBox">
+          <div class="tool-name">⚡ <span id="tName">get_time</span>( <span id="tArgs">{}</span> )</div>
+          <div class="tool-res" id="tRes">执行中...</div>
+        </div>
+        <div class="final-box" id="finalBox">
+          <div class="final-label">Lena 最终回复</div>
+          <div id="finalText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 时间线 -->
+  <div class="card tl-card">
+    <div class="tl-hdr">
+      <div class="tl-title">⏱ Agent Loop 执行时间线</div>
+      <div class="tl-cnt" id="tlCnt">步骤 0 / 0</div>
+    </div>
+    <div class="tl-track">
+      <div class="tl-line"></div>
+      <div class="tl-prog" id="tlProg" style="width:0%"></div>
+      <div class="tl-steps">
+        <div class="tl-step" id="ts0"><div class="tl-dot">💬</div><div class="tl-label">用户消息<br>加入 messages</div></div>
+        <div class="tl-step" id="ts1"><div class="tl-dot">🧠</div><div class="tl-label">第一次<br>调用 LLM</div></div>
+        <div class="tl-step" id="ts2"><div class="tl-dot">🔧</div><div class="tl-label">解析<br>tool_use</div></div>
+        <div class="tl-step" id="ts3"><div class="tl-dot">⚡</div><div class="tl-label">执行<br>get_time()</div></div>
+        <div class="tl-step" id="ts4"><div class="tl-dot">📥</div><div class="tl-label">tool_result<br>回填</div></div>
+        <div class="tl-step" id="ts5"><div class="tl-dot">🧠</div><div class="tl-label">第二次<br>调用 LLM</div></div>
+        <div class="tl-step" id="ts6"><div class="tl-dot">✅</div><div class="tl-label">最终答复<br>end_turn</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── 状态 ────────────────────────────────────────────────────────────────────
+let steps=[],cur=-1,running=false,autoM=false,autoT=null;
+
+// 当前时间
+const N=new Date();
+const ts=`${N.getFullYear()}年${p2(N.getMonth()+1)}月${p2(N.getDate())}日 ${p2(N.getHours())}:${p2(N.getMinutes())}:${p2(N.getSeconds())}`;
+const WD=['日','一','二','三','四','五','六'][N.getDay()];
+const TR=`当前时间是 ${ts}（local）`;
+const tid=()=>'toolu_'+Math.random().toString(36).substr(2,8);
+
+function p2(n){return String(n).padStart(2,'0')}
+function ej(s){return s.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')}
+function eh(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}
+
+function buildSteps(q){
+  const needTool=q.includes('几点')||q.includes('时间')||q.includes('星期')||q.includes('几号')||q.includes('日期')||q.includes('今天');
+  const id=tid();
+  if(needTool){
+    return [
+      {title:'用户消息加入 messages[]',
+       st:{i:'💬',t:'用户输入已添加到 messages[]',b:'sb-think',l:'等待 LLM'},
+       msgs:[{r:'u',c:q}],
+       json:`// messages[] 当前状态\n[\n  {\n    "role": "user",\n    "content": "${ej(q)}"\n  }\n]`,
+       tool:null,fin:null},
+      {title:'调用 LLM，返回 tool_use',
+       st:{i:'🧠',t:'LLM 判断需要调用工具 get_time',b:'sb-think',l:'思考中'},
+       msgs:[{r:'u',c:q},{r:'t',c:`[tool_use] name=get_time  id="${id}"`}],
+       json:`// LLM 原始响应（stop_reason = "tool_use"）\n{\n  "stop_reason": "tool_use",\n  "content": [\n    {\n      "type": "text",\n      "text": "我来查一下当前时间…"\n    },\n    {\n      "type": "tool_use",\n      "id": "${id}",\n      "name": "get_time",\n      "input": {}\n    }\n  ]\n}`,
+       tool:null,fin:null},
+      {title:'解析 tool_use block',
+       st:{i:'🔧',t:'解析到 tool_use，name=get_time，input={}',b:'sb-tool',l:'解析'},
+       msgs:[{r:'u',c:q},{r:'t',c:`[tool_use] get_time({})  id="${id}"`}],
+       json:`// 解析出的 tool_use block\n{\n  "type": "tool_use",\n  "id": "${id}",\n  "name": "get_time",\n  "input": {}\n}\n\n// → 下一步：execute_tool("get_time", {})`,
+       tool:null,fin:null},
+      {title:'执行工具 get_time()',
+       st:{i:'⚡',t:`工具执行完毕：${TR}`,b:'sb-tool',l:'工具执行'},
+       msgs:[{r:'u',c:q},{r:'t',c:`[tool_use] get_time({})`}],
+       json:`// Python 函数执行\nexecute_tool("get_time", {})\n\n# handler：\nfrom datetime import datetime\ndatetime.now().strftime("当前时间是 %Y年%m月%d日 %H:%M:%S（local）")\n\n# 返回：\n"${TR}"`,
+       tool:{name:'get_time',args:'{}',res:TR},fin:null},
+      {title:'tool_result 回填 messages[]',
+       st:{i:'📥',t:'工具结果已回填，messages[] 现有 3 条',b:'sb-think',l:'回填完成'},
+       msgs:[{r:'u',c:q},{r:'t',c:`[tool_use] get_time({})`},{r:'r',c:TR}],
+       json:`// messages[] 回填后\n// Anthropic 格式：role=user + type=tool_result\n{\n  "role": "user",\n  "content": [\n    {\n      "type": "tool_result",\n      "tool_use_id": "${id}",\n      "content": "${TR}"\n    }\n  ]\n}\n\n// ⚠ 注意：OpenAI 用 role="tool"，字段名不同`,
+       tool:{name:'get_time',args:'{}',res:TR},fin:null},
+      {title:'第二次调用 LLM',
+       st:{i:'🧠',t:'LLM 看到工具结果，正在组织最终回复',b:'sb-think',l:'生成回复'},
+       msgs:[{r:'u',c:q},{r:'t',c:`[tool_use] get_time({})`},{r:'r',c:TR},{r:'a',c:'正在生成...'}],
+       json:`// 第二次 LLM 调用\n// messages 包含工具结果，LLM 可以用它回答用户\n{\n  "stop_reason": "end_turn",\n  "content": [\n    {\n      "type": "text",\n      "text": "现在是 ${ts}，星期${WD}。…"\n    }\n  ]\n}`,
+       tool:{name:'get_time',args:'{}',res:TR},fin:null},
+      {title:'最终答复（end_turn）',
+       st:{i:'✅',t:'完成！stop_reason = end_turn，LLM 共调用 2 次',b:'sb-done',l:'已完成'},
+       msgs:[{r:'u',c:q},{r:'t',c:`[tool_use] get_time({})`},{r:'r',c:TR},{r:'a',c:`现在是 **${ts}**，星期${WD}。有什么我可以帮你的吗？`}],
+       json:`// 最终 messages[] 共 4 条\n[\n  {"role":"user","content":"${ej(q)}"},\n  {"role":"assistant","content":[tool_use block]},\n  {"role":"user","content":[tool_result]},\n  {"role":"assistant","content":"现在是…"}\n]\n\n// Agent 循环结束 ✓`,
+       tool:{name:'get_time',args:'{}',res:TR},
+       fin:`现在是 **${ts}**，星期${WD}。\n\nLLM 总共被调用了 **2 次**：\n1. 第一次：判断需要调用 get_time 工具\n2. 第二次：拿着工具结果生成最终回复`}
+    ];
+  }else{
+    const rep=q.includes('工具')
+      ?'我目前有一个工具：**get_time**，可以获取当前时间。后续版本会增加 read_file、shell_exec 等。'
+      :q.includes('介绍')||q.includes('Agent')
+      ?'Agent = **LLM + loop + tools**。我是 Lena v0.3，最小可行 Agent 示例。核心只有 50 行代码。'
+      :`好的，你问的是："${q}"。这是一个直接回复，不需要调用任何工具。`;
+    return [
+      {title:'用户消息加入 messages[]',
+       st:{i:'💬',t:'用户输入已添加到 messages[]',b:'sb-think',l:'等待 LLM'},
+       msgs:[{r:'u',c:q}],
+       json:`// messages[]\n[\n  {"role": "user", "content": "${ej(q)}"}\n]`,
+       tool:null,fin:null},
+      {title:'调用 LLM，直接返回文字（无工具调用）',
+       st:{i:'✅',t:'LLM 不需要工具，直接给出回复',b:'sb-done',l:'已完成'},
+       msgs:[{r:'u',c:q},{r:'a',c:rep}],
+       json:`// LLM 响应（stop_reason = "end_turn"，无 tool_use）\n{\n  "stop_reason": "end_turn",\n  "content": [\n    {\n      "type": "text",\n      "text": "${ej(rep)}"\n    }\n  ]\n}\n\n// LLM 只调用了 1 次`,
+       tool:null,fin:rep}
+    ];
+  }
+}
+
+function qi(t){document.getElementById('uInput').value=t}
+
+function startRun(){
+  const q=document.getElementById('uInput').value.trim();
+  if(!q)return;
+  steps=buildSteps(q); cur=-1; running=true;
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('nxtBtn').disabled=false;
+  document.getElementById('finalBox').style.display='none';
+  document.getElementById('toolBox').style.display='none';
+  nextStep();
+}
+
+function nextStep(){
+  if(!running||cur>=steps.length-1)return;
+  cur++;
+  renderStep(cur);
+}
+
+function toggleAuto(){
+  autoM=!autoM;
+  const b=document.getElementById('autoBtn');
+  if(autoM){b.textContent='⏸ 暂停'; b.style.borderColor='rgba(34,211,238,.4)'; doAuto();}
+  else{b.textContent='⚡ 自动'; b.style.borderColor=''; if(autoT)clearTimeout(autoT);}
+}
+
+function doAuto(){
+  if(!autoM||!running||cur>=steps.length-1){
+    if(cur>=steps.length-1){autoM=false; document.getElementById('autoBtn').textContent='⚡ 自动'; document.getElementById('autoBtn').style.borderColor='';}
+    return;
+  }
+  nextStep();
+  autoT=setTimeout(doAuto,1400);
+}
+
+function resetAll(){
+  steps=[];cur=-1;running=false;autoM=false;
+  if(autoT)clearTimeout(autoT);
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('nxtBtn').disabled=true;
+  document.getElementById('autoBtn').textContent='⚡ 自动';
+  document.getElementById('autoBtn').style.borderColor='';
+  document.getElementById('uInput').value='';
+  document.getElementById('msgs').innerHTML='<div class="empty"><div class="empty-icon">📭</div>messages[] 为空<br>输入问题后开始</div>';
+  document.getElementById('jsonView').innerHTML='<span class="jc">// 等待 LLM 响应...</span>';
+  document.getElementById('toolBox').style.display='none';
+  document.getElementById('finalBox').style.display='none';
+  for(let i=0;i<=6;i++){const e=document.getElementById('ts'+i);if(e){e.className='tl-step';e.querySelector('.tl-dot').className='tl-dot';}}
+  document.getElementById('tlProg').style.width='0%';
+  document.getElementById('tlCnt').textContent='步骤 0 / 0';
+  setSt('💤','等待用户输入','待机中','sb-wait');
+}
+
+function renderStep(i){
+  const s=steps[i]; if(!s)return;
+  setSt(s.st.i,s.st.t,s.st.l,s.st.b);
+  renderMsgs(s.msgs);
+  renderJson(s.json);
+  if(s.tool){
+    document.getElementById('toolBox').style.display='block';
+    document.getElementById('tName').textContent=s.tool.name;
+    document.getElementById('tArgs').textContent=s.tool.args;
+    document.getElementById('tRes').textContent=s.tool.res;
+  }
+  if(s.fin){
+    document.getElementById('finalBox').style.display='block';
+    document.getElementById('finalText').innerHTML=s.fin.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  }
+  updateTL(i);
+  document.getElementById('tlCnt').textContent=`步骤 ${i+1} / ${steps.length}`;
+  if(i>=steps.length-1)document.getElementById('nxtBtn').disabled=true;
+}
+
+function setSt(icon,text,label,cls){
+  document.querySelector('#sb .st-icon').textContent=icon;
+  document.getElementById('stText').textContent=text;
+  const b=document.getElementById('stBadge');
+  b.textContent=label; b.className='st-badge '+cls;
+}
+
+function renderMsgs(list){
+  const c=document.getElementById('msgs'); c.innerHTML='';
+  list.forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.style.animationDelay=`${i*.05}s`;
+    let rc='msg-u',rl='role-u',rlabel='👤 user';
+    if(m.r==='a'){rc='msg-a';rl='role-a';rlabel='🤖 assistant';}
+    else if(m.r==='t'){rc='msg-t';rl='role-t';rlabel='🤖 assistant (tool_use)';}
+    else if(m.r==='r'){rc='msg-r';rl='role-r';rlabel='⚡ user (tool_result)';}
+    d.className=`msg-item ${rc}`;
+    d.innerHTML=`<div class="msg-role ${rl}">${rlabel}</div><div class="msg-cnt">${eh(m.c)}</div>`;
+    c.appendChild(d);
+  });
+  c.scrollTop=c.scrollHeight;
+}
+
+function renderJson(j){
+  const colored=j.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"([^"]+)":/g,'<span class="jk">"$1"</span>:')
+    .replace(/: "([^"]*)"/g,': <span class="js">"$1"</span>')
+    .replace(/: (true|false)/g,': <span class="jb">$1</span>')
+    .replace(/: (\d+)/g,': <span class="jn">$1</span>')
+    .replace(/(\/\/[^\n]*)/g,'<span class="jc">$1</span>');
+  document.getElementById('jsonView').innerHTML=colored;
+}
+
+function updateTL(ai){
+  const needTool=steps.length===7;
+  const total=steps.length-1;
+  for(let i=0;i<=6;i++){
+    const e=document.getElementById('ts'+i); if(!e)continue;
+    const d=e.querySelector('.tl-dot');
+    e.className='tl-step'; d.className='tl-dot';
+    const si=needTool?i:Math.floor(i*(total/6));
+    if(!needTool){
+      if(i<Math.round(ai/total*6)){e.className='tl-step done';d.className='tl-dot done';}
+      else if(i===Math.round(ai/total*6)){e.className='tl-step active';d.className='tl-dot active';}
+    } else {
+      if(i<ai){e.className='tl-step done';d.className='tl-dot done';}
+      else if(i===ai){e.className='tl-step active';d.className='tl-dot active';}
+    }
+  }
+  const pct=total>0?ai/total*100:0;
+  document.getElementById('tlProg').style.width=`${pct}%`;
+}
+</script>
+</body>
+</html>

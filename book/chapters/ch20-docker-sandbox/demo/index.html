@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 16 · Docker Sandbox 执行面板</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0d10;
+  color: #e0e0e0;
+  font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.header-title { font-size: 16px; font-weight: 700; letter-spacing: 0.1em; }
+.header-sub { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 3px; }
+.chapter-badge {
+  background: rgba(0,204,85,0.1); border: 1px solid rgba(0,204,85,0.3);
+  padding: 4px 12px; border-radius: 2px; font-size: 11px; color: #00cc55; letter-spacing: 0.2em;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px 300px;
+  gap: 16px;
+  height: calc(100vh - 100px);
+}
+
+/* ── Left: Code Input ── */
+.panel {
+  background: #0f1418; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px; display: flex; flex-direction: column;
+}
+.panel-header {
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title { font-size: 12px; letter-spacing: 0.2em; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+.panel-body { flex: 1; padding: 16px; overflow: auto; }
+
+.lang-tabs { display: flex; gap: 4px; }
+.lang-tab {
+  padding: 4px 12px; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 2px; font-size: 11px; cursor: pointer; color: rgba(255,255,255,0.4);
+  background: transparent; font-family: inherit; letter-spacing: 0.1em;
+  transition: all 0.15s;
+}
+.lang-tab:hover { border-color: rgba(0,204,85,0.3); color: rgba(0,204,85,0.8); }
+.lang-tab.active { background: rgba(0,204,85,0.12); border-color: rgba(0,204,85,0.4); color: #00cc55; }
+
+#codeInput {
+  width: 100%; height: 100%; resize: none;
+  background: #090c0f; border: 1px solid rgba(255,255,255,0.05);
+  color: #c9d1d9; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
+  padding: 14px; border-radius: 4px; line-height: 1.6; outline: none;
+}
+#codeInput:focus { border-color: rgba(0,204,85,0.2); }
+
+.run-btn {
+  margin-top: 12px; width: 100%; padding: 12px;
+  background: rgba(0,204,85,0.12); border: 1px solid rgba(0,204,85,0.3);
+  color: #00cc55; font-family: inherit; font-size: 13px; font-weight: 700;
+  letter-spacing: 0.15em; cursor: pointer; border-radius: 4px;
+  transition: all 0.15s;
+}
+.run-btn:hover { background: rgba(0,204,85,0.2); }
+.run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.run-btn.running { background: rgba(255,150,0,0.1); border-color: rgba(255,150,0,0.3); color: #ff9966; }
+
+/* ── Middle: Execution Steps ── */
+.exec-steps { display: flex; flex-direction: column; gap: 0; }
+.exec-step {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.exec-step:last-child { border-bottom: none; }
+.step-indicator {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+  color: rgba(255,255,255,0.25);
+}
+.step-indicator.done { border-color: #00cc55; color: #00cc55; background: rgba(0,204,85,0.1); }
+.step-indicator.active { border-color: #ff9966; color: #ff9966; background: rgba(255,150,0,0.08); animation: pulse 1s infinite; }
+.step-indicator.error { border-color: #ff4444; color: #ff4444; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+.step-info { flex: 1; }
+.step-name { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 3px; }
+.step-detail { font-size: 11px; color: rgba(255,255,255,0.3); }
+.step-ts { font-size: 10px; color: rgba(0,204,85,0.5); }
+
+/* Output */
+.output-area {
+  flex: 1; background: #090c0f; border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 4px; padding: 12px; overflow: auto;
+  font-size: 12px; line-height: 1.7; min-height: 100px;
+}
+.out-line { margin: 2px 0; }
+.out-stdout { color: #c9d1d9; }
+.out-stderr { color: #ff9966; }
+.out-system { color: rgba(0,204,85,0.7); }
+.out-error { color: #ff4444; }
+.out-timeout { color: #ffcc44; }
+
+/* ── Right: Security Status ── */
+.security-checks { display: flex; flex-direction: column; gap: 10px; }
+.check-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.05); border-radius: 4px;
+}
+.check-name { font-size: 12px; color: rgba(255,255,255,0.6); }
+.check-val {
+  font-size: 11px; padding: 2px 8px; border-radius: 2px;
+  letter-spacing: 0.1em;
+}
+.val-ok { background: rgba(0,204,85,0.12); color: #00cc55; border: 1px solid rgba(0,204,85,0.2); }
+.val-blocked { background: rgba(255,50,50,0.1); color: #ff5555; border: 1px solid rgba(255,50,50,0.2); }
+.val-limited { background: rgba(255,150,0,0.1); color: #ff9966; border: 1px solid rgba(255,150,0,0.2); }
+
+.approval-log {
+  margin-top: 8px; background: #090c0f; border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 4px; padding: 10px 12px; flex: 1; overflow: auto;
+}
+.al-title { font-size: 10px; letter-spacing: 0.2em; color: rgba(0,204,85,0.5); margin-bottom: 8px; text-transform: uppercase; }
+.al-item { font-size: 11px; color: rgba(255,255,255,0.4); margin: 3px 0; }
+.al-item .ok { color: #00cc55; }
+
+.lifecycle-log {
+  margin-top: 8px; background: #090c0f; border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 4px; padding: 10px 12px; max-height: 150px; overflow: auto;
+}
+.lc-title { font-size: 10px; letter-spacing: 0.2em; color: rgba(0,204,85,0.5); margin-bottom: 8px; text-transform: uppercase; }
+.lc-line { font-size: 11px; color: rgba(255,255,255,0.35); margin: 2px 0; line-height: 1.5; }
+.lc-line .ts { color: rgba(255,255,255,0.2); }
+.lc-line .event { color: rgba(0,204,85,0.7); }
+.lc-line .destroy { color: rgba(255,100,100,0.6); }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-title">Docker Sandbox 执行面板</div>
+    <div class="header-sub">lena-v1.6 · 每次执行独立容器，执行后立即销毁</div>
+  </div>
+  <div class="chapter-badge">Ch 16 · Docker Sandbox</div>
+</div>
+
+<div class="main-grid">
+  <!-- Left: Code Input -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">代码输入</div>
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="setLang('python')">Python</button>
+        <button class="lang-tab" onclick="setLang('shell')">Shell</button>
+        <button class="lang-tab" onclick="setLang('javascript')">JS</button>
+      </div>
+    </div>
+    <div class="panel-body" style="display:flex;flex-direction:column;gap:12px;">
+      <textarea id="codeInput" spellcheck="false">print("Hello from Docker sandbox!")
+import sys
+print(f"Python version: {sys.version}")
+print("文件系统探测（容器内）:")
+import os
+print(f"  当前目录文件: {os.listdir('/')[:8]}")
+print("网络测试（应该失败，因为 network=none）:")
+try:
+    import socket
+    socket.create_connection(("8.8.8.8", 53), timeout=2)
+    print("  连接成功（异常！）")
+except:
+    print("  连接失败 ✓ (network=none 生效)")</textarea>
+      <button class="run-btn" id="runBtn" onclick="runCode()">▶ 在 Docker 沙箱执行</button>
+    </div>
+  </div>
+
+  <!-- Middle: Execution Steps + Output -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">执行状态</div>
+      <span id="execStatus" style="font-size:11px;color:rgba(255,255,255,0.25);">等待执行</span>
+    </div>
+    <div class="panel-body" style="display:flex;flex-direction:column;gap:16px;">
+      <div class="exec-steps" id="execSteps">
+        <div class="exec-step">
+          <div class="step-indicator" id="s1">1</div>
+          <div class="step-info">
+            <div class="step-name">安全校验</div>
+            <div class="step-detail">检查 docker socket / seccomp / privileged</div>
+            <div class="step-ts" id="t1"></div>
+          </div>
+        </div>
+        <div class="exec-step">
+          <div class="step-indicator" id="s2">2</div>
+          <div class="step-info">
+            <div class="step-name">exec-approvals 检查</div>
+            <div class="step-detail">session 级批准记忆查询</div>
+            <div class="step-ts" id="t2"></div>
+          </div>
+        </div>
+        <div class="exec-step">
+          <div class="step-indicator" id="s3">3</div>
+          <div class="step-info">
+            <div class="step-name">创建容器</div>
+            <div class="step-detail">docker run --rm --network none ...</div>
+            <div class="step-ts" id="t3"></div>
+          </div>
+        </div>
+        <div class="exec-step">
+          <div class="step-indicator" id="s4">4</div>
+          <div class="step-info">
+            <div class="step-name">代码注入 & 执行</div>
+            <div class="step-detail">挂载代码文件，启动执行</div>
+            <div class="step-ts" id="t4"></div>
+          </div>
+        </div>
+        <div class="exec-step">
+          <div class="step-indicator" id="s5">5</div>
+          <div class="step-info">
+            <div class="step-name">结果回传 & 容器销毁</div>
+            <div class="step-detail">--rm 自动清理</div>
+            <div class="step-ts" id="t5"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.25);margin-bottom:6px;text-transform:uppercase;">输出</div>
+        <div class="output-area" id="outputArea">
+          <div class="out-system">// 等待执行…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Security Status -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">安全检查面板</div>
+    </div>
+    <div class="panel-body" style="display:flex;flex-direction:column;gap:16px;">
+      <div class="security-checks">
+        <div class="check-item">
+          <div class="check-name">docker socket 挂载</div>
+          <div class="check-val val-blocked">阻断 ✓</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">seccomp profile</div>
+          <div class="check-val val-ok">启用 ✓</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">AppArmor</div>
+          <div class="check-val val-ok">启用 ✓</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">--privileged</div>
+          <div class="check-val val-blocked">禁止 ✓</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">网络模式</div>
+          <div class="check-val val-blocked">none ✓</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">CPU 限制</div>
+          <div class="check-val val-limited">0.5 core</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">内存限制</div>
+          <div class="check-val val-limited">256 MB</div>
+        </div>
+        <div class="check-item">
+          <div class="check-name">exec-approvals</div>
+          <div class="check-val val-ok" id="approvalCount">批准 0 次</div>
+        </div>
+      </div>
+
+      <div class="approval-log">
+        <div class="al-title">exec-approvals 记录</div>
+        <div id="approvalLog"><div class="al-item" style="color:rgba(255,255,255,0.2);">（本 session 尚无已批准命令）</div></div>
+      </div>
+
+      <div class="lifecycle-log">
+        <div class="lc-title">容器生命周期</div>
+        <div id="lifecycleLog"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentLang = 'python';
+let sessionApprovals = new Set();
+let execCount = 0;
+let approvedCount = 0;
+let lifecycleLines = [];
+
+const examples = {
+  python: `print("Hello from Docker sandbox!")
+import sys
+print(f"Python version: {sys.version}")
+print("\\n文件系统探测（容器内）:")
+import os
+print(f"  根目录: {os.listdir('/')[:8]}")
+print("\\n网络测试（应该失败，network=none）:")
+try:
+    import socket
+    socket.create_connection(("8.8.8.8", 53), timeout=2)
+    print("  连接成功（异常！）")
+except:
+    print("  连接失败 ✓ (network=none 生效)")`,
+  shell: `#!/bin/sh
+echo "Hello from Docker shell sandbox!"
+echo "当前用户: $(whoami)"
+echo "主机名: $(hostname)"
+echo ""
+echo "尝试访问 /etc/passwd:"
+cat /etc/passwd | head -3
+echo ""
+echo "磁盘信息:"
+df -h / 2>/dev/null | head -2`,
+  javascript: `console.log("Hello from Docker Node.js sandbox!");
+console.log(\`Node.js: \${process.version}\`);
+console.log("\\n尝试文件系统访问:");
+const fs = require('fs');
+try {
+  const files = fs.readdirSync('/');
+  console.log("根目录文件:", files.slice(0, 6));
+} catch(e) {
+  console.log("访问失败:", e.message);
+}
+console.log("\\n进程信息:");
+console.log("  PID:", process.pid);
+console.log("  Platform:", process.platform);`
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.toggle('active', t.textContent === lang.charAt(0).toUpperCase() + lang.slice(1)));
+  document.getElementById('codeInput').value = examples[lang];
+}
+
+function ts() { return new Date().toTimeString().slice(0,8); }
+
+function resetSteps() {
+  for (let i = 1; i <= 5; i++) {
+    const s = document.getElementById('s'+i);
+    s.className = 'step-indicator';
+    s.textContent = i;
+    document.getElementById('t'+i).textContent = '';
+  }
+}
+
+function setStep(n, state, detail) {
+  const s = document.getElementById('s'+n);
+  if (state === 'active') { s.className = 'step-indicator active'; s.textContent = '⟳'; }
+  else if (state === 'done') { s.className = 'step-indicator done'; s.textContent = '✓'; }
+  else if (state === 'error') { s.className = 'step-indicator error'; s.textContent = '✗'; }
+  if (detail) document.getElementById('t'+n).textContent = ts() + (detail ? ' · ' + detail : '');
+}
+
+function addOutput(text, type) {
+  const area = document.getElementById('outputArea');
+  const line = document.createElement('div');
+  line.className = 'out-line out-' + type;
+  line.textContent = text;
+  area.appendChild(line);
+  area.scrollTop = area.scrollHeight;
+}
+
+function addLifecycle(text, cls) {
+  const log = document.getElementById('lifecycleLog');
+  const line = document.createElement('div');
+  line.className = 'lc-line';
+  line.innerHTML = `<span class="ts">${ts()}</span> <span class="${cls || 'event'}">${text}</span>`;
+  log.insertBefore(line, log.firstChild);
+}
+
+function updateApprovalLog(pattern) {
+  const log = document.getElementById('approvalLog');
+  if (!sessionApprovals.size) {
+    log.innerHTML = '<div class="al-item" style="color:rgba(255,255,255,0.2);">（本 session 尚无已批准命令）</div>';
+    return;
+  }
+  log.innerHTML = [...sessionApprovals].map(p =>
+    `<div class="al-item"><span class="ok">✓</span> ${p}</div>`
+  ).join('');
+  document.getElementById('approvalCount').textContent = `批准 ${approvedCount} 次`;
+}
+
+async function runCode() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (!code) return;
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.classList.add('running');
+  btn.textContent = '⟳ 执行中…';
+
+  document.getElementById('outputArea').innerHTML = '';
+  document.getElementById('execStatus').textContent = '执行中…';
+  resetSteps();
+  execCount++;
+
+  const containerId = `lena-sandbox-${Math.random().toString(16).slice(2,10)}`;
+
+  // Step 1: Security validation
+  setStep(1, 'active', '');
+  await sleep(300);
+  addOutput('[安全校验] 检查 docker socket 挂载…', 'system');
+  await sleep(200);
+  addOutput('[安全校验] /var/run/docker.sock — 未挂载 ✓', 'system');
+  addOutput('[安全校验] seccomp profile — 已启用 ✓', 'system');
+  addOutput('[安全校验] AppArmor — 已启用 ✓', 'system');
+  addOutput('[安全校验] privileged — false ✓', 'system');
+  setStep(1, 'done', '通过');
+
+  // Step 2: exec-approvals
+  setStep(2, 'active', '');
+  await sleep(300);
+  const pattern = currentLang + ': *.code';
+  const wasApproved = sessionApprovals.has(pattern);
+  if (wasApproved) {
+    addOutput(`[exec-approvals] 自动通过（已批准模式：${pattern}）`, 'system');
+    setStep(2, 'done', 'session 记忆命中');
+  } else {
+    addOutput('[exec-approvals] 首次执行，需要用户审批', 'system');
+    const approved = confirm(`Lena 要在 Docker 沙箱执行以下代码：\n\n语言：${currentLang}\n预览：${code.slice(0,100)}${code.length>100?'...':''}\n\n允许执行？（点确定 = 批准并记忆本 session）`);
+    if (!approved) {
+      addOutput('[exec-approvals] 用户拒绝执行', 'error');
+      setStep(2, 'error', '用户拒绝');
+      btn.disabled = false; btn.classList.remove('running'); btn.textContent = '▶ 在 Docker 沙箱执行';
+      document.getElementById('execStatus').textContent = '已拒绝';
+      return;
+    }
+    sessionApprovals.add(pattern);
+    approvedCount++;
+    updateApprovalLog(pattern);
+    addOutput(`[exec-approvals] 已批准并记忆：${pattern}`, 'system');
+    setStep(2, 'done', '首次批准 → 已记忆');
+  }
+
+  // Step 3: Create container
+  setStep(3, 'active', '');
+  addLifecycle(`容器创建：${containerId}`, 'event');
+  await sleep(600);
+  addOutput(`[容器] 创建 container: ${containerId}`, 'system');
+  addOutput(`[容器] --rm --network none --cpus 0.5 --memory 256m --read-only`, 'system');
+  addOutput(`[容器] --user nobody (非 root)`, 'system');
+  setStep(3, 'done', containerId.slice(-8));
+
+  // Step 4: Execute
+  setStep(4, 'active', '');
+  addOutput(`\n[执行] ${currentLang} 代码开始…\n${'─'.repeat(40)}`, 'system');
+  await sleep(400);
+
+  // Simulate output based on language
+  const outputs = simulateOutput(currentLang, code);
+  for (const [text, type] of outputs) {
+    addOutput(text, type);
+    await sleep(100);
+  }
+  addOutput('─'.repeat(40), 'system');
+  setStep(4, 'done', 'exit code=0');
+
+  // Step 5: Result + destroy
+  setStep(5, 'active', '');
+  await sleep(400);
+  addOutput(`\n[容器] 执行完毕，正在销毁…`, 'system');
+  await sleep(300);
+  addOutput(`[容器] ${containerId} — 已销毁 ✓`, 'system');
+  addLifecycle(`容器销毁：${containerId}`, 'destroy');
+  setStep(5, 'done', '容器已销毁');
+
+  document.getElementById('execStatus').textContent = `完成 (第 ${execCount} 次执行)`;
+  btn.disabled = false; btn.classList.remove('running'); btn.textContent = '▶ 在 Docker 沙箱执行';
+}
+
+function simulateOutput(lang, code) {
+  if (lang === 'python') {
+    return [
+      ['Hello from Docker sandbox!', 'stdout'],
+      ['Python version: 3.12.0 (main) [GCC 12.2.0]', 'stdout'],
+      ['', 'stdout'],
+      ['文件系统探测（容器内）:', 'stdout'],
+      ["  根目录: ['bin', 'dev', 'etc', 'home', 'lib', 'proc', 'sys', 'tmp']", 'stdout'],
+      ['', 'stdout'],
+      ['网络测试（应该失败，network=none）:', 'stdout'],
+      ['  连接失败 ✓ (network=none 生效)', 'stdout'],
+    ];
+  } else if (lang === 'shell') {
+    return [
+      ['Hello from Docker shell sandbox!', 'stdout'],
+      ['当前用户: nobody', 'stdout'],
+      ['主机名: 3f2a8c1d4e5b', 'stdout'],
+      ['', 'stdout'],
+      ['尝试访问 /etc/passwd:', 'stdout'],
+      ['root:x:0:0:root:/root:/bin/sh', 'stdout'],
+      ['', 'stdout'],
+      ['磁盘信息:', 'stdout'],
+      ['Filesystem      Size  Used Avail Use% Mounted on', 'stdout'],
+      ['overlay          64G  4.2G   57G   7% /', 'stdout'],
+    ];
+  } else {
+    return [
+      ['Hello from Docker Node.js sandbox!', 'stdout'],
+      ['Node.js: v20.11.0', 'stdout'],
+      ['', 'stdout'],
+      ['尝试文件系统访问:', 'stdout'],
+      ["根目录文件: [ 'bin', 'dev', 'etc', 'home', 'lib', 'proc' ]", 'stdout'],
+      ['', 'stdout'],
+      ['进程信息:', 'stdout'],
+      ['  PID: 1', 'stdout'],
+      ['  Platform: linux', 'stdout'],
+    ];
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

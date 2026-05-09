@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 02 结构化日志</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr;
+  }
+  .header {
+    grid-column: 1 / -1;
+    padding: 60px 100px 40px;
+    border-bottom: 1px solid rgba(48,54,61,0.8);
+  }
+  .tag {
+    font-size: 12px; letter-spacing: 0.15em; color: #58a6ff;
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 52px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #58a6ff; }
+  .subtitle { font-size: 20px; color: #8b949e; margin-top: 8px; }
+
+  .panel {
+    padding: 48px 80px 48px 100px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .panel.right {
+    padding: 48px 100px 48px 80px;
+    border-left: 1px solid rgba(48,54,61,0.8);
+    background: rgba(22,27,34,0.5);
+  }
+  .panel-title {
+    font-size: 16px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-title.bad { color: #f85149; }
+  .panel-title.good { color: #3fb950; }
+  .dot-bad { width: 8px; height: 8px; background: #f85149; border-radius: 50%; }
+  .dot-good { width: 8px; height: 8px; background: #3fb950; border-radius: 50%; }
+
+  /* 代码块 */
+  .code {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+    padding: 20px 24px; font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 15px; line-height: 1.7; color: #c9d1d9;
+    position: relative; overflow: hidden;
+  }
+  .code-bad { border-color: rgba(248,81,73,0.3); }
+  .code-good { border-color: rgba(63,185,80,0.3); }
+  .c-keyword { color: #ff7b72; }
+  .c-string { color: #a5d6ff; }
+  .c-func { color: #d2a8ff; }
+  .c-comment { color: #6e7681; font-style: italic; }
+  .c-key { color: #79c0ff; }
+  .c-val { color: #a5d6ff; }
+  .c-num { color: #f2cc60; }
+
+  /* 对比指标 */
+  .metrics {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .metric-row {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: center; gap: 16px;
+  }
+  .metric-label { font-size: 15px; color: #8b949e; }
+  .metric-val {
+    font-size: 15px; font-family: 'SF Mono', monospace;
+    padding: 4px 12px; border-radius: 6px;
+    white-space: nowrap;
+  }
+  .mv-bad { background: rgba(248,81,73,0.1); color: #f85149; border: 1px solid rgba(248,81,73,0.2); }
+  .mv-good { background: rgba(63,185,80,0.1); color: #3fb950; border: 1px solid rgba(63,185,80,0.2); }
+
+  .insight {
+    background: rgba(56,139,253,0.08); border: 1px solid rgba(56,139,253,0.2);
+    border-radius: 8px; padding: 16px 20px;
+    font-size: 15px; color: #8b949e; line-height: 1.5;
+  }
+  .insight strong { color: #58a6ff; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d; letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">结构化日志 · structlog</div>
+    <h1>为什么 JSON 日志<span>让排查快 10 倍</span></h1>
+    <p class="subtitle">文本日志 vs. 结构化日志的本质差异</p>
+  </div>
+
+  <!-- 左：Bad 面板 -->
+  <div class="panel">
+    <div class="panel-title bad"><div class="dot-bad"></div>文本日志（Bad）</div>
+    <div class="code code-bad">
+<span class="c-comment"># 三天后你根本不知道这是哪次调用</span>
+<span class="c-func">print</span>(<span class="c-string">f"调用 LLM，结果：<span class="c-key">{result}</span>"</span>)
+
+<span class="c-comment"># 想查今天花了多少钱？</span>
+<span class="c-comment"># grep -A5 "2026-05-05 03:12"</span>
+<span class="c-comment"># 然后肉眼一行一行读……</span>
+    </div>
+    <div class="metrics">
+      <div class="metric-row">
+        <span class="metric-label">查某次调用 token</span>
+        <span class="metric-val mv-bad">肉眼 grep 读</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">统计今日花费</span>
+        <span class="metric-val mv-bad">无法直接统计</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">找所有失败工具调用</span>
+        <span class="metric-val mv-bad">grep ERROR 乱七八糟</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">按模型聚合延迟</span>
+        <span class="metric-val mv-bad">写脚本解析字符串</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：Good 面板 -->
+  <div class="panel right">
+    <div class="panel-title good"><div class="dot-good"></div>结构化日志（Good）</div>
+    <div class="code code-good">
+<span class="c-keyword">import</span> structlog
+log = structlog.<span class="c-func">get_logger</span>()
+
+log.<span class="c-func">info</span>(<span class="c-string">"llm_call"</span>,
+       model=<span class="c-string">"claude-sonnet-4-6"</span>,
+       tokens=<span class="c-num">1234</span>,
+       latency_ms=<span class="c-num">2100</span>,
+       span_id=<span class="c-string">"a1b2c3"</span>)
+    </div>
+    <div class="metrics">
+      <div class="metric-row">
+        <span class="metric-label">查某次调用 token</span>
+        <span class="metric-val mv-good">jq '.span_id=="a1b2c3"'</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">统计今日花费</span>
+        <span class="metric-val mv-good">jq '[.cost_usd] | add'</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">找所有失败工具调用</span>
+        <span class="metric-val mv-good">jq '.event=="tool_fail"'</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">按模型聚合延迟</span>
+        <span class="metric-val mv-good">jq -r '.model + "," + (.latency_ms|tostring)'</span>
+      </div>
+    </div>
+    <div class="insight">
+      <strong>Design Note</strong>：开发环境用 <code>ConsoleRenderer</code>（彩色可读），
+      生产环境用 <code>JSONRenderer</code>，一个配置项切换，零改代码。
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · 结构化日志</div>
+</body>
+</html>

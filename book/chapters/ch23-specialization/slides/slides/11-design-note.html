@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(120,80,255,0.05) 0%, transparent 60%); }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+
+.cards { position: absolute; top: 250px; left: 100px; right: 100px; display: flex; gap: 30px; }
+.card {
+  flex: 1; border-radius: 10px; padding: 32px 28px;
+  background: rgba(153,102,255,0.04); border: 1px solid rgba(153,102,255,0.15);
+}
+.card-q { font-size: 20px; font-weight: 700; color: #cc88ff; margin-bottom: 16px; line-height: 1.4; }
+.card-a { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.8; }
+.card-a strong { color: rgba(255,255,255,0.85); }
+
+.decision-table {
+  position: absolute; bottom: 80px; left: 100px; right: 100px;
+  border: 1px solid rgba(153,102,255,0.15); border-radius: 8px; overflow: hidden;
+}
+.dt-header {
+  display: flex; background: rgba(153,102,255,0.08); padding: 14px 0;
+  font-size: 12px; letter-spacing: 0.2em; color: rgba(153,102,255,0.7); text-transform: uppercase;
+}
+.dt-col { flex: 1; padding: 0 20px; }
+.dt-row { display: flex; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.03); }
+.dt-row:hover { background: rgba(153,102,255,0.03); }
+.dt-cell { flex: 1; padding: 0 20px; font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+.dt-cell.highlight { color: #cc88ff; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="title">Design Note · 选型指南</div>
+<div class="heading">什么时候 fork？什么时候用 multi-agent？</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-q">"我要一个专用 agent，还是给通用 agent 切换 context？"</div>
+    <div class="card-a">
+      如果你需要<strong>长期稳定运行</strong>的专用角色（7×24 trading bot），用 fork。<br>
+      如果是<strong>一次性任务</strong>（帮我分析这份报告），给通用 agent 换个 system prompt 更轻量。
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-q">"专用 agent 之间需要协作，用 Crew 还是 Flow？"</div>
+    <div class="card-a">
+      <strong>一次性任务</strong>（生成报告、分析数据）→ Crew<br>
+      <strong>持续运行</strong>（监控 / 日报 / 定时任务）→ Flow<br>
+      两者都用的话，把 Crew 包在 Flow 的一个 Step 里。
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-q">"多个专用 agent，用户怎么知道找哪个？"</div>
+    <div class="card-a">
+      SupervisorAgent（agent-as-tools）：用户只跟 Supervisor 交互，Supervisor 负责路由。<br>
+      优点：<strong>用户零认知负担</strong>，路由决策是 LLM 推理，可以处理复杂意图。
+    </div>
+  </div>
+</div>
+
+<div class="decision-table">
+  <div class="dt-header">
+    <div class="dt-col">场景</div>
+    <div class="dt-col">推荐方案</div>
+    <div class="dt-col">代码产物</div>
+    <div class="dt-col">真实案例</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">单专用角色，独立完成任务</div>
+    <div class="dt-cell highlight">lena-spec create --template</div>
+    <div class="dt-cell">agent 目录 + 三件套</div>
+    <div class="dt-cell">hermesbot TradingBot</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">多角色协作一次性任务</div>
+    <div class="dt-cell highlight">CrewAI Crew</div>
+    <div class="dt-cell">Crew + Task 依赖链</div>
+    <div class="dt-cell">TradingAgents 四层</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">持续运行 pipeline</div>
+    <div class="dt-cell highlight">CrewAI Flow</div>
+    <div class="dt-cell">Flow + State + @router</div>
+    <div class="dt-cell">local-mactts 播客</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">多专用 agent + 统一入口</div>
+    <div class="dt-cell highlight">SupervisorAgent</div>
+    <div class="dt-cell">agent-as-tools wrapper</div>
+    <div class="dt-cell">Agent Squad 模式</div>
+  </div>
+</div>
+</body>
+</html>

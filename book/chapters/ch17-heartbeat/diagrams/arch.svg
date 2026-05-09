@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <style>text { font-family: 'Inter', 'PingFang SC', system-ui, sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="rgba(99,179,237,0.8)"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="rgba(104,211,145,0.8)"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="800" fill="#0a0e1a"/>
+  <!-- grid -->
+  <pattern id="g" width="60" height="60" patternUnits="userSpaceOnUse">
+    <path d="M60,0 L0,0 L0,60" fill="none" stroke="rgba(99,179,237,0.04)" stroke-width="1"/>
+  </pattern>
+  <rect width="1200" height="800" fill="url(#g)"/>
+
+  <text x="600" y="48" text-anchor="middle" font-size="24" fill="white" font-weight="700">Heartbeat 循环架构图</text>
+  <text x="600" y="76" text-anchor="middle" font-size="14" fill="rgba(99,179,237,0.6)">setTimeout 触发 → isActiveHours → eventsFilter → deliverOutboundPayloads → 下一轮</text>
+
+  <!-- ── Loop container ── -->
+  <rect x="80" y="110" width="1040" height="580" rx="24" fill="none" stroke="rgba(99,179,237,0.15)" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="600" y="140" text-anchor="middle" font-size="13" fill="rgba(99,179,237,0.4)" letter-spacing="3">HEARTBEAT LOOP</text>
+
+  <!-- Node 1: start() -->
+  <rect x="520" y="160" width="160" height="52" rx="12" fill="rgba(99,179,237,0.1)" stroke="rgba(99,179,237,0.4)" stroke-width="1.5"/>
+  <text x="600" y="192" text-anchor="middle" font-size="16" fill="#63b3ed" font-weight="600">start()</text>
+
+  <!-- Arrow down -->
+  <line x1="600" y1="212" x2="600" y2="256" stroke="rgba(99,179,237,0.5)" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="620" y="240" font-size="12" fill="rgba(99,179,237,0.6)" font-family="monospace">setTimeout(tick, ms)</text>
+
+  <!-- Node 2: onTick() -->
+  <rect x="520" y="260" width="160" height="52" rx="12" fill="rgba(99,179,237,0.1)" stroke="rgba(99,179,237,0.4)" stroke-width="1.5"/>
+  <text x="600" y="292" text-anchor="middle" font-size="16" fill="#63b3ed" font-weight="600">onTick()</text>
+
+  <!-- Arrow to isActiveHours -->
+  <line x1="600" y1="312" x2="600" y2="356" stroke="rgba(99,179,237,0.5)" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Node 3: isActiveHours? -->
+  <polygon points="600,360 760,420 600,480 440,420" fill="rgba(104,211,145,0.06)" stroke="rgba(104,211,145,0.4)" stroke-width="1.5"/>
+  <text x="600" y="414" text-anchor="middle" font-size="15" fill="#68d391" font-weight="600">isActiveHours?</text>
+
+  <!-- No branch -->
+  <line x1="440" y1="420" x2="180" y2="420" stroke="rgba(246,173,85,0.4)" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+  <text x="310" y="410" text-anchor="middle" font-size="13" fill="rgba(246,173,85,0.8)">No → return</text>
+  <rect x="80" y="396" width="100" height="48" rx="10" fill="rgba(246,173,85,0.08)" stroke="rgba(246,173,85,0.25)" stroke-width="1"/>
+  <text x="130" y="426" text-anchor="middle" font-size="14" fill="rgba(246,173,85,0.7)">skip</text>
+
+  <!-- Yes arrow -->
+  <line x1="600" y1="480" x2="600" y2="524" stroke="rgba(104,211,145,0.5)" stroke-width="2" marker-end="url(#arr-green)"/>
+  <text x="622" y="510" font-size="12" fill="rgba(104,211,145,0.7)">Yes</text>
+
+  <!-- Node 4: eventsFilter -->
+  <rect x="500" y="528" width="200" height="52" rx="12" fill="rgba(99,179,237,0.08)" stroke="rgba(99,179,237,0.3)" stroke-width="1.5"/>
+  <text x="600" y="554" text-anchor="middle" font-size="14" fill="#63b3ed">eventsFilter</text>
+  <text x="600" y="572" text-anchor="middle" font-size="12" fill="rgba(99,179,237,0.6)" font-family="monospace">.check()</text>
+
+  <!-- empty branch -->
+  <line x1="700" y1="554" x2="920" y2="554" stroke="rgba(246,173,85,0.35)" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="810" y="544" text-anchor="middle" font-size="13" fill="rgba(246,173,85,0.8)">empty → return</text>
+
+  <!-- has-events arrow -->
+  <line x1="600" y1="580" x2="600" y2="624" stroke="rgba(104,211,145,0.5)" stroke-width="2" marker-end="url(#arr-green)"/>
+  <text x="622" y="608" font-size="12" fill="rgba(104,211,145,0.7)">has events</text>
+
+  <!-- Node 5: deliverOutboundPayloads -->
+  <rect x="460" y="628" width="280" height="52" rx="12" fill="rgba(104,211,145,0.1)" stroke="rgba(104,211,145,0.4)" stroke-width="1.5"/>
+  <text x="600" y="655" text-anchor="middle" font-size="13" fill="#68d391">deliverOutboundPayloads()</text>
+  <text x="600" y="672" text-anchor="middle" font-size="12" fill="rgba(104,211,145,0.6)">→ Telegram / Discord / 飞书</text>
+
+  <!-- Loop back arrow -->
+  <path d="M 740 654 Q 960 654 960 420 Q 960 260 740 260" fill="none" stroke="rgba(99,179,237,0.3)" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+  <text x="1000" y="430" text-anchor="middle" font-size="13" fill="rgba(99,179,237,0.5)" transform="rotate(-90 1000 430)">setTimeout(tick, ms) 下一轮</text>
+
+  <!-- Footer note -->
+  <text x="600" y="760" text-anchor="middle" font-size="13" fill="rgba(226,232,240,0.4)">递归 setTimeout 保证节拍不重叠 · 对应 nano-claw/heartbeat/index.ts</text>
+</svg>

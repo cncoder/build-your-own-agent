@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 19 · MCP 协议握手可视化</title>
+<style>
+/* ── 深空霓虹 · neon-amber accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #fbbf24;       /* neon-amber */
+  --green: #34d399;
+  --cyan: #38bdf8;
+  --red: #f87171;
+  --violet: #a78bfa;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--sans);
+  min-height: 100vh; padding: 36px 24px 60px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 90% -10%, rgba(251,191,36,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(52,211,153,0.04) 0%, transparent 50%);
+}
+.wrap { max-width: 1060px; margin: 0 auto; }
+
+header { text-align: center; margin-bottom: 24px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 13px; color: var(--dim); max-width: 540px; margin: 0 auto; line-height: 1.65; }
+
+/* 场景选择 */
+.scene-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.scene-btn {
+  padding: 7px 18px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--dim); font-size: 13px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.scene-btn:hover { border-color: rgba(251,191,36,0.35); color: var(--accent); }
+.scene-btn.active { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.45); color: var(--accent); }
+
+/* 三列协议图 */
+.protocol-area {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 20px; margin-bottom: 16px; overflow: hidden;
+}
+.col-headers { display: grid; grid-template-columns: 1fr 100px 1fr; gap: 0; margin-bottom: 16px; }
+.col-head {
+  text-align: center; padding: 10px 12px;
+  background: rgba(0,0,0,0.3); border-radius: 8px;
+  font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.col-head.client { border-color: rgba(56,189,248,0.3); color: var(--cyan); }
+.col-head.proto  { background: transparent; border-color: transparent; color: var(--muted); font-size: 10px; }
+.col-head.server { border-color: rgba(52,211,153,0.3); color: var(--green); }
+
+/* 时序区域 */
+.sequence-area { position: relative; min-height: 300px; }
+/* 垂直虚线 */
+.sequence-area::before, .sequence-area::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 1px;
+  border-left: 1px dashed rgba(255,255,255,0.08);
+}
+.sequence-area::before { left: calc(33.3% - 0px); }
+.sequence-area::after  { right: calc(33.3% - 0px); }
+
+/* 消息箭头行 */
+.msg-row {
+  display: grid; grid-template-columns: 1fr 100px 1fr;
+  align-items: center; margin-bottom: 12px;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.msg-row.show { opacity: 1; transform: none; }
+.msg-row.c2s .msg-label { grid-column: 1; text-align: right; padding-right: 8px; }
+.msg-row.c2s .msg-arrow { grid-column: 2; }
+.msg-row.c2s .msg-empty { grid-column: 3; }
+.msg-row.s2c .msg-empty { grid-column: 1; }
+.msg-row.s2c .msg-arrow { grid-column: 2; }
+.msg-row.s2c .msg-label { grid-column: 3; padding-left: 8px; }
+
+.msg-label {
+  padding: 8px 10px; border-radius: 8px; font-size: 12px;
+  border: 1px solid rgba(255,255,255,0.07);
+  cursor: pointer; transition: border-color 0.2s;
+}
+.msg-label:hover { border-color: rgba(251,191,36,0.35); }
+.msg-label.active { border-color: rgba(251,191,36,0.45); background: rgba(251,191,36,0.06); }
+.msg-label .method { font-family: var(--mono); font-size: 11px; font-weight: 700; }
+.msg-label .desc { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.msg-label.c2s-style .method { color: var(--cyan); }
+.msg-label.s2c-style .method { color: var(--green); }
+.msg-label.error-style .method { color: var(--red); }
+
+/* 箭头 SVG */
+.msg-arrow { display: flex; align-items: center; justify-content: center; }
+.arrow-svg { width: 70px; height: 20px; }
+
+/* JSON 详情面板 */
+.detail-panel {
+  background: rgba(6,12,28,0.9); border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 12px; padding: 16px; margin-bottom: 16px;
+  display: none;
+}
+.detail-panel.show { display: block; animation: fadein 0.3s ease; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+.detail-title {
+  font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent);
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px;
+}
+.json-block {
+  font-family: var(--mono); font-size: 12px; line-height: 1.7;
+  background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 12px 14px; overflow-x: auto; color: #94a3b8;
+}
+.json-block .k { color: #7dd3fc; }    /* 键 */
+.json-block .s { color: #86efac; }    /* 字符串值 */
+.json-block .n { color: #fbbf24; }    /* 数字 */
+.json-block .b { color: #a78bfa; }    /* bool */
+
+/* 协议日志 */
+.proto-log {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; overflow: hidden; margin-bottom: 16px;
+}
+.proto-log-header { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.proto-log-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; }
+.log-entries { padding: 8px 10px; height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+.log-entries::-webkit-scrollbar { width: 4px; }
+.log-entries::-webkit-scrollbar-thumb { background: rgba(251,191,36,0.2); border-radius: 2px; }
+.log-line {
+  font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.55);
+  padding: 2px 4px; border-radius: 3px; animation: sl 0.25s ease;
+}
+@keyframes sl { from { opacity: 0; } to { opacity: 1; } }
+.log-line.c { color: #7dd3fc; }
+.log-line.s { color: #86efac; }
+.log-line.e { color: var(--red); }
+
+/* 控制栏 */
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.btn {
+  padding: 9px 20px; border-radius: 9px; font-size: 14px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s; border: 1px solid;
+}
+.btn-amber { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.4); color: var(--accent); font-weight: 600; }
+.btn-amber:hover { background: rgba(251,191,36,0.2); }
+.btn-amber:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-ghost { background: var(--surface); border-color: var(--border); color: var(--dim); }
+.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+.btn-auto { background: var(--surface); border-color: var(--border); color: var(--dim); }
+.btn-auto.active { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); color: var(--accent); }
+
+.insight {
+  background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 10px; padding: 12px 16px; font-size: 13px; color: rgba(253,230,138,0.85); line-height: 1.65;
+}
+.insight .label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+
+footer { text-align: center; margin-top: 40px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Ch 19 · MCP 协议</div>
+  <h1>Client ↔ Protocol ↔ Server 握手时序</h1>
+  <p>MCP（Model Context Protocol）是标准化的 LLM 工具扩展协议。一次完整会话包含：能力协商 → 工具列表 → 工具调用 → 结果返回。</p>
+</header>
+
+<!-- 场景 -->
+<div class="scene-bar">
+  <button class="scene-btn active" data-s="0" onclick="selectScene(0)">成功场景</button>
+  <button class="scene-btn" data-s="1" onclick="selectScene(1)">工具未找到（错误）</button>
+  <button class="scene-btn" data-s="2" onclick="selectScene(2)">完整会话流</button>
+</div>
+
+<!-- 控制栏 -->
+<div class="controls">
+  <button class="btn btn-amber" id="btn-next" onclick="nextStep()">下一步 →</button>
+  <button class="btn btn-auto" id="btn-auto" onclick="toggleAuto()">自动播放</button>
+  <button class="btn btn-ghost" onclick="resetScene()">重置</button>
+  <span style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:4px;" id="step-status">步骤 0 / 0</span>
+</div>
+
+<!-- 协议图 -->
+<div class="protocol-area">
+  <div class="col-headers">
+    <div class="col-head client">🤖 Client (LLM/Agent)</div>
+    <div class="col-head proto">JSON-RPC 2.0</div>
+    <div class="col-head server">🛠 Server (Tool Provider)</div>
+  </div>
+  <div class="sequence-area" id="sequence-area"></div>
+</div>
+
+<!-- JSON 详情 -->
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-title" id="detail-title">消息详情</div>
+  <div class="json-block" id="json-block"></div>
+</div>
+
+<!-- 协议日志 -->
+<div class="proto-log">
+  <div class="proto-log-header"><span class="proto-log-title">协议日志</span></div>
+  <div class="log-entries" id="log-entries"></div>
+</div>
+
+<!-- 教学提示 -->
+<div class="insight">
+  <div class="label">读者学到什么</div>
+  MCP 基于 JSON-RPC 2.0，每条消息有 jsonrpc / method / params / id 四个字段。握手分三步：① initialize 协商能力版本；② tools/list 拉取工具清单；③ tools/call 调用具体工具。错误时返回标准 error 对象（code + message），与成功 result 互斥。
+</div>
+
+<footer>《从零构建你的 AI Agent》第 19 章 · MCP 协议 · 交互式 Demo</footer>
+</div>
+
+<script>
+/* ── 场景数据 ── */
+const SCENES = [
+  // 场景0：成功流
+  {
+    name: '成功场景',
+    steps: [
+      {
+        dir: 'c2s', method: 'initialize', desc: '客户端发起协议握手',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">1</span>,
+  <span class="k">"method"</span>: <span class="s">"initialize"</span>,
+  <span class="k">"params"</span>: {
+    <span class="k">"protocolVersion"</span>: <span class="s">"2024-11-05"</span>,
+    <span class="k">"capabilities"</span>: { <span class="k">"roots"</span>: { <span class="k">"listChanged"</span>: <span class="b">true</span> } },
+    <span class="k">"clientInfo"</span>: { <span class="k">"name"</span>: <span class="s">"my-agent"</span>, <span class="k">"version"</span>: <span class="s">"1.0"</span> }
+  }
+}`,
+        log: 'C→S initialize (protocolVersion: 2024-11-05)'
+      },
+      {
+        dir: 's2c', method: 'initialize result', desc: '服务端返回能力清单',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">1</span>,
+  <span class="k">"result"</span>: {
+    <span class="k">"protocolVersion"</span>: <span class="s">"2024-11-05"</span>,
+    <span class="k">"capabilities"</span>: { <span class="k">"tools"</span>: {} },
+    <span class="k">"serverInfo"</span>: { <span class="k">"name"</span>: <span class="s">"filesystem-server"</span>, <span class="k">"version"</span>: <span class="s">"0.5.0"</span> }
+  }
+}`,
+        log: 'S→C initialize result (capabilities: tools)'
+      },
+      {
+        dir: 'c2s', method: 'tools/list', desc: '拉取可用工具列表',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">2</span>,
+  <span class="k">"method"</span>: <span class="s">"tools/list"</span>,
+  <span class="k">"params"</span>: {}
+}`,
+        log: 'C→S tools/list'
+      },
+      {
+        dir: 's2c', method: 'tools/list result', desc: '服务端返回工具清单',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">2</span>,
+  <span class="k">"result"</span>: {
+    <span class="k">"tools"</span>: [
+      {
+        <span class="k">"name"</span>: <span class="s">"read_file"</span>,
+        <span class="k">"description"</span>: <span class="s">"Read a file from the filesystem"</span>,
+        <span class="k">"inputSchema"</span>: {
+          <span class="k">"type"</span>: <span class="s">"object"</span>,
+          <span class="k">"properties"</span>: { <span class="k">"path"</span>: { <span class="k">"type"</span>: <span class="s">"string"</span> } },
+          <span class="k">"required"</span>: [<span class="s">"path"</span>]
+        }
+      }
+    ]
+  }
+}`,
+        log: 'S→C tools/list result (1 tool: read_file)'
+      },
+      {
+        dir: 'c2s', method: 'tools/call', desc: '调用 read_file 工具',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">3</span>,
+  <span class="k">"method"</span>: <span class="s">"tools/call"</span>,
+  <span class="k">"params"</span>: {
+    <span class="k">"name"</span>: <span class="s">"read_file"</span>,
+    <span class="k">"arguments"</span>: { <span class="k">"path"</span>: <span class="s">"/etc/hosts"</span> }
+  }
+}`,
+        log: 'C→S tools/call (read_file, path=/etc/hosts)'
+      },
+      {
+        dir: 's2c', method: 'tools/call result', desc: '工具执行结果返回',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">3</span>,
+  <span class="k">"result"</span>: {
+    <span class="k">"content"</span>: [
+      {
+        <span class="k">"type"</span>: <span class="s">"text"</span>,
+        <span class="k">"text"</span>: <span class="s">"127.0.0.1 localhost\n::1 localhost"</span>
+      }
+    ],
+    <span class="k">"isError"</span>: <span class="b">false</span>
+  }
+}`,
+        log: 'S→C tools/call result (isError: false, 2 lines)'
+      },
+    ]
+  },
+  // 场景1：工具未找到错误
+  {
+    name: '工具未找到',
+    steps: [
+      {
+        dir: 'c2s', method: 'initialize', desc: '协议握手',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">1</span>,
+  <span class="k">"method"</span>: <span class="s">"initialize"</span>,
+  <span class="k">"params"</span>: { <span class="k">"protocolVersion"</span>: <span class="s">"2024-11-05"</span>, ... }
+}`,
+        log: 'C→S initialize'
+      },
+      {
+        dir: 's2c', method: 'initialize result', desc: '握手成功',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">1</span>,
+  <span class="k">"result"</span>: { <span class="k">"protocolVersion"</span>: <span class="s">"2024-11-05"</span>, <span class="k">"capabilities"</span>: {} }
+}`,
+        log: 'S→C initialize result'
+      },
+      {
+        dir: 'c2s', method: 'tools/call', desc: '调用不存在的工具',
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">2</span>,
+  <span class="k">"method"</span>: <span class="s">"tools/call"</span>,
+  <span class="k">"params"</span>: {
+    <span class="k">"name"</span>: <span class="s">"execute_sql"</span>,
+    <span class="k">"arguments"</span>: { <span class="k">"query"</span>: <span class="s">"SELECT * FROM users"</span> }
+  }
+}`,
+        log: 'C→S tools/call (execute_sql) ← 不存在的工具'
+      },
+      {
+        dir: 's2c', method: 'error -32601', desc: '方法未找到错误', isError: true,
+        json: `{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">2</span>,
+  <span class="k">"error"</span>: {
+    <span class="k">"code"</span>: <span class="n">-32601</span>,
+    <span class="k">"message"</span>: <span class="s">"Method not found"</span>,
+    <span class="k">"data"</span>: { <span class="k">"tool"</span>: <span class="s">"execute_sql"</span>, <span class="k">"available"</span>: [<span class="s">"read_file"</span>, <span class="s">"list_dir"</span>] }
+  }
+}`,
+        log: 'S→C error -32601: Method not found (execute_sql)'
+      },
+    ]
+  },
+  // 场景2：完整多工具会话
+  {
+    name: '完整会话流',
+    steps: [
+      { dir: 'c2s', method: 'initialize', desc: '握手', log: 'C→S initialize',
+        json: `{ <span class="k">"method"</span>: <span class="s">"initialize"</span>, <span class="k">"params"</span>: { <span class="k">"protocolVersion"</span>: <span class="s">"2024-11-05"</span> } }` },
+      { dir: 's2c', method: 'initialize result', desc: '确认版本', log: 'S→C 握手确认',
+        json: `{ <span class="k">"result"</span>: { <span class="k">"capabilities"</span>: { <span class="k">"tools"</span>: {}, <span class="k">"resources"</span>: {} } } }` },
+      { dir: 'c2s', method: 'initialized', desc: '客户端确认就绪', log: 'C→S initialized (notification)',
+        json: `{ <span class="k">"method"</span>: <span class="s">"notifications/initialized"</span> }` },
+      { dir: 'c2s', method: 'tools/list', desc: '列出工具', log: 'C→S tools/list',
+        json: `{ <span class="k">"method"</span>: <span class="s">"tools/list"</span>, <span class="k">"params"</span>: {} }` },
+      { dir: 's2c', method: 'tools/list result', desc: '3 个工具可用', log: 'S→C 3 tools: read_file, list_dir, search',
+        json: `{ <span class="k">"result"</span>: { <span class="k">"tools"</span>: [<span class="s">"read_file"</span>, <span class="s">"list_dir"</span>, <span class="s">"search"</span>] } }` },
+      { dir: 'c2s', method: 'tools/call (list_dir)', desc: '列出目录', log: 'C→S tools/call list_dir(/home)',
+        json: `{ <span class="k">"method"</span>: <span class="s">"tools/call"</span>, <span class="k">"params"</span>: { <span class="k">"name"</span>: <span class="s">"list_dir"</span>, <span class="k">"arguments"</span>: { <span class="k">"path"</span>: <span class="s">"/home"</span> } } }` },
+      { dir: 's2c', method: 'list_dir result', desc: '返回目录内容', log: 'S→C list_dir result (5 entries)',
+        json: `{ <span class="k">"result"</span>: { <span class="k">"content"</span>: [{ <span class="k">"type"</span>: <span class="s">"text"</span>, <span class="k">"text"</span>: <span class="s">"user1/ user2/ shared/"</span> }] } }` },
+      { dir: 'c2s', method: 'tools/call (read_file)', desc: '读取配置文件', log: 'C→S tools/call read_file(.env)',
+        json: `{ <span class="k">"method"</span>: <span class="s">"tools/call"</span>, <span class="k">"params"</span>: { <span class="k">"name"</span>: <span class="s">"read_file"</span>, <span class="k">"arguments"</span>: { <span class="k">"path"</span>: <span class="s">"/home/user1/.env"</span> } } }` },
+      { dir: 's2c', method: 'read_file result', desc: '返回文件内容', log: 'S→C read_file result (ok)',
+        json: `{ <span class="k">"result"</span>: { <span class="k">"content"</span>: [{ <span class="k">"type"</span>: <span class="s">"text"</span>, <span class="k">"text"</span>: <span class="s">"API_KEY=...\nDB_URL=..."</span> }], <span class="k">"isError"</span>: <span class="b">false</span> } }` },
+    ]
+  }
+];
+
+let currentScene = 0;
+let currentStep = 0;
+let autoTimer = null;
+let isAuto = false;
+
+function selectScene(idx) {
+  currentScene = idx;
+  document.querySelectorAll('.scene-btn').forEach(b => b.classList.toggle('active', +b.dataset.s === idx));
+  resetScene();
+}
+
+function resetScene() {
+  currentStep = 0;
+  isAuto = false;
+  clearTimeout(autoTimer);
+  document.getElementById('sequence-area').innerHTML = '';
+  document.getElementById('log-entries').innerHTML = '';
+  document.getElementById('detail-panel').classList.remove('show');
+  document.getElementById('btn-next').disabled = false;
+  document.getElementById('btn-auto').classList.remove('active');
+  document.getElementById('btn-auto').textContent = '自动播放';
+  updateStatus();
+}
+
+function updateStatus() {
+  const total = SCENES[currentScene].steps.length;
+  document.getElementById('step-status').textContent = `步骤 ${currentStep} / ${total}`;
+}
+
+function nextStep() {
+  const scene = SCENES[currentScene];
+  if (currentStep >= scene.steps.length) return;
+  const step = scene.steps[currentStep];
+
+  // 添加箭头行
+  const row = createMsgRow(step);
+  document.getElementById('sequence-area').appendChild(row);
+  requestAnimationFrame(() => requestAnimationFrame(() => row.classList.add('show')));
+
+  // 协议日志
+  addLogLine(step.dir === 'c2s' ? 'c' : (step.isError ? 'e' : 's'), step.log);
+
+  // 显示 JSON 详情
+  showDetail(step);
+
+  currentStep++;
+  updateStatus();
+  if (currentStep >= scene.steps.length) {
+    document.getElementById('btn-next').disabled = true;
+    stopAuto();
+  }
+}
+
+function createMsgRow(step) {
+  const row = document.createElement('div');
+  const isC2S = step.dir === 'c2s';
+  row.className = `msg-row ${step.dir}`;
+
+  const arrowSvg = `<svg class="arrow-svg" viewBox="0 0 70 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${isC2S?'2':'68'}" y1="10" x2="${isC2S?'60':'10'}" y2="10" stroke="${isC2S?'rgba(56,189,248,0.7)':step.isError?'rgba(248,113,113,0.7)':'rgba(52,211,153,0.7)'}" stroke-width="1.5" stroke-dasharray="none"/>
+    <polygon points="${isC2S?'62,6 68,10 62,14':'8,6 2,10 8,14'}" fill="${isC2S?'rgba(56,189,248,0.8)':step.isError?'rgba(248,113,113,0.8)':'rgba(52,211,153,0.8)'}"/>
+  </svg>`;
+
+  const styleClass = step.isError ? 'error-style' : (isC2S ? 'c2s-style' : 's2c-style');
+
+  if (isC2S) {
+    row.innerHTML = `
+      <div class="msg-label ${styleClass}" onclick="showDetail(${JSON.stringify(step).replace(/"/g,'&quot;')})">
+        <div class="method">${step.method}</div>
+        <div class="desc">${step.desc}</div>
+      </div>
+      <div class="msg-arrow">${arrowSvg}</div>
+      <div class="msg-empty"></div>
+    `;
+  } else {
+    row.innerHTML = `
+      <div class="msg-empty"></div>
+      <div class="msg-arrow">${arrowSvg}</div>
+      <div class="msg-label ${styleClass}" onclick="showDetail(${JSON.stringify(step).replace(/"/g,'&quot;')})">
+        <div class="method">${step.method}</div>
+        <div class="desc">${step.desc}</div>
+      </div>
+    `;
+  }
+  return row;
+}
+
+function showDetail(step) {
+  // step 可能是字符串（来自 onclick）或对象
+  if (typeof step === 'string') {
+    try { step = JSON.parse(step); } catch(e) { return; }
+  }
+  document.getElementById('detail-panel').classList.add('show');
+  document.getElementById('detail-title').textContent = `${step.dir === 'c2s' ? 'Client → Server' : 'Server → Client'}: ${step.method}`;
+  document.getElementById('json-block').innerHTML = step.json || '{}';
+  document.getElementById('detail-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function addLogLine(type, text) {
+  const area = document.getElementById('log-entries');
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  const now = new Date();
+  const ts = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+  line.textContent = `${ts}  ${text}`;
+  area.appendChild(line);
+  area.scrollTop = area.scrollHeight;
+}
+
+function toggleAuto() {
+  isAuto = !isAuto;
+  const btn = document.getElementById('btn-auto');
+  btn.classList.toggle('active', isAuto);
+  if (isAuto) {
+    btn.textContent = '⏸ 暂停';
+    scheduleAuto();
+  } else {
+    btn.textContent = '自动播放';
+    clearTimeout(autoTimer);
+  }
+}
+
+function scheduleAuto() {
+  autoTimer = setTimeout(() => {
+    const scene = SCENES[currentScene];
+    if (currentStep < scene.steps.length && isAuto) {
+      nextStep();
+      scheduleAuto();
+    } else {
+      isAuto = false;
+      document.getElementById('btn-auto').classList.remove('active');
+      document.getElementById('btn-auto').textContent = '自动播放';
+    }
+  }, 1500);
+}
+
+function stopAuto() {
+  isAuto = false;
+  clearTimeout(autoTimer);
+  document.getElementById('btn-auto').classList.remove('active');
+  document.getElementById('btn-auto').textContent = '自动播放';
+}
+
+// 初始化
+updateStatus();
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+  if (e.key === 'r' || e.key === 'R') resetScene();
+  if (e.key === 'a' || e.key === 'A') toggleAuto();
+});
+</script>
+</body>
+</html>

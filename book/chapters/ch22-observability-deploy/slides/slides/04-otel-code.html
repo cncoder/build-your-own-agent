@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 04 OTel 代码实现</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr;
+  }
+  .header {
+    grid-column: 1 / -1; padding: 50px 100px 32px;
+    border-bottom: 1px solid rgba(48,54,61,0.6);
+  }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #3fb950; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 46px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #3fb950; }
+  .subtitle { font-size: 18px; color: #8b949e; margin-top: 8px; }
+
+  .panel { padding: 40px 80px 40px 100px; display: flex; flex-direction: column; gap: 20px; }
+  .panel.right {
+    padding: 40px 100px 40px 80px;
+    border-left: 1px solid rgba(48,54,61,0.6);
+  }
+  .panel-title { font-size: 14px; color: #6e7681; text-transform: uppercase; letter-spacing: 0.12em; }
+
+  .code {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+    padding: 22px 24px; font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px; line-height: 1.75; flex: 1; overflow: hidden;
+  }
+  .ln { color: #30363d; margin-right: 12px; user-select: none; }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .st { color: #a5d6ff; }
+  .cm { color: #6e7681; font-style: italic; }
+  .nu { color: #f2cc60; }
+  .cl { color: #ffa657; }
+  .at { color: #79c0ff; }
+
+  .span-tree {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+    padding: 24px; font-family: 'SF Mono', monospace; font-size: 14px; line-height: 2.0;
+    flex: 1;
+  }
+  .st-root { color: #3fb950; }
+  .st-l1 { color: #58a6ff; padding-left: 20px; display: block; }
+  .st-l2 { color: #8b949e; padding-left: 44px; display: block; font-size: 12px; }
+  .st-attr { color: #f2cc60; }
+  .st-dur { color: #e6edf3; }
+
+  .note {
+    background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2);
+    border-radius: 8px; padding: 14px 18px; font-size: 14px; color: #8b949e;
+  }
+  .note strong { color: #3fb950; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">OpenTelemetry Python SDK</div>
+    <h1>20 行代码接入追踪<span> — 换后端只改 Exporter 一行</span></h1>
+    <p class="subtitle">本地开发 Jaeger → 生产 AWS X-Ray，零改业务代码</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">setup_tracing.py</div>
+    <div class="code">
+<span class="cm"># src/observability/tracing.py</span>
+<span class="kw">from</span> opentelemetry <span class="kw">import</span> trace
+<span class="kw">from</span> opentelemetry.sdk.trace <span class="kw">import</span> TracerProvider
+<span class="kw">from</span> opentelemetry.exporter.otlp.proto.grpc... <span class="kw">import</span> OTLPSpanExporter
+
+<span class="kw">def</span> <span class="fn">setup_tracing</span>(service_name=<span class="st">"lena"</span>,
+                   otlp_endpoint=<span class="st">"http://localhost:4317"</span>):
+    resource = Resource.create({
+        <span class="st">"service.name"</span>: service_name,
+        <span class="st">"service.version"</span>: <span class="st">"1.8.0"</span>,
+    })
+    provider = <span class="cl">TracerProvider</span>(resource=resource)
+    exporter = <span class="cl">OTLPSpanExporter</span>(
+        endpoint=otlp_endpoint, insecure=<span class="kw">True</span>
+    )
+    provider.add_span_processor(
+        <span class="cl">BatchSpanProcessor</span>(exporter))
+    trace.set_tracer_provider(provider)
+    <span class="kw">return</span> trace.<span class="fn">get_tracer</span>(service_name)
+
+<span class="cm"># 使用：with tracer.start_as_current_span("llm_call") as span:</span>
+<span class="cm">#           span.set_attribute("model", "claude-sonnet-4-6")</span>
+    </div>
+  </div>
+
+  <div class="panel right">
+    <div class="panel-title">一次 Agent 请求的 Span 树</div>
+    <div class="span-tree">
+<span class="st-root">Trace: user_message("帮我写周报")  [3840ms]</span>
+<span class="st-l1">├── span: discord_receive  <span class="st-dur">[8ms]</span></span>
+<span class="st-l1">├── span: llm_call  <span class="st-dur">[2100ms]</span></span>
+<span class="st-l2">attr: model=claude-sonnet-4-6</span>
+<span class="st-l2">attr: input_tokens=<span class="st-attr">4230</span> · output_tokens=<span class="st-attr">312</span></span>
+<span class="st-l1">├── span: tool_execute.bash  <span class="st-dur">[340ms]</span></span>
+<span class="st-l2">attr: command="python3 weekly_report.py"</span>
+<span class="st-l2">attr: exit_code=<span class="st-attr">0</span></span>
+<span class="st-l1">├── span: llm_call  <span class="st-dur">[1280ms]</span></span>
+<span class="st-l2">attr: input_tokens=<span class="st-attr">4900</span>（含工具结果）</span>
+<span class="st-l1">└── span: discord_send  <span class="st-dur">[12ms]</span></span>
+    </div>
+    <div class="note">
+      <strong>Design Note：后端选哪个？</strong><br>
+      本地开发 → Jaeger all-in-one（docker run 一行）<br>
+      AWS 生产 → X-Ray（Lambda/ECS 原生集成）<br>
+      SaaS → Honeycomb（免费 20M events/月）
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · OTel 实现</div>
+</body>
+</html>

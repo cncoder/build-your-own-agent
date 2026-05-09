@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 12 · MessageBus 与事件驱动 — Slide Deck</title>
+<style>
+:root {
+  --bg: #060612;
+  --surface: #0c0c1f;
+  --glass: rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.1);
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --yellow: #facc15;
+  --text: #f1f5f9;
+  --dim: #64748b;
+  --accent: #7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,'SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif}
+.deck{width:1920px;height:1080px;transform-origin:top left;position:absolute;top:0;left:0;}
+.slide{
+  width:1920px;height:1080px;position:absolute;top:0;left:0;
+  background:var(--bg);overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:opacity .4s;
+  opacity:0;pointer-events:none;
+}
+.slide.active{opacity:1;pointer-events:all}
+.slide::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 100% 60% at 15% 15%, rgba(168,85,247,.07) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 85% 85%, rgba(34,211,238,.05) 0%, transparent 55%);
+  pointer-events:none;z-index:0;
+}
+.slide-inner{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;padding:80px 100px;}
+.ch-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:999px;padding:8px 22px;font-size:14px;
+  color:var(--cyan);backdrop-filter:blur(10px);letter-spacing:.05em;
+  width:fit-content;margin-bottom:40px;
+}
+h1{font-size:72px;font-weight:700;line-height:1.1;color:var(--text);margin-bottom:24px}
+h2{font-size:52px;font-weight:700;color:var(--text);margin-bottom:32px}
+h3{font-size:36px;font-weight:600;color:var(--cyan);margin-bottom:20px}
+p{font-size:28px;color:rgba(241,245,249,.75);line-height:1.65;margin-bottom:16px}
+.sub{font-size:32px;color:var(--dim);margin-bottom:48px}
+.tag{display:inline-block;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);
+  color:var(--purple);border-radius:8px;padding:6px 18px;font-size:20px;margin-right:12px;margin-bottom:8px}
+.tag.cyan{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.3);color:var(--cyan)}
+.tag.green{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:var(--green)}
+pre{background:rgba(0,0,0,.5);border:1px solid var(--glass-border);border-radius:12px;
+  padding:28px 32px;font-size:20px;line-height:1.7;color:#e2e8f0;font-family:'JetBrains Mono','Fira Code','SF Mono',monospace;
+  overflow:hidden}
+.kw{color:#c084fc} .fn{color:#67e8f9} .str{color:#86efac} .cm{color:#64748b;font-style:italic}
+.num{color:#fdba74} .cls{color:#fde68a}
+table{width:100%;border-collapse:collapse;font-size:24px}
+th{background:rgba(168,85,247,.15);color:var(--purple);padding:16px 20px;text-align:left;border-bottom:1px solid rgba(168,85,247,.3)}
+td{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(241,245,249,.8)}
+tr:last-child td{border-bottom:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px}
+.card{background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;padding:36px;backdrop-filter:blur(10px)}
+.card h3{color:var(--cyan)}
+.card p{font-size:24px}
+.hl{color:var(--cyan)}
+.hl-green{color:var(--green)}
+.hl-orange{color:var(--orange)}
+.hl-pink{color:var(--pink)}
+.slide-num{position:absolute;bottom:36px;right:60px;font-size:18px;color:var(--dim);z-index:10}
+.note{background:rgba(168,85,247,.08);border-left:4px solid var(--purple);
+  border-radius:0 12px 12px 0;padding:20px 28px;margin-top:24px}
+.note p{font-size:24px;margin:0}
+.big-num{font-size:120px;font-weight:800;color:var(--purple);opacity:.3;line-height:1}
+.flow{display:flex;align-items:center;gap:16px;font-size:26px;margin:12px 0}
+.flow-node{background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.3);
+  color:var(--cyan);border-radius:10px;padding:10px 22px}
+.flow-arrow{color:var(--dim);font-size:32px}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- Slide 1: 封面 -->
+<div class="slide active">
+  <div class="slide-inner">
+    <div class="ch-badge">🧱 Ch 12 · 架构支柱章 · Long-horizon + Safety</div>
+    <h1>MessageBus<br>与事件驱动</h1>
+    <p class="sub">解耦 Channel 与 Agent，让 Lena 真正稳健</p>
+    <div style="margin-top:40px">
+      <span class="tag">pub/sub 模式</span>
+      <span class="tag cyan">safeHandlerCall</span>
+      <span class="tag green">channel 热插拔</span>
+    </div>
+    <div style="margin-top:48px;font-size:24px;color:var(--dim)">
+      nano-claw bus/index.ts · 134 行 · 甜点级
+    </div>
+  </div>
+  <div class="slide-num">1 / 9</div>
+</div>
+
+<!-- Slide 2: 问题引入 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">问题：为什么直连会出问题？</div>
+    <h2>一个 Channel 崩了，Lena 全挂</h2>
+    <div class="grid2" style="margin-top:32px">
+      <div>
+        <h3 style="color:var(--orange)">❌ 紧耦合（lena-v1.1）</h3>
+        <pre>Telegram ──▶ AgentLoop
+Discord  ──▶ AgentLoop
+WebSocket──▶ AgentLoop
+HTTP     ──▶ AgentLoop
+
+<span class="cm">// N 个 channel × M 个 handler</span>
+<span class="cm">// = N×M 条耦合线</span>
+<span class="cm">// Telegram 超时 → AgentLoop 崩溃</span>
+<span class="cm">// Discord 消息也不响应了</span></pre>
+      </div>
+      <div>
+        <h3 style="color:var(--green)">✅ MessageBus 解耦（lena-v1.2）</h3>
+        <pre>Telegram ──┐         ┌──▶ AgentLoop
+Discord  ──┤         ├──▶ Logger
+WebSocket──┤──▶ Bus ─┤
+HTTP     ──┘         └──▶ Notification
+
+<span class="cm">// N + M，不是 N×M</span>
+<span class="cm">// Telegram 超时 → 只影响 Telegram</span>
+<span class="cm">// 其他 channel 照常运行</span></pre>
+      </div>
+    </div>
+    <div class="note"><p>三个核心痛点：① 一个 channel 崩了影响所有 ② 加 Subscriber 要改所有 Publisher ③ 不能热插拔</p></div>
+  </div>
+  <div class="slide-num">2 / 9</div>
+</div>
+
+<!-- Slide 3: pub/sub 原理 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">核心概念：pub/sub 模式</div>
+    <h2>Redis pub/sub → 进程内 MessageBus</h2>
+    <div class="grid2" style="margin-top:32px">
+      <div>
+        <h3>Redis pub/sub（跨进程）</h3>
+        <pre><span class="cm"># 订阅者</span>
+redis-cli <span class="fn">SUBSCRIBE</span> chat:room1
+
+<span class="cm"># 发布者</span>
+redis-cli <span class="fn">PUBLISH</span> chat:room1 <span class="str">"hello"</span>
+
+<span class="cm"># 发布者不知道谁在听</span>
+<span class="cm"># 订阅者不知道谁在发</span></pre>
+      </div>
+      <div>
+        <h3>MessageBus（进程内）</h3>
+        <pre><span class="cm"># 订阅者</span>
+bus.<span class="fn">subscribe</span>(<span class="str">"telegram"</span>, agent_loop)
+
+<span class="cm"># 发布者（Telegram Channel）</span>
+<span class="kw">await</span> bus.<span class="fn">publish</span>(message)
+
+<span class="cm"># 同样的思想，进程内实现</span>
+<span class="cm"># 消息是结构化 ChannelMessage</span></pre>
+      </div>
+    </div>
+    <table style="margin-top:32px">
+      <tr><th>对比项</th><th>Redis pub/sub</th><th>MessageBus</th></tr>
+      <tr><td>跨越边界</td><td>跨机器/跨进程</td><td>同一进程内</td></tr>
+      <tr><td>消息格式</td><td>裸字符串</td><td>结构化 ChannelMessage</td></tr>
+      <tr><td>handler</td><td>Redis 客户端回调</td><td>async Python/TS 函数</td></tr>
+    </table>
+  </div>
+  <div class="slide-num">3 / 9</div>
+</div>
+
+<!-- Slide 4: bus/index.ts 代码导读 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">nano-claw bus/index.ts · 134 行导读</div>
+    <h2>五段代码，一读懂全局</h2>
+    <div class="grid2" style="margin-top:24px">
+      <div>
+        <h3>数据结构（line 12-20）</h3>
+        <pre><span class="kw">class</span> <span class="cls">MessageBus</span> <span class="kw">extends</span> EventEmitter {
+  <span class="cm">// channel → handlers 映射</span>
+  private handlers: <span class="cls">Map</span>&lt;<span class="kw">string</span>, <span class="cls">Set</span>&lt;<span class="cls">MessageHandler</span>&gt;&gt;;
+  <span class="cm">// 全局 handlers（所有消息都触发）</span>
+  private globalHandlers: <span class="cls">Set</span>&lt;<span class="cls">MessageHandler</span>&gt;;
+}</pre>
+        <h3 style="margin-top:28px">subscribe/unsubscribe（line 25-61）</h3>
+        <pre><span class="fn">subscribe</span>(channelType, handler) {
+  this.handlers.<span class="fn">get</span>(channelType).<span class="fn">add</span>(handler);
+  <span class="cm">// Set.add：幂等，不重复注册</span>
+}
+<span class="fn">unsubscribe</span>(channelType, handler) {
+  handlers.<span class="fn">delete</span>(handler);
+  <span class="kw">if</span> (size === <span class="num">0</span>) this.handlers.<span class="fn">delete</span>(channelType);
+  <span class="cm">// 清理空 Set，防内存泄漏</span>
+}</pre>
+      </div>
+      <div>
+        <h3>publish（line 66-87）</h3>
+        <pre><span class="kw">async</span> <span class="fn">publish</span>(message) {
+  <span class="cm">// channel-specific handlers 并发执行</span>
+  <span class="kw">const</span> promises = handlers.<span class="fn">map</span>(h =>
+    this.<span class="fn">safeHandlerCall</span>(h, message));
+  <span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">all</span>(promises);
+
+  <span class="cm">// global handlers 并发执行</span>
+  <span class="kw">const</span> gp = globalHandlers.<span class="fn">map</span>(h =>
+    this.<span class="fn">safeHandlerCall</span>(h, message));
+  <span class="kw">await</span> <span class="cls">Promise</span>.<span class="fn">all</span>(gp);
+}</pre>
+        <div class="note" style="margin-top:20px">
+          <p>Promise.all = 并发执行，AgentLoop 和 Logger 同时收到消息，互不等待</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">4 / 9</div>
+</div>
+
+<!-- Slide 5: safeHandlerCall -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">Safety 支柱：safeHandlerCall 错误隔离</div>
+    <h2>8 行代码，实现隔仓设计</h2>
+    <div class="grid2" style="margin-top:32px">
+      <div>
+        <h3>nano-claw bus/index.ts:92-99</h3>
+        <pre><span class="kw">private async</span> <span class="fn">safeHandlerCall</span>(
+  handler: <span class="cls">MessageHandler</span>,
+  message: <span class="cls">ChannelMessage</span>
+): Promise&lt;<span class="kw">void</span>&gt; {
+  <span class="kw">try</span> {
+    <span class="kw">await</span> <span class="fn">handler</span>(message);
+  } <span class="kw">catch</span> (error) {
+    logger.<span class="fn">error</span>(<span class="str">'Error in handler'</span>, error);
+    this.<span class="fn">emit</span>(<span class="str">'error'</span>, { error, message });
+    <span class="cm">// 注意：没有 rethrow！</span>
+  }
+}</pre>
+      </div>
+      <div>
+        <h3>演示：broken_handler 不影响其他</h3>
+        <pre><span class="cm"># 加入一个故意抛错的 handler</span>
+bus.<span class="fn">subscribe_all</span>(broken_handler)
+
+<span class="cm"># 发布消息</span>
+<span class="kw">await</span> bus.<span class="fn">publish</span>(msg)
+
+<span class="cm"># 输出：</span>
+<span class="cm"># [AgentLoop] 正常处理 ✓</span>
+<span class="cm"># [Logger]    正常记录 ✓</span>
+<span class="cm"># [BrokenHandler] 抛错 ✗ ← 隔离！</span>
+<span class="cm"># 其他 handler 不受影响</span></pre>
+        <div class="note">
+          <p>Bulkhead Pattern（隔仓设计）：舰船隔仓保证一仓进水不沉船；safeHandlerCall 保证一个 handler 崩溃不停机</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">5 / 9</div>
+</div>
+
+<!-- Slide 6: globalHandlers vs channel-specific -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">globalHandlers vs channel-specific handlers</div>
+    <h2>按关注点分类，不是按喜好</h2>
+    <table style="margin-top:32px;font-size:26px">
+      <tr>
+        <th>类型</th>
+        <th>注册方式</th>
+        <th>触发条件</th>
+        <th>典型用途</th>
+      </tr>
+      <tr>
+        <td><span class="hl">channel-specific</span></td>
+        <td><code>bus.subscribe("telegram", h)</code></td>
+        <td>只在 telegram 消息到来时</td>
+        <td>AgentLoop（区分来源）</td>
+      </tr>
+      <tr>
+        <td><span class="hl-green">global</span></td>
+        <td><code>bus.subscribe_all(h)</code></td>
+        <td>任何 channel 的消息</td>
+        <td>Logger / Analytics / 审计</td>
+      </tr>
+    </table>
+    <div class="note" style="margin-top:32px">
+      <p>判断规则：业务逻辑 → channel-specific；横切关注点（日志、监控、审计）→ global</p>
+    </div>
+    <div style="margin-top:40px">
+      <h3 style="color:var(--orange)">真实案例（案例 12.1）</h3>
+      <p>main agent（Discord）直接给 mengqian（飞书）发消息 → 报 <code style="color:var(--pink)">Cross-context messaging denied</code></p>
+      <p>正确做法：通过 cron systemEvent 在 mengqian 自己的 session 触发，或加入 subagent allowlist</p>
+      <p style="color:var(--dim)">MessageBus 的 channel-specific 设计避免了这种跨 context 的直接调用</p>
+    </div>
+  </div>
+  <div class="slide-num">6 / 9</div>
+</div>
+
+<!-- Slide 7: 热插拔演示 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">热插拔：运行中添加新 channel</div>
+    <h2>不重启 Lena，动态接入 HTTP Channel</h2>
+    <div class="grid2" style="margin-top:24px">
+      <div>
+        <h3>启动时</h3>
+        <pre><span class="cm"># 初始：只有 telegram + discord</span>
+bus.<span class="fn">subscribe</span>(<span class="str">"telegram"</span>, agent_loop)
+bus.<span class="fn">subscribe</span>(<span class="str">"discord"</span>, agent_loop)
+bus.<span class="fn">subscribe_all</span>(logger)
+
+<span class="cm"># handler 数: 4</span></pre>
+        <h3 style="margin-top:28px">热插拔 HTTP</h3>
+        <pre>http = <span class="cls">HTTPChannel</span>(bus)
+<span class="kw">await</span> http.<span class="fn">start</span>()
+bus.<span class="fn">subscribe</span>(<span class="str">"http"</span>, agent_loop)
+<span class="cm"># handler 数: 5 ← 接入了</span>
+
+<span class="cm"># 热移除</span>
+bus.<span class="fn">unsubscribe</span>(<span class="str">"http"</span>, agent_loop)
+<span class="kw">await</span> http.<span class="fn">stop</span>()
+<span class="cm"># handler 数: 4 ← 移除了</span></pre>
+      </div>
+      <div>
+        <h3>终端输出</h3>
+        <pre style="font-size:18px"><span class="cm">$ python main.py</span>
+[Bus] 初始 handler 数量: 4
+
+── 热插拔演示 ──────────────
+热插拔前 handler 数量: 4
+[HTTP] Channel started <span class="str">热插拔成功</span>
+热插拔后 handler 数量: 5
+
+[Bus] publish http:api_client
+[AgentLoop] 处理来自 http 的消息
+[Logger] 记录 http:api_client ✓
+
+[HTTP] Channel stopped <span class="str">热移除成功</span>
+热移除后 handler 数量: 4</pre>
+        <div class="note" style="margin-top:20px">
+          <p>真实案例：梦芊日报从 Discord 切飞书，只改 channel 配置，不改 agent 逻辑</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">7 / 9</div>
+</div>
+
+<!-- Slide 8: Design Note -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">Design Note：什么时候引入 MessageBus？</div>
+    <h2>Bus vs 直接调用——不是永远用 Bus</h2>
+    <table style="margin-top:28px;font-size:24px">
+      <tr>
+        <th>场景</th>
+        <th>推荐方案</th>
+        <th>原因</th>
+      </tr>
+      <tr>
+        <td>1 个 channel，1 个处理逻辑</td>
+        <td style="color:var(--green)">直接调用</td>
+        <td>Bus 是不必要的间接层</td>
+      </tr>
+      <tr>
+        <td>2-3 个 channel，固定逻辑</td>
+        <td style="color:var(--green)">直接调用 + try/except</td>
+        <td>简单场景简单处理</td>
+      </tr>
+      <tr>
+        <td>多 channel × 多 Subscriber</td>
+        <td style="color:var(--cyan)">MessageBus</td>
+        <td>O(N×M) → O(N+M)</td>
+      </tr>
+      <tr>
+        <td>需要热插拔</td>
+        <td style="color:var(--cyan)">MessageBus</td>
+        <td>subscribe/unsubscribe 天然支持</td>
+      </tr>
+      <tr>
+        <td>需要错误隔离</td>
+        <td style="color:var(--cyan)">MessageBus</td>
+        <td>safeHandlerCall 提供保障</td>
+      </tr>
+    </table>
+    <div class="note" style="margin-top:28px">
+      <p>AutoGen 类比：Microsoft AutoGen Core 层的 event-driven runtime，agent 之间通过消息传递而非直接调用。nano-claw MessageBus 是 134 行的极简版，原理完全一致。</p>
+    </div>
+  </div>
+  <div class="slide-num">8 / 9</div>
+</div>
+
+<!-- Slide 9: 本章小结 -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="ch-badge">本章小结</div>
+    <h2>六个关键洞察</h2>
+    <div class="grid2" style="margin-top:28px">
+      <div>
+        <div class="card" style="margin-bottom:24px">
+          <h3>1. N×M → N+M</h3>
+          <p>MessageBus 把耦合复杂度从 N×M 降到 N+M</p>
+        </div>
+        <div class="card" style="margin-bottom:24px">
+          <h3>2. safeHandlerCall</h3>
+          <p>8 行代码，隔仓设计，单 handler 崩溃不停机</p>
+        </div>
+        <div class="card">
+          <h3>3. globalHandlers vs specific</h3>
+          <p>横切关注点用 global；业务逻辑用 channel-specific</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:24px">
+          <h3>4. 热插拔</h3>
+          <p>subscribe/unsubscribe，不重启 Lena，动态增减 channel</p>
+        </div>
+        <div class="card" style="margin-bottom:24px">
+          <h3>5. 幂等性铁律</h3>
+          <p>事件触发必须检查是否已有实例，否则双进程 bug（案例 12.2）</p>
+        </div>
+        <div class="card">
+          <h3>6. lena-v1.2 产物</h3>
+          <p>bus.py + channels.py + handlers.py + main.py<br>
+          <code style="color:var(--cyan);font-size:18px">python main.py --demo</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">9 / 9</div>
+</div>
+
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+
+function scale() {
+  const deck = document.getElementById('deck');
+  const sx = window.innerWidth / 1920;
+  const sy = window.innerHeight / 1080;
+  const s = Math.min(sx, sy);
+  deck.style.transform = `scale(${s})`;
+  deck.style.left = `${(window.innerWidth - 1920*s)/2}px`;
+  deck.style.top = `${(window.innerHeight - 1080*s)/2}px`;
+}
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  cur = (n + slides.length) % slides.length;
+  slides[cur].classList.add('active');
+}
+
+window.addEventListener('resize', scale);
+scale();
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown','PageDown','Space'].includes(e.key)) { e.preventDefault(); go(cur+1); }
+  if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); go(cur-1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length-1);
+});
+</script>
+</body>
+</html>

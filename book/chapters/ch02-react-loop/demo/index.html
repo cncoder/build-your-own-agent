@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 02 · ReAct 循环步骤可视化</title>
+<style>
+/* ── 深空霓虹 · neon-green accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #34d399;        /* neon-green */
+  --cyan: #38bdf8;
+  --violet: #a78bfa;
+  --amber: #fbbf24;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 64px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(52,211,153,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(56,189,248,0.04) 0%, transparent 50%);
+}
+
+/* ── 标题区 ── */
+header { text-align: center; margin-bottom: 32px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 14px; color: var(--dim); max-width: 560px; margin: 0 auto; line-height: 1.65; }
+
+/* ── 场景选择器 ── */
+.scenario-bar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 28px;
+}
+.scenario-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+.scenario-btn {
+  padding: 6px 14px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim); font-family: var(--sans); font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
+}
+.scenario-btn:hover { border-color: rgba(52,211,153,0.35); color: var(--accent); }
+.scenario-btn.active { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.5); color: var(--accent); }
+
+/* ── 主布局 ── */
+.main { display: grid; grid-template-columns: 260px 1fr; gap: 20px; max-width: 1100px; margin: 0 auto; }
+@media (max-width: 700px) { .main { grid-template-columns: 1fr; } }
+
+/* ── 左侧时间线 ── */
+.timeline-col {
+  display: flex; flex-direction: column; gap: 0;
+  position: sticky; top: 24px; height: fit-content;
+}
+.timeline-panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(52,211,153,0.12);
+  border-radius: 14px; padding: 20px 16px;
+}
+.timeline-panel h3 {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.tl-items { display: flex; flex-direction: column; }
+.tl-row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; }
+.tl-dot-wrap { display: flex; flex-direction: column; align-items: center; }
+.tl-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.12);
+  flex-shrink: 0; margin-top: 2px; transition: all 0.3s;
+}
+.tl-line { width: 2px; flex: 1; background: rgba(255,255,255,0.05); min-height: 20px; }
+.tl-row.thought .tl-dot { border-color: rgba(167,139,250,0.4); }
+.tl-row.action .tl-dot { border-color: rgba(52,211,153,0.4); }
+.tl-row.observation .tl-dot { border-color: rgba(56,189,248,0.4); }
+.tl-row.final .tl-dot { border-color: rgba(251,191,36,0.4); }
+.tl-row.active .tl-dot {
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  transform: scale(1.3);
+}
+.tl-row.thought.active { color: var(--violet); }
+.tl-row.action.active { color: var(--accent); }
+.tl-row.observation.active { color: var(--cyan); }
+.tl-row.final.active { color: var(--amber); }
+.tl-text { font-size: 12px; color: var(--dim); line-height: 1.4; padding-top: 1px; }
+.tl-row.active .tl-text { color: var(--text); }
+
+/* 循环计数器 */
+.loop-counter {
+  margin-top: 16px; padding: 12px 14px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(52,211,153,0.15);
+  border-radius: 10px; text-align: center;
+}
+.loop-counter .label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+.loop-counter .value { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1.2; }
+
+/* ── 右侧步骤流 ── */
+.steps-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* 步骤卡片 */
+.step-card {
+  border-radius: 12px; border: 1px solid var(--border);
+  background: rgba(10,18,40,0.6);
+  overflow: hidden;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.step-card.show { opacity: 1; transform: translateY(0); }
+.step-card.current { box-shadow: 0 0 24px var(--glow, rgba(52,211,153,0.12)); }
+
+.step-card.thought { --glow: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.25); }
+.step-card.action  { --glow: rgba(52,211,153,0.14); border-color: rgba(52,211,153,0.25); }
+.step-card.observation { --glow: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.25); }
+.step-card.final   { --glow: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.3); }
+
+.step-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.step-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 5px;
+}
+.step-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.step-card.thought  .step-badge { background: rgba(167,139,250,0.12); color: var(--violet); }
+.step-card.action   .step-badge { background: rgba(52,211,153,0.12); color: var(--accent); }
+.step-card.observation .step-badge { background: rgba(56,189,248,0.12); color: var(--cyan); }
+.step-card.final    .step-badge { background: rgba(251,191,36,0.1); color: var(--amber); }
+
+.step-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+
+/* 动作卡显示工具调用 */
+.step-card.action .step-header { background: rgba(52,211,153,0.04); }
+.tool-call-block {
+  font-family: var(--mono); font-size: 12px;
+  padding: 10px 16px;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #86efac;
+}
+.tool-call-block .fn { color: var(--accent); font-weight: 600; }
+.tool-call-block .arg { color: #94a3b8; }
+
+.step-body { padding: 14px 16px; font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.65; }
+.step-body strong { color: var(--text); font-weight: 600; }
+
+/* 打字机游标 */
+.cursor {
+  display: inline-block; width: 2px; height: 1em;
+  background: currentColor; vertical-align: text-bottom;
+  animation: blink 0.9s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Final 卡升起效果 */
+.step-card.final.show {
+  animation: riseup 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes riseup {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Action 卡抖动 */
+.step-card.action.shake {
+  animation: shake 0.4s ease;
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+}
+
+/* ── 控制栏 ── */
+.controls {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  max-width: 1100px; margin: 20px auto 0;
+}
+.btn-primary {
+  padding: 10px 24px; border-radius: 9px;
+  background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4);
+  color: var(--accent); font-size: 14px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+}
+.btn-primary:hover { background: rgba(52,211,153,0.2); border-color: var(--accent); }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-auto {
+  padding: 10px 20px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim); font-size: 14px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-auto.active { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.35); color: var(--amber); }
+.btn-auto:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.btn-reset {
+  padding: 10px 16px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--muted); font-size: 14px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-reset:hover { color: var(--dim); border-color: rgba(255,255,255,0.2); }
+.status-text { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: 8px; }
+.status-text.done { color: var(--accent); }
+
+/* ── 教学提示框 ── */
+.insight-box {
+  max-width: 1100px; margin: 16px auto 0;
+  padding: 14px 18px;
+  background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 10px; font-size: 13px; color: rgba(253,230,138,0.85);
+  line-height: 1.6;
+  display: none;
+}
+.insight-box.show { display: block; animation: fadein 0.4s ease; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+.insight-box .label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+
+footer { text-align: center; margin-top: 48px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Ch 02 · ReAct 循环</div>
+  <h1>Thought → Action → Observation</h1>
+  <p>ReAct 范式让大模型交替输出「思考」和「行动」，通过工具执行获取真实世界的反馈，持续循环直到得出答案。</p>
+</header>
+
+<!-- 场景选择 -->
+<div class="scenario-bar">
+  <span class="scenario-label">选场景：</span>
+  <button class="scenario-btn active" data-scene="0" onclick="selectScene(0)">查询北京天气</button>
+  <button class="scenario-btn" data-scene="1" onclick="selectScene(1)">计算复利</button>
+  <button class="scenario-btn" data-scene="2" onclick="selectScene(2)">搜索最新论文</button>
+</div>
+
+<div class="main">
+  <!-- 左：时间线 -->
+  <div class="timeline-col">
+    <div class="timeline-panel">
+      <h3>执行时间线</h3>
+      <div class="tl-items" id="tl-items"><!-- 动态填充 --></div>
+      <div class="loop-counter">
+        <div class="label">循环轮次</div>
+        <div class="value" id="loop-count">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：步骤卡片流 -->
+  <div class="steps-col" id="steps-col">
+    <!-- 动态填充 -->
+  </div>
+</div>
+
+<!-- 控制栏 -->
+<div class="controls">
+  <button class="btn-primary" id="btn-next" onclick="nextStep()">下一步 →</button>
+  <button class="btn-auto" id="btn-auto" onclick="toggleAuto()">自动播放 2s/步</button>
+  <button class="btn-reset" onclick="resetScene()">重置</button>
+  <span class="status-text" id="status-text">步骤 0 / 0</span>
+</div>
+
+<!-- 教学提示 -->
+<div class="insight-box" id="insight-box">
+  <div class="label">教学要点</div>
+  <div id="insight-text"></div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 02 章 · ReAct 循环 · 交互式 Demo</footer>
+
+<script>
+// ── 场景数据 ──
+const SCENES = [
+  {
+    name: '查询北京天气',
+    steps: [
+      { type: 'thought', label: '思考 (Thought)', time: '0ms',
+        text: '用户想知道北京今天的天气。我需要查询实时天气数据——这超出了我的训练数据范围，应该调用 <strong>search_web</strong> 工具获取最新信息。' },
+      { type: 'action', label: '行动 (Action)', time: '120ms',
+        tool: 'search_web', args: '{"query": "北京今天天气 2025"}',
+        text: '调用 search_web 工具搜索实时天气...' },
+      { type: 'observation', label: '观察 (Observation)', time: '850ms',
+        text: '搜索结果返回：<strong>北京今日多云，气温 18-26°C，东南风 3-4 级，空气质量良好（AQI 67）</strong>。数据来源：中国气象局，更新时间 08:00。' },
+      { type: 'thought', label: '思考 (Thought)', time: '1020ms',
+        text: '已获得北京今天的天气数据，信息足够完整，可以直接回答用户。不需要再次调用工具。' },
+      { type: 'final', label: '最终答案 (Final Answer)', time: '1150ms',
+        text: '北京今天多云，气温 <strong>18-26°C</strong>，东南风 3-4 级，空气质量良好（AQI 67）。适合外出，建议带薄外套。' }
+    ],
+    insights: [
+      '大模型「知道」如何思考，但不「知道」实时数据——工具调用是它伸向外部世界的手。',
+      '行动后必须等观察结果才能继续——这是 ReAct 区别于链式推理的关键：真实反馈进入推理。',
+      '观察数据丰富之后，模型决定「不再循环」——这是 ReAct 的收敛判断。',
+      'ReAct 的每次思考都在缩小不确定性：从「需要查询」到「已知数据」，再到「可以回答」。',
+      '整个循环在约 1.1 秒内完成，真实系统中网络延迟是大头，推理时间反而很短。'
+    ]
+  },
+  {
+    name: '计算复利',
+    steps: [
+      { type: 'thought', label: '思考 (Thought)', time: '0ms',
+        text: '用户要计算：本金 10000 元，年利率 5%，存 10 年，最终金额是多少？这是一个精确计算问题，我应该调用 <strong>calculator</strong> 工具确保精度，而不是依赖我的估算。' },
+      { type: 'action', label: '行动 (Action)', time: '95ms',
+        tool: 'calculator', args: '{"expr": "10000 * (1 + 0.05) ** 10"}',
+        text: '调用 calculator 工具计算复利公式...' },
+      { type: 'observation', label: '观察 (Observation)', time: '310ms',
+        text: '计算器返回结果：<strong>16288.95</strong>（精确到分）。' },
+      { type: 'final', label: '最终答案 (Final Answer)', time: '420ms',
+        text: '本金 10,000 元按年利率 5% 复利计算，存满 10 年后将增长到 <strong>16,288.95 元</strong>，增值 62.89%。复利的威力就在于：每年的利息也在产生利息。' }
+    ],
+    insights: [
+      '即使模型能「心算」复利，调用计算器仍然更可靠——工具消除了幻觉风险。',
+      '这个示例只用了 1 次循环就得出答案，真实场景可能需要多轮。',
+      'ReAct 的核心价值：把「知识」和「计算/检索」分离，各司其职。',
+      '工具返回结果是 Observation，模型决定「已够充分」后直接给 Final Answer，不再继续循环。'
+    ]
+  },
+  {
+    name: '搜索最新论文',
+    steps: [
+      { type: 'thought', label: '思考 (Thought)', time: '0ms',
+        text: '用户要找 2024 年最新的 AI agent 相关论文。我的训练数据有截止日期，需要用 <strong>search_web</strong> 搜索最新发表内容。' },
+      { type: 'action', label: '行动 (Action)', time: '110ms',
+        tool: 'search_web', args: '{"query": "AI agent paper arxiv 2024", "top_k": 5}',
+        text: '调用 search_web 搜索最新 AI agent 论文...' },
+      { type: 'observation', label: '观察 (Observation)', time: '1200ms',
+        text: '搜索返回 5 篇摘要。其中 1 篇标题《AgentBench: Evaluating LLMs as Agents》引起注意——但返回的 URL 是摘要页，正文需要进一步获取。' },
+      { type: 'thought', label: '思考 (Thought)', time: '1350ms',
+        text: '搜索结果只是摘要，《AgentBench》这篇最相关，但我需要知道具体的评测指标。应该调用 <strong>fetch_url</strong> 获取完整内容。' },
+      { type: 'action', label: '行动 (Action)', time: '1480ms',
+        tool: 'fetch_url', args: '{"url": "https://arxiv.org/abs/2308.03688"}',
+        text: '调用 fetch_url 获取 AgentBench 论文详情...' },
+      { type: 'observation', label: '观察 (Observation)', time: '2300ms',
+        text: '获取到完整摘要：<strong>AgentBench</strong> 在 8 个环境（OS、DB、Web 等）上评测了 25 个 LLM，GPT-4 领先但开源模型差距悬殊，最差的只有 GPT-4 的 1/3 性能。' },
+      { type: 'final', label: '最终答案 (Final Answer)', time: '2500ms',
+        text: '推荐 2024 年论文：《AgentBench: Evaluating LLMs as Agents》（arxiv 2308.03688）——在 8 个真实环境评测 25 个 LLM 作为 agent 的能力，是目前最全面的 agent 评测基准。' }
+    ],
+    insights: [
+      '两轮搜索体现了 ReAct 的多跳推理能力：第一跳找到线索，第二跳深入细节。',
+      '模型在第一次 Observation 后意识到「信息不足」，主动发起第二次工具调用——这是自主规划。',
+      '真实 agent 可能需要 5-10 轮循环，每一轮都在缩小目标范围。',
+      '多工具混用（search_web + fetch_url）是实际 agent 的常态，不同工具各有所长。',
+      '整个过程 2.5 秒，对用户完全透明——「我查了什么、找到什么、为什么继续」。'
+    ]
+  }
+];
+
+let currentScene = 0;
+let currentStep = 0;
+let autoTimer = null;
+let isAuto = false;
+let typingTimer = null;
+
+// ── 初始化场景 ──
+function selectScene(idx) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.toggle('active', +b.dataset.scene === idx));
+  currentScene = idx;
+  resetScene();
+}
+
+function resetScene() {
+  stopAuto();
+  currentStep = 0;
+  document.getElementById('steps-col').innerHTML = '';
+  document.getElementById('tl-items').innerHTML = '';
+  document.getElementById('loop-count').textContent = '0';
+  document.getElementById('insight-box').classList.remove('show');
+  document.getElementById('status-text').textContent = `步骤 0 / ${SCENES[currentScene].steps.length}`;
+  document.getElementById('status-text').className = 'status-text';
+  document.getElementById('btn-next').disabled = false;
+  buildTimeline();
+}
+
+// 构建时间线节点（初始灰色）
+function buildTimeline() {
+  const scene = SCENES[currentScene];
+  const container = document.getElementById('tl-items');
+  container.innerHTML = '';
+  scene.steps.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = `tl-row ${s.type}`;
+    row.id = `tl-row-${i}`;
+    row.innerHTML = `
+      <div class="tl-dot-wrap">
+        <div class="tl-dot"></div>
+        ${i < scene.steps.length - 1 ? '<div class="tl-line"></div>' : ''}
+      </div>
+      <div class="tl-text">${s.label}<br><span style="font-size:11px;color:var(--muted)">${s.time}</span></div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// ── 下一步 ──
+function nextStep() {
+  const scene = SCENES[currentScene];
+  if (currentStep >= scene.steps.length) return;
+
+  const step = scene.steps[currentStep];
+  // 激活时间线节点
+  document.querySelectorAll('.tl-row').forEach(r => r.classList.remove('active'));
+  const tlRow = document.getElementById(`tl-row-${currentStep}`);
+  if (tlRow) tlRow.classList.add('active');
+
+  // 更新循环计数
+  const loopCount = Math.floor(currentStep / 3) + (currentStep % 3 > 0 ? 1 : 0);
+  // 计算真实 TAO 轮次
+  const loopRounds = countLoops(scene.steps, currentStep);
+  document.getElementById('loop-count').textContent = loopRounds;
+
+  // 创建步骤卡
+  const card = createStepCard(step, currentStep);
+  document.getElementById('steps-col').appendChild(card);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      card.classList.add('show');
+      if (step.type === 'action') { setTimeout(() => card.classList.add('shake'), 200); }
+    });
+  });
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // 打字机效果
+  if (step.type === 'thought' || step.type === 'final' || step.type === 'observation') {
+    animateTypewriter(card.querySelector('.step-body'), step.text);
+  }
+
+  // 所有已有卡片去掉 current
+  document.querySelectorAll('.step-card.current').forEach(c => c.classList.remove('current'));
+  card.classList.add('current');
+
+  // 教学提示
+  const insight = scene.insights[currentStep];
+  if (insight) {
+    const box = document.getElementById('insight-box');
+    document.getElementById('insight-text').textContent = insight;
+    box.classList.add('show');
+  }
+
+  currentStep++;
+  // 更新 UI 状态
+  document.getElementById('status-text').textContent = `步骤 ${currentStep} / ${scene.steps.length}`;
+  if (currentStep >= scene.steps.length) {
+    document.getElementById('btn-next').disabled = true;
+    document.getElementById('status-text').className = 'status-text done';
+    document.getElementById('status-text').textContent = '✓ 完成';
+    stopAuto();
+  }
+}
+
+function countLoops(steps, upTo) {
+  let rounds = 0, i = 0;
+  while (i <= upTo && i < steps.length) {
+    if (steps[i].type === 'thought') rounds++;
+    i++;
+  }
+  return rounds;
+}
+
+function createStepCard(step, idx) {
+  const card = document.createElement('div');
+  card.className = `step-card ${step.type}`;
+  let inner = `<div class="step-header">
+    <span class="step-badge"><span class="dot"></span>${step.label}</span>
+    <span class="step-meta">${step.time}</span>
+  </div>`;
+  if (step.type === 'action' && step.tool) {
+    inner += `<div class="tool-call-block">
+      <span class="fn">${step.tool}</span><span class="arg">(${step.args})</span>
+    </div>`;
+  }
+  inner += `<div class="step-body">${step.text}</div>`;
+  card.innerHTML = inner;
+  return card;
+}
+
+// 打字机动画
+function animateTypewriter(el, html) {
+  // 提取纯文本与 HTML，逐字符显示
+  el.innerHTML = '';
+  let i = 0;
+  const full = html;
+  function tick() {
+    // 简单地逐字节显示 HTML（含标签）
+    if (i <= full.length) {
+      el.innerHTML = full.substring(0, i) + '<span class="cursor"></span>';
+      i += 2; // 每步2字符，适合中文
+      typingTimer = setTimeout(tick, 18);
+    } else {
+      el.innerHTML = full;
+    }
+  }
+  tick();
+}
+
+// ── 自动播放 ──
+function toggleAuto() {
+  isAuto = !isAuto;
+  const btn = document.getElementById('btn-auto');
+  btn.classList.toggle('active', isAuto);
+  if (isAuto) {
+    btn.textContent = '⏸ 暂停自动播放';
+    scheduleAuto();
+  } else {
+    btn.textContent = '自动播放 2s/步';
+    stopAuto();
+  }
+}
+
+function scheduleAuto() {
+  autoTimer = setTimeout(() => {
+    const scene = SCENES[currentScene];
+    if (currentStep < scene.steps.length) {
+      nextStep();
+      scheduleAuto();
+    } else {
+      isAuto = false;
+      const btn = document.getElementById('btn-auto');
+      btn.classList.remove('active');
+      btn.textContent = '自动播放 2s/步';
+    }
+  }, 2000);
+}
+
+function stopAuto() {
+  if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  isAuto = false;
+  const btn = document.getElementById('btn-auto');
+  btn.classList.remove('active');
+  btn.textContent = '自动播放 2s/步';
+}
+
+// ── 键盘操作 ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+  if (e.key === 'r' || e.key === 'R') resetScene();
+  if (e.key === 'a' || e.key === 'A') toggleAuto();
+});
+
+// 初始化
+buildTimeline();
+document.getElementById('status-text').textContent = `步骤 0 / ${SCENES[0].steps.length}`;
+</script>
+</body>
+</html>

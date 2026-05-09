@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" width="800" height="340">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrow-rev" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+      <polygon points="10 0, 0 3.5, 10 7" fill="#00d4ff"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 10px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .small { font-size: 10px; fill: #8ba0b8; }
+    </style>
+  </defs>
+
+  <rect width="800" height="340" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">工具系统架构（Ch06）</text>
+
+  <!-- LLM Core -->
+  <rect x="310" y="100" width="180" height="70" rx="10" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="400" y="130" text-anchor="middle" class="label">LLM 核心</text>
+  <text x="400" y="148" text-anchor="middle" class="sublabel">生成 tool_use 请求</text>
+  <text x="400" y="160" text-anchor="middle" class="sublabel">接收 tool_result 回填</text>
+
+  <!-- Tool Registry -->
+  <rect x="310" y="230" width="180" height="60" rx="10" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="400" y="257" text-anchor="middle" class="label">Tool Registry</text>
+  <text x="400" y="274" text-anchor="middle" class="sublabel">注册 / 查找 / Schema 生成</text>
+
+  <!-- Schema Generator -->
+  <rect x="310" y="50" width="180" height="38" rx="8" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="400" y="65" text-anchor="middle" class="small">Schema Generator</text>
+  <text x="400" y="80" text-anchor="middle" class="small">自动从函数签名生成 JSON Schema</text>
+
+  <!-- Tool A - Shell -->
+  <rect x="40" y="230" width="120" height="60" rx="8" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="100" y="255" text-anchor="middle" class="label">Shell 工具</text>
+  <text x="100" y="270" text-anchor="middle" class="sublabel">bash / cmd</text>
+  <text x="100" y="282" text-anchor="middle" class="sublabel">沙箱隔离</text>
+
+  <!-- Tool B - File -->
+  <rect x="180" y="230" width="120" height="60" rx="8" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="240" y="255" text-anchor="middle" class="label">File 工具</text>
+  <text x="240" y="270" text-anchor="middle" class="sublabel">read / write</text>
+  <text x="240" y="282" text-anchor="middle" class="sublabel">glob / grep</text>
+
+  <!-- Tool C - Web -->
+  <rect x="500" y="230" width="120" height="60" rx="8" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="560" y="255" text-anchor="middle" class="label">Web 工具</text>
+  <text x="560" y="270" text-anchor="middle" class="sublabel">fetch / CDP</text>
+  <text x="560" y="282" text-anchor="middle" class="sublabel">截图 / 表单</text>
+
+  <!-- Tool D - Custom -->
+  <rect x="640" y="230" width="120" height="60" rx="8" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="700" y="255" text-anchor="middle" class="label">自定义工具</text>
+  <text x="700" y="270" text-anchor="middle" class="sublabel">@tool 装饰器</text>
+  <text x="700" y="282" text-anchor="middle" class="sublabel">即插即用</text>
+
+  <!-- Arrows LLM ↔ Registry -->
+  <line x1="400" y1="170" x2="400" y2="228" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="390" y1="228" x2="390" y2="172" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Arrows Schema → LLM -->
+  <line x1="400" y1="88" x2="400" y2="98" stroke="#4a6080" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Registry → Tools -->
+  <line x1="340" y1="290" x2="162" y2="265" stroke="#4a6080" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="355" y1="290" x2="302" y2="265" stroke="#4a6080" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="445" y1="290" x2="498" y2="265" stroke="#4a6080" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="460" y1="290" x2="638" y2="265" stroke="#4a6080" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Labels on arrows -->
+  <text x="415" y="205" class="small">tool_use 请求</text>
+  <text x="370" y="205" class="small" text-anchor="end">tool_result 回填</text>
+
+  <!-- Flow description -->
+  <rect x="40" y="50" width="250" height="32" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="165" y="62" text-anchor="middle" class="small">① LLM 读取所有工具的 JSON Schema</text>
+  <text x="165" y="75" text-anchor="middle" class="small">② 决定调用哪个工具 + 参数</text>
+
+  <rect x="510" y="50" width="250" height="32" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="635" y="62" text-anchor="middle" class="small">③ Registry 路由到对应实现</text>
+  <text x="635" y="75" text-anchor="middle" class="small">④ 结果回填上下文，LLM 继续推理</text>
+
+  <!-- Add new tool hint -->
+  <rect x="660" y="155" width="120" height="28" rx="5" fill="#1a2010" stroke="#3a5020" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="720" y="174" text-anchor="middle" class="small" fill="#00ff88">+ 新工具：只需注册</text>
+</svg>

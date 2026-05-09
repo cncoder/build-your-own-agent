@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch 08 · Planning 与 Subagent · 让 Agent 拆任务</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f1a;
+    --bg2: #13131f;
+    --bg3: #1e1e3a;
+    --purple: #a78bfa;
+    --purple-dim: #7c3aed;
+    --cyan: #34d399;
+    --cyan-dim: #059669;
+    --amber: #f59e0b;
+    --red: #f87171;
+    --text: #e0e7ff;
+    --text-dim: #94a3b8;
+    --text-muted: #6b7280;
+    --border: #374151;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: var(--sans);
+  }
+
+  /* ── Viewport scaler ── */
+  #scaler {
+    width: 1920px; height: 1080px;
+    transform-origin: top left;
+    position: absolute; top: 0; left: 0;
+    background: var(--bg);
+  }
+
+  /* ── Slide container ── */
+  .deck { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+    overflow: hidden;
+  }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  /* ── Progress bar ── */
+  #progress-bar {
+    position: absolute; bottom: 0; left: 0;
+    height: 3px; background: var(--purple);
+    transition: width 0.4s ease;
+    z-index: 999;
+    box-shadow: 0 0 8px var(--purple);
+  }
+
+  /* ── Slide counter ── */
+  #slide-counter {
+    position: absolute; bottom: 18px; right: 48px;
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text-muted); z-index: 999;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Common layout helpers ── */
+  .slide-body {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 60px 96px 80px;
+  }
+  .slide-header {
+    padding: 48px 96px 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .chapter-badge {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.2em;
+    color: var(--purple); text-transform: uppercase;
+  }
+  .slide-title {
+    font-size: 42px; font-weight: 800; color: var(--text);
+    line-height: 1.1;
+  }
+  .slide-subtitle {
+    font-size: 18px; color: var(--text-dim); font-weight: 400;
+    margin-top: 4px;
+  }
+  .section-label {
+    font-family: var(--mono); font-size: 12px; color: var(--cyan);
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  /* ── Glassmorphism card ── */
+  .glass {
+    background: rgba(30, 30, 58, 0.7);
+    border: 1px solid rgba(167, 139, 250, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+  }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #0a0a14;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    overflow: hidden;
+  }
+  .code-block .k { color: #c4b5fd; } /* keyword */
+  .code-block .f { color: #34d399; } /* function */
+  .code-block .s { color: #fcd34d; } /* string */
+  .code-block .c { color: #6b7280; } /* comment */
+  .code-block .n { color: #e0e7ff; } /* normal */
+  .code-block .t { color: #f59e0b; } /* type */
+  .code-block .hl { background: rgba(167,139,250,0.12); display: block; margin: 0 -28px; padding: 0 28px; } /* highlight line */
+
+  /* ── Grid helpers ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; width: 100%; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; width: 100%; }
+  .col { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Tag ── */
+  .tag {
+    display: inline-block; padding: 4px 12px;
+    border-radius: 20px; font-family: var(--mono);
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+  }
+  .tag-purple { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+  .tag-cyan { background: rgba(52,211,153,0.12); color: var(--cyan); border: 1px solid rgba(52,211,153,0.25); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+  .tag-red { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+
+  /* ── Neon glow ── */
+  .glow-purple { text-shadow: 0 0 20px rgba(167,139,250,0.6); }
+  .glow-cyan { text-shadow: 0 0 20px rgba(52,211,153,0.6); }
+
+  /* ── Highlight ── */
+  .hi-purple { color: var(--purple); }
+  .hi-cyan { color: var(--cyan); }
+  .hi-amber { color: var(--amber); }
+  .hi-red { color: var(--red); }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 1 – COVER
+  ═══════════════════════════════════════════ */
+  #s1 {
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, #1a103a 0%, #0f0f1a 70%);
+    align-items: center; justify-content: center;
+    text-align: center;
+  }
+  #s1 .bg-grid {
+    position: absolute; inset: 0; opacity: 0.04;
+    background-image:
+      linear-gradient(rgba(167,139,250,1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(167,139,250,1) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+  #s1 .orb1 {
+    position: absolute; width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
+    top: -100px; left: -100px;
+  }
+  #s1 .orb2 {
+    position: absolute; width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(52,211,153,0.15) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+  }
+  #s1 .cover-content { position: relative; z-index: 2; }
+  #s1 .ch-badge {
+    font-family: var(--mono); font-size: 14px; letter-spacing: 0.3em;
+    color: var(--purple); text-transform: uppercase; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+  }
+  #s1 .ch-badge::before,
+  #s1 .ch-badge::after {
+    content: ''; display: block; width: 60px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--purple));
+  }
+  #s1 .ch-badge::after { background: linear-gradient(to left, transparent, var(--purple)); }
+  #s1 h1 {
+    font-size: 88px; font-weight: 800; line-height: 1.0;
+    color: var(--text); margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  #s1 h1 span { color: var(--purple); }
+  #s1 .s1-sub {
+    font-size: 32px; color: var(--text-dim); font-weight: 300;
+    letter-spacing: 0.02em; margin-bottom: 48px;
+  }
+  #s1 .s1-pill {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: 40px; padding: 12px 28px;
+    font-family: var(--mono); font-size: 15px; color: var(--purple);
+  }
+  #s1 .s1-pill span { color: var(--cyan); }
+  #s1 .pillrow { display: flex; gap: 16px; justify-content: center; }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 2 – 串行 vs 并发
+  ═══════════════════════════════════════════ */
+  #s2 .timeline-row {
+    display: flex; align-items: center; gap: 0; margin: 8px 0;
+  }
+  #s2 .tl-label {
+    width: 120px; font-family: var(--mono); font-size: 13px;
+    color: var(--text-dim); text-align: right; padding-right: 16px;
+    flex-shrink: 0;
+  }
+  #s2 .tl-bar {
+    height: 36px; border-radius: 6px; display: flex;
+    align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    color: #fff; white-space: nowrap; margin-right: 6px;
+    flex-shrink: 0;
+  }
+  #s2 .tl-min {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-muted); margin-left: 4px;
+  }
+  #s2 .tl-total {
+    font-family: var(--mono); font-size: 22px; font-weight: 700;
+    margin-top: 12px; padding-left: 136px;
+  }
+  #s2 .vs-divider {
+    width: 2px; background: var(--border); height: 100%;
+    position: absolute; left: 50%;
+  }
+  #s2 .compare-panel {
+    display: grid; grid-template-columns: 1fr 4px 1fr; gap: 0;
+    width: 100%; height: 100%;
+  }
+  #s2 .panel-left { padding-right: 40px; }
+  #s2 .panel-right { padding-left: 40px; }
+  #s2 .panel-title {
+    font-size: 18px; font-weight: 700; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  #s2 .saving-badge {
+    background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3);
+    color: var(--cyan); font-family: var(--mono); font-size: 13px;
+    border-radius: 8px; padding: 6px 14px; margin-top: 16px;
+    display: inline-block;
+  }
+  #s2 .tl-axis {
+    display: flex; align-items: center; padding-left: 136px;
+    margin-bottom: 8px; gap: 0;
+  }
+  #s2 .tl-tick {
+    font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+    width: 48px; text-align: center;
+  }
+
+  /* ═══════════════════════════════════════════
+     SLIDE 9 – 血泪案例 timeline
+  ═══════════════════════════════════════════ */
+  #s9 .event-row {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 10px 0;
+  }
+  #s9 .event-time {
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    width: 64px; flex-shrink: 0; padding-top: 2px;
+  }
+  #s9 .event-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 4px;
+  }
+  #s9 .event-line {
+    width: 2px; background: var(--border);
+    flex-shrink: 0; align-self: stretch;
+  }
+  #s9 .event-text {
+    font-size: 15px; color: var(--text-dim); line-height: 1.5;
+  }
+
+  /* ─── keyboard hint ─── */
+  #kbd-hint {
+    position: absolute; bottom: 18px; left: 48px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+    z-index: 999;
+  }
+  #kbd-hint kbd {
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2px 6px; font-size: 11px;
+  }
+
+  /* ─── table ─── */
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl th {
+    font-family: var(--mono); font-size: 13px; color: var(--text-dim);
+    text-align: left; padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .tbl td {
+    font-size: 15px; color: var(--text-dim);
+    padding: 10px 16px; border-bottom: 1px solid rgba(55,65,81,0.4);
+    line-height: 1.4;
+  }
+  .tbl tr:last-child td { border-bottom: none; }
+
+  /* ─── node diagram ─── */
+  .node-circle {
+    border-radius: 50%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="scaler">
+<div class="deck">
+
+  <!-- ════════════════════════════════════════
+       SLIDE 1 · Cover
+  ════════════════════════════════════════ -->
+  <div class="slide active" id="s1">
+    <div class="bg-grid"></div>
+    <div class="orb1"></div>
+    <div class="orb2"></div>
+    <div class="cover-content" style="display:flex;flex-direction:column;align-items:center;">
+      <div class="ch-badge">Ch 08 · Planning + Long-horizon</div>
+      <h1>Planning 与 <span>Subagent</span></h1>
+      <div class="s1-sub">让 Agent 拆任务</div>
+      <div class="pillrow">
+        <div class="s1-pill">EnterPlanModeTool.ts:77 <span>伪模式</span></div>
+        <div class="s1-pill">AgentTool.tsx:196 <span>Subagent</span></div>
+        <div class="s1-pill">forkSubagent.ts:60 <span>Prompt Cache</span></div>
+      </div>
+      <div style="margin-top:56px;font-family:var(--mono);font-size:14px;color:var(--text-muted);letter-spacing:0.1em;">
+        lena-v0.7 → <span style="color:var(--cyan);font-weight:600;">lena-v0.8</span> &nbsp;·&nbsp; 自主拆任务 + 并发派 3 个子 agent
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 2 · 串行 vs 并发
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="slide-header">
+      <div class="section-label">问题引入</div>
+      <div class="slide-title">一个 Agent 做三件事 vs 三个 Agent 各做一件</div>
+    </div>
+    <div class="slide-body" style="align-items:stretch;">
+      <div class="compare-panel">
+
+        <!-- LEFT: 串行 -->
+        <div class="panel-left col" style="justify-content:center;">
+          <div class="panel-title" style="color:var(--red);">
+            <div class="tag tag-red">❌ 串行</div>
+            单个 Agent 依次执行
+          </div>
+          <div class="tl-axis">
+            <div class="tl-tick">0</div>
+            <div class="tl-tick">3min</div>
+            <div class="tl-tick">6min</div>
+            <div class="tl-tick">9min</div>
+            <div class="tl-tick">11min</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">查 LangGraph</div>
+            <div class="tl-bar" style="width:144px;background:rgba(248,113,113,0.3);border:1px solid rgba(248,113,113,0.4);">3 min</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">查 CrewAI</div>
+            <div class="tl-bar" style="width:144px;margin-left:144px;background:rgba(248,113,113,0.3);border:1px solid rgba(248,113,113,0.4);">3 min</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">查 AutoGen</div>
+            <div class="tl-bar" style="width:144px;margin-left:288px;background:rgba(248,113,113,0.3);border:1px solid rgba(248,113,113,0.4);">3 min</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">写对比</div>
+            <div class="tl-bar" style="width:96px;margin-left:432px;background:rgba(245,158,11,0.25);border:1px solid rgba(245,158,11,0.4);">2 min</div>
+          </div>
+          <div class="tl-total" style="color:var(--red);">总耗时：<strong>11 分钟</strong></div>
+        </div>
+
+        <!-- divider -->
+        <div style="background:var(--border);width:2px;margin:20px 0;"></div>
+
+        <!-- RIGHT: 并发 -->
+        <div class="panel-right col" style="justify-content:center;">
+          <div class="panel-title" style="color:var(--cyan);">
+            <div class="tag tag-cyan">✓ 并发</div>
+            Orchestrator + 3 Worker
+          </div>
+          <div class="tl-axis">
+            <div class="tl-tick">0</div>
+            <div class="tl-tick">1min</div>
+            <div class="tl-tick">2min</div>
+            <div class="tl-tick">3min</div>
+            <div class="tl-tick">5min</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">Worker-1</div>
+            <div class="tl-bar" style="width:48px;background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4);" title="规划"></div>
+            <div class="tl-bar" style="width:144px;background:rgba(52,211,153,0.25);border:1px solid rgba(52,211,153,0.4);">查 LangGraph</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">Worker-2</div>
+            <div class="tl-bar" style="width:48px;background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4);opacity:0;"></div>
+            <div class="tl-bar" style="width:144px;background:rgba(52,211,153,0.25);border:1px solid rgba(52,211,153,0.4);">查 CrewAI</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">Worker-3</div>
+            <div class="tl-bar" style="width:48px;background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4);opacity:0;"></div>
+            <div class="tl-bar" style="width:144px;background:rgba(52,211,153,0.25);border:1px solid rgba(52,211,153,0.4);">查 AutoGen</div>
+          </div>
+          <div class="timeline-row">
+            <div class="tl-label">汇总</div>
+            <div class="tl-bar" style="width:48px;background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4);opacity:0;"></div>
+            <div class="tl-bar" style="width:144px;opacity:0;"></div>
+            <div class="tl-bar" style="width:96px;background:rgba(245,158,11,0.25);border:1px solid rgba(245,158,11,0.4);">2 min</div>
+          </div>
+          <div class="tl-total" style="color:var(--cyan);">总耗时：<strong>5 分钟</strong></div>
+          <div class="saving-badge">⚡ 节省 6 分钟（约 55%）· 每个 Worker 专注一件事，质量更高</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 3 · Orchestrator-Worker 架构
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="slide-header">
+      <div class="section-label">架构解析</div>
+      <div class="slide-title">Orchestrator-Worker 模式</div>
+      <div class="slide-subtitle">LLM 做调度器，不是程序逻辑做调度器</div>
+    </div>
+    <div class="slide-body">
+      <div style="display:flex;gap:64px;align-items:center;width:100%;">
+
+        <!-- Node Diagram -->
+        <div style="position:relative;width:540px;height:520px;flex-shrink:0;">
+          <!-- SVG lines -->
+          <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;" viewBox="0 0 540 520">
+            <!-- Orchestrator → Workers -->
+            <line x1="270" y1="140" x2="90"  y2="300" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+            <line x1="270" y1="140" x2="270" y2="300" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+            <line x1="270" y1="140" x2="450" y2="300" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+            <!-- Workers → Orchestrator (return) -->
+            <line x1="90"  y1="300" x2="252" y2="142" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
+            <line x1="270" y1="300" x2="270" y2="142" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
+            <line x1="450" y1="300" x2="288" y2="142" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.7"/>
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+              </marker>
+            </defs>
+          </svg>
+
+          <!-- Orchestrator node -->
+          <div class="node-circle" style="width:140px;height:140px;background:rgba(124,58,237,0.2);border:2px solid var(--purple);box-shadow:0 0 30px rgba(124,58,237,0.3);position:absolute;left:200px;top:30px;gap:6px;">
+            <div style="font-size:14px;font-weight:800;color:var(--text);">Lena</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--purple);">Orchestrator</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">规划·分发·汇总</div>
+          </div>
+
+          <!-- Worker nodes -->
+          <div class="node-circle" style="width:110px;height:110px;background:rgba(52,211,153,0.08);border:1.5px solid rgba(52,211,153,0.4);position:absolute;left:35px;top:290px;gap:4px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:700;">Worker-1</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">查 LangGraph</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);">sub-001</div>
+          </div>
+          <div class="node-circle" style="width:110px;height:110px;background:rgba(52,211,153,0.08);border:1.5px solid rgba(52,211,153,0.4);position:absolute;left:215px;top:290px;gap:4px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:700;">Worker-2</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">查 CrewAI</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);">sub-002</div>
+          </div>
+          <div class="node-circle" style="width:110px;height:110px;background:rgba(52,211,153,0.08);border:1.5px solid rgba(52,211,153,0.4);position:absolute;left:395px;top:290px;gap:4px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text);font-weight:700;">Worker-3</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">查 AutoGen</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--cyan);">sub-003</div>
+          </div>
+
+          <!-- XML return label -->
+          <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:11px;color:var(--cyan);">&lt;task-notification&gt; 回传</div>
+        </div>
+
+        <!-- Key points -->
+        <div class="col" style="flex:1;gap:24px;">
+          <div class="glass" style="padding:24px 28px;">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--purple);margin-bottom:8px;">核心区别</div>
+            <div style="font-size:18px;font-weight:700;color:var(--text);line-height:1.4;">
+              <span style="color:var(--cyan);">LLM</span> 做调度器，不是<span style="color:var(--red);"> 程序逻辑</span>做调度器
+            </div>
+            <div style="font-size:14px;color:var(--text-dim);margin-top:10px;line-height:1.6;">
+              Orchestrator 自己决定：要拆哪几个维度？每个 Worker 需要什么权限？结果如何合并。
+            </div>
+          </div>
+
+          <div class="glass" style="padding:24px 28px;">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--amber);margin-bottom:10px;">Anthropic 2026-04-08 博客</div>
+            <div style="font-size:16px;font-style:italic;color:var(--text-dim);line-height:1.6;border-left:3px solid var(--amber);padding-left:16px;">
+              "decoupling the brain from the hands"<br>
+              <span style="font-size:13px;font-style:normal;color:var(--text-muted);">Orchestrator = 大脑（决策）&nbsp;·&nbsp; Worker = 双手（执行）</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div class="glass" style="padding:14px 18px;flex:1;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:6px;">Orchestrator</div>
+              <div style="font-size:14px;color:var(--text);">Opus · 全工具 · 规划</div>
+            </div>
+            <div class="glass" style="padding:14px 18px;flex:1;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:6px;">Worker</div>
+              <div style="font-size:14px;color:var(--text);">Sonnet/Haiku · 最小权限</div>
+            </div>
+            <div class="glass" style="padding:14px 18px;flex:1;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:6px;">回传</div>
+              <div style="font-size:14px;color:var(--text);">&lt;task-notification&gt; XML</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 4 · CC Plan Mode
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="slide-header">
+      <div class="section-label">CC 源码解析</div>
+      <div class="slide-title">Plan Mode：伪模式的工程智慧</div>
+      <div class="slide-subtitle">EnterPlanModeTool.ts:77 &nbsp;·&nbsp; 通过工具调用切换 permission context</div>
+    </div>
+    <div class="slide-body">
+      <div class="grid2" style="height:100%;align-items:stretch;">
+        <div class="col" style="gap:20px;justify-content:center;">
+          <div class="code-block">
+<span class="c">// EnterPlanModeTool.ts:77（关键逻辑）</span>
+<span class="k">async function</span> <span class="f">enterPlanMode</span>(context) {
+  <span class="c">// :78 — 子 agent 里禁用</span>
+  <span class="k">if</span> (context.agentId) {
+    <span class="k">return</span> { <span class="s">error</span>: <span class="s">'Plan mode cannot be entered
+      from a subagent'</span> }
+  }
+
+  <span class="c">// :88 — 切换 permission context</span>
+  <span class="hl">  context.toolPermissionContext.mode = <span class="s">'plan'</span></span>
+
+  <span class="k">return</span> { <span class="s">result</span>: <span class="s">'Entered plan mode.'</span> }
+}
+</div>
+          <div class="glass" style="padding:16px 20px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:6px;">为什么叫「伪模式」</div>
+            <div style="font-size:14px;color:var(--text-dim);line-height:1.6;">
+              不是系统级执行模式切换，只是改了一个内存标志位。<br>
+              LLM 调用工具 → 内存变量改变 → 后续权限检查逻辑读取该变量。
+            </div>
+          </div>
+        </div>
+
+        <div class="col" style="gap:20px;justify-content:center;">
+          <!-- State machine -->
+          <div class="glass" style="padding:24px 28px;">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-bottom:20px;">permission context 变化</div>
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>操作类型</th>
+                  <th style="color:var(--purple);">Normal Mode</th>
+                  <th style="color:var(--amber);">Plan Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>ReadFile / Bash（读）</td>
+                  <td style="color:var(--cyan);">✓ 自动执行</td>
+                  <td style="color:var(--cyan);">✓ 自动执行</td>
+                </tr>
+                <tr>
+                  <td>Write / Edit（写）</td>
+                  <td style="color:var(--cyan);">✓ 自动执行</td>
+                  <td style="color:var(--amber);">⚠ 需要用户审批</td>
+                </tr>
+                <tr>
+                  <td>Bash（危险命令）</td>
+                  <td style="color:var(--red);">deny 列表拦截</td>
+                  <td style="color:var(--red);">deny 列表拦截</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="glass" style="padding:16px 20px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2);">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:6px;">为什么子 agent 禁用 (:78)</div>
+            <div style="font-size:14px;color:var(--text-dim);line-height:1.6;">
+              Worker 做到一半自动进入 Plan Mode → 写操作变成"需要审批"<br>
+              → 审批弹框弹给谁？<strong style="color:var(--text);">没有人在监看 Worker 界面。</strong><br>
+              Plan Mode 是「人在回路」工具，只属于有人类监督的 Orchestrator。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 5 · Subagent 生命周期
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="slide-header">
+      <div class="section-label">CC 源码解析</div>
+      <div class="slide-title">Subagent 生命周期</div>
+      <div class="slide-subtitle">AgentTool.tsx:196 → forkSubagent → 独立 ask() → &lt;task-notification&gt; 回传</div>
+    </div>
+    <div class="slide-body">
+      <div class="grid2" style="align-items:stretch;">
+        <div class="col" style="justify-content:center;gap:20px;">
+          <!-- Flow -->
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div class="glass" style="padding:16px 20px;border-radius:12px 12px 0 0;border-bottom:none;">
+              <span class="tag tag-purple" style="margin-bottom:8px;display:inline-block;">1</span>
+              <div style="font-weight:700;color:var(--text);font-size:15px;margin-bottom:4px;">AgentTool.tsx:196</div>
+              <div style="font-size:13px;color:var(--text-dim);">父 agent 调用 AgentTool，传入 task + systemPrompt</div>
+            </div>
+            <div style="width:2px;height:16px;background:var(--purple);margin-left:24px;"></div>
+            <div class="glass" style="padding:16px 20px;border-radius:0;border-bottom:none;border-top:none;">
+              <span class="tag tag-purple" style="margin-bottom:8px;display:inline-block;">2</span>
+              <div style="font-weight:700;color:var(--text);font-size:15px;margin-bottom:4px;">forkSubagent()</div>
+              <div style="font-size:13px;color:var(--text-dim);">生成 agentId，继承父 renderedSystemPrompt（共享 cache）</div>
+            </div>
+            <div style="width:2px;height:16px;background:var(--purple);margin-left:24px;"></div>
+            <div class="glass" style="padding:16px 20px;border-radius:0;border-bottom:none;border-top:none;">
+              <span class="tag tag-cyan" style="margin-bottom:8px;display:inline-block;">3</span>
+              <div style="font-weight:700;color:var(--text);font-size:15px;margin-bottom:4px;">独立 ask() 调用链</div>
+              <div style="font-size:13px;color:var(--text-dim);">完全独立的 context，不污染父 agent 消息历史</div>
+            </div>
+            <div style="width:2px;height:16px;background:var(--cyan);margin-left:24px;"></div>
+            <div class="glass" style="padding:16px 20px;border-radius:0 0 12px 12px;border-top:none;background:rgba(52,211,153,0.05);border-color:rgba(52,211,153,0.2);">
+              <span class="tag tag-cyan" style="margin-bottom:8px;display:inline-block;">4</span>
+              <div style="font-weight:700;color:var(--cyan);font-size:15px;margin-bottom:4px;">&lt;task-notification&gt; 回传</div>
+              <div style="font-size:13px;color:var(--text-dim);">结果以 XML 格式传回父 agent，LLM 容易解析</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col" style="justify-content:center;gap:20px;">
+          <div class="code-block" style="font-size:13px;">
+<span class="c">// 结果以 XML 回传</span>
+<span class="n">&lt;</span><span class="t">task-notification</span>
+  <span class="s">agent_id</span>=<span class="s">"sub-001"</span>
+  <span class="s">status</span>=<span class="s">"completed"</span><span class="n">&gt;</span>
+
+<span class="n">## LangGraph 调研结果</span>
+
+<span class="n">**核心特性**：基于有向无环图的</span>
+<span class="n">agent workflow，原生支持 checkpoint</span>
+<span class="n">**生产就绪度**：⭐⭐⭐⭐⭐</span>
+
+<span class="n">&lt;/</span><span class="t">task-notification</span><span class="n">&gt;</span>
+</div>
+          <div class="glass" style="padding:20px 24px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:12px;">独立性保证</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="tag tag-purple" style="font-size:11px;min-width:90px;text-align:center;">独立 context</div>
+                <div style="font-size:13px;color:var(--text-dim);">消息历史不污染父 agent</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="tag tag-cyan" style="font-size:11px;min-width:90px;text-align:center;">独立 agentId</div>
+                <div style="font-size:13px;color:var(--text-dim);">TodoWrite 以此隔离 todos</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="tag tag-amber" style="font-size:11px;min-width:90px;text-align:center;">独立权限</div>
+                <div style="font-size:13px;color:var(--text-dim);">可给每个 Worker 不同工具集</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="tag tag-purple" style="font-size:11px;min-width:90px;text-align:center;">独立 token</div>
+                <div style="font-size:13px;color:var(--text-dim);">不占用父 agent context 窗口</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 6 · 四要素 Prompt
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="slide-header">
+      <div class="section-label">实战框架</div>
+      <div class="slide-title">四要素 Prompt 框架</div>
+      <div class="slide-subtitle">写好子 agent 指令的结构化方法</div>
+    </div>
+    <div class="slide-body" style="flex-direction:column;gap:28px;align-items:stretch;justify-content:flex-start;padding-top:24px;">
+      <!-- 4 cards -->
+      <div class="grid2" style="grid-template-columns:1fr 1fr 1fr 1fr;gap:20px;">
+        <div class="glass" style="padding:24px 20px;">
+          <div style="font-size:36px;font-weight:800;color:var(--purple);font-family:var(--mono);margin-bottom:12px;">S</div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;">Scope <span style="font-size:13px;color:var(--text-dim);">范围</span></div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;">精确告诉子 agent 它的「作战区域」。只查什么，不查什么。</div>
+        </div>
+        <div class="glass" style="padding:24px 20px;">
+          <div style="font-size:36px;font-weight:800;color:var(--cyan);font-family:var(--mono);margin-bottom:12px;">G</div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;">Goal <span style="font-size:13px;color:var(--text-dim);">目标</span></div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;">用可验证的结果来表达目标。不要「调研」，要「生成包含 X Y Z 的报告」。</div>
+        </div>
+        <div class="glass" style="padding:24px 20px;">
+          <div style="font-size:36px;font-weight:800;color:var(--amber);font-family:var(--mono);margin-bottom:12px;">C</div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;">Constraints <span style="font-size:13px;color:var(--text-dim);">约束</span></div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;">告诉子 agent「不能做什么」和「怎么做」。工具限制、字数上限、不猜测。</div>
+        </div>
+        <div class="glass" style="padding:24px 20px;">
+          <div style="font-size:36px;font-weight:800;color:var(--red);font-family:var(--mono);margin-bottom:12px;">O</div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;">Output <span style="font-size:13px;color:var(--text-dim);">输出格式</span></div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.6;">明确返回格式，方便 Orchestrator 汇总。统一格式 = 汇总不用猜。</div>
+        </div>
+      </div>
+
+      <!-- 对比 -->
+      <div class="grid2" style="gap:24px;">
+        <div style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:20px 24px;">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--red);margin-bottom:10px;">❌ 差 Prompt</div>
+          <div style="font-family:var(--mono);font-size:14px;color:var(--text-dim);">"请帮我调研 LangGraph"</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:8px;">子 agent 不知道：调研什么维度？多少字？返回什么格式？</div>
+        </div>
+        <div style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:20px 24px;">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--cyan);margin-bottom:10px;">✓ 好 Prompt（四要素）</div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);line-height:1.6;">
+            Scope: 只查官方文档+GitHub repo<br>
+            Goal: 输出 API用法+3个用例+生产就绪评分<br>
+            Constraints: 最多3个WebFetch，不超600字<br>
+            Output: Markdown，固定结构
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 7 · Fork Subagent Prompt Cache
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="slide-header">
+      <div class="section-label">成本优化</div>
+      <div class="slide-title">Fork Subagent：共享 prompt cache</div>
+      <div class="slide-subtitle">forkSubagent.ts:60 &nbsp;·&nbsp; 继承父 renderedSystemPrompt（Tool.ts:299）</div>
+    </div>
+    <div class="slide-body" style="flex-direction:column;align-items:stretch;gap:32px;padding-top:0;">
+
+      <div class="grid2" style="gap:32px;height:100%;">
+        <div class="col" style="justify-content:center;gap:20px;">
+          <div class="code-block" style="font-size:14px;">
+<span class="c">// forkSubagent.ts:60</span>
+<span class="k">async function</span> <span class="f">forkSubagent</span>(parentCtx, opts) {
+  <span class="k">return</span> {
+    ...parentCtx,
+    agentId: opts.agentId,
+    <span class="c">// 继承父 prompt，共享 cache</span>
+    <span class="hl">    renderedSystemPrompt: <span class="n">parentCtx</span>.<span class="f">renderedSystemPrompt</span>,</span>
+    additionalSystemPrompt: opts.systemPrompt,
+  }
+}
+</div>
+          <div class="glass" style="padding:16px 20px;">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-bottom:8px;">cache_control: ephemeral</div>
+            <div style="font-size:14px;color:var(--text-dim);line-height:1.6;">
+              父 system prompt 在第一次请求时被缓存。<br>
+              Fork 出的子 agent 复用同一份缓存 → <span style="color:var(--cyan);font-weight:600;">cache_hit 价格约为全价 10%</span>。
+            </div>
+          </div>
+        </div>
+
+        <!-- Cost comparison -->
+        <div class="col" style="justify-content:center;gap:20px;">
+          <div class="glass" style="padding:24px 28px;">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-bottom:20px;">3 个 Worker 成本对比（System Prompt 4000 tokens）</div>
+
+            <!-- No cache -->
+            <div style="margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:14px;color:var(--red);">❌ 无缓存（独立 system prompt）</div>
+                <div style="font-family:var(--mono);font-size:16px;color:var(--red);font-weight:700;">3× 全价</div>
+              </div>
+              <div style="display:flex;gap:4px;height:28px;">
+                <div style="flex:1;background:rgba(248,113,113,0.3);border-radius:4px;border:1px solid rgba(248,113,113,0.4);"></div>
+                <div style="flex:1;background:rgba(248,113,113,0.3);border-radius:4px;border:1px solid rgba(248,113,113,0.4);"></div>
+                <div style="flex:1;background:rgba(248,113,113,0.3);border-radius:4px;border:1px solid rgba(248,113,113,0.4);"></div>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <div style="flex:1;font-family:var(--mono);font-size:10px;color:var(--red);text-align:center;">Worker-1 全价</div>
+                <div style="flex:1;font-family:var(--mono);font-size:10px;color:var(--red);text-align:center;">Worker-2 全价</div>
+                <div style="flex:1;font-family:var(--mono);font-size:10px;color:var(--red);text-align:center;">Worker-3 全价</div>
+              </div>
+            </div>
+
+            <!-- With cache -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:14px;color:var(--cyan);">✓ Fork 继承（共享 cache）</div>
+                <div style="font-family:var(--mono);font-size:16px;color:var(--cyan);font-weight:700;">1.2× 全价</div>
+              </div>
+              <div style="display:flex;gap:4px;height:28px;">
+                <div style="flex:1;background:rgba(52,211,153,0.3);border-radius:4px;border:1px solid rgba(52,211,153,0.4);"></div>
+                <div style="flex:0.1;background:rgba(52,211,153,0.15);border-radius:4px;border:1px solid rgba(52,211,153,0.25);"></div>
+                <div style="flex:0.1;background:rgba(52,211,153,0.15);border-radius:4px;border:1px solid rgba(52,211,153,0.25);"></div>
+              </div>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <div style="flex:1;font-family:var(--mono);font-size:10px;color:var(--cyan);text-align:center;">Worker-1 全价</div>
+                <div style="flex:0.1;font-family:var(--mono);font-size:10px;color:var(--cyan);text-align:center;white-space:nowrap;">W2 10%</div>
+                <div style="flex:0.1;font-family:var(--mono);font-size:10px;color:var(--cyan);text-align:center;white-space:nowrap;">W3 10%</div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;text-align:center;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--cyan);">
+              ⚡ 成本压缩约 60%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 8 · TodoWrite 纯内存
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="slide-header">
+      <div class="section-label">设计决策</div>
+      <div class="slide-title">TodoWrite：纯内存，零 I/O</div>
+      <div class="slide-subtitle">TodoWriteTool.ts:67 &nbsp;·&nbsp; AppState.todos[agentId ?? sessionId]</div>
+    </div>
+    <div class="slide-body" style="flex-direction:column;gap:28px;align-items:stretch;padding-top:16px;">
+      <div class="grid2" style="gap:32px;align-items:stretch;">
+        <div class="col" style="gap:20px;">
+          <div class="code-block">
+<span class="c">// TodoWriteTool.ts:67</span>
+<span class="k">function</span> <span class="f">writeTodo</span>(agentId, sessionId, todos) {
+  <span class="k">const</span> key = agentId ?? sessionId
+  <span class="c">// 纯内存写入，无任何 I/O</span>
+  <span class="hl">  AppState.todos[key] = todos</span>
+  <span class="c">// 全完成自动清空</span>
+  <span class="k">if</span> (todos.every(t => t.status === <span class="s">'completed'</span>)) {
+    <span class="k">delete</span> AppState.todos[key]
+  }
+}
+</div>
+          <div class="glass" style="padding:16px 20px;background:rgba(52,211,153,0.04);border-color:rgba(52,211,153,0.2);">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:6px;">关键设计</div>
+            <div style="font-size:14px;color:var(--text-dim);line-height:1.5;">
+              没有 <code style="color:var(--purple);">await</code>，没有 <code style="color:var(--purple);">fs.writeFile</code>，没有 SQLite。
+              <strong style="color:var(--text);">零 I/O。</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="col" style="gap:16px;">
+          <div class="glass" style="padding:20px 24px;">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-bottom:12px;">草稿 vs 任务系统</div>
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>维度</th>
+                  <th style="color:var(--purple);">TodoWrite（草稿）</th>
+                  <th style="color:var(--amber);">持久化任务系统</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>生命周期</td>
+                  <td style="color:var(--cyan);">与 session 同生共死</td>
+                  <td>独立于 session</td>
+                </tr>
+                <tr>
+                  <td>用途</td>
+                  <td style="color:var(--cyan);">LLM 自己追踪任务</td>
+                  <td>用户/外部系统看</td>
+                </tr>
+                <tr>
+                  <td>崩溃后</td>
+                  <td style="color:var(--cyan);">自然清空，重新规划</td>
+                  <td>恢复上次状态</td>
+                </tr>
+                <tr>
+                  <td>I/O 开销</td>
+                  <td style="color:var(--cyan);">零</td>
+                  <td>每次写需 I/O</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="glass" style="padding:16px 20px;background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2);">
+            <div style="font-size:13px;color:var(--text-dim);line-height:1.6;">
+              <span style="color:var(--amber);font-weight:600;">什么时候需要持久化？</span><br>
+              任务跨多个 session（"明天继续"）/ 需要外部追踪 / 断点续传（参考 Ch.14）
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 9 · 血泪案例
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s9">
+    <div class="slide-header">
+      <div class="section-label">血泪案例 · 案例 8.1</div>
+      <div class="slide-title" style="color:var(--red);">EI 报告 Sub-agent 6 小时白等事故</div>
+      <div class="slide-subtitle">long-horizon 任务必须中间落盘</div>
+    </div>
+    <div class="slide-body" style="gap:40px;align-items:stretch;">
+
+      <!-- Timeline -->
+      <div class="col" style="flex:0 0 340px;">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-bottom:12px;">事故时间线</div>
+        <div id="s9" style="position:relative;">
+          <div style="position:absolute;left:64px;top:0;bottom:0;width:2px;background:var(--border);"></div>
+          <div class="event-row">
+            <div class="event-time">09:33</div>
+            <div class="event-dot" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan);z-index:1;"></div>
+            <div class="event-text">数据搜集完成 ✓<br><span style="font-size:12px;color:var(--text-muted);">数据在 session jsonl 内存</span></div>
+          </div>
+          <div class="event-row">
+            <div class="event-time">10:15</div>
+            <div class="event-dot" style="background:var(--red);z-index:1;"></div>
+            <div class="event-text">Context compaction 触发<br><span style="font-size:12px;color:var(--red);">数据"消失"</span></div>
+          </div>
+          <div class="event-row">
+            <div class="event-time">10:16+</div>
+            <div class="event-dot" style="background:var(--amber);z-index:1;"></div>
+            <div class="event-text">第 1 次说"马上出 PDF"<br><span style="font-size:12px;color:var(--text-muted);">但没有文件</span></div>
+          </div>
+          <div class="event-row">
+            <div class="event-time">11~14h</div>
+            <div class="event-dot" style="background:var(--amber);opacity:0.5;z-index:1;"></div>
+            <div class="event-text" style="color:var(--amber);">重复 7 次……每次 compaction 后重来</div>
+          </div>
+          <div class="event-row">
+            <div class="event-time">15:33</div>
+            <div class="event-dot" style="background:var(--red);box-shadow:0 0 8px var(--red);z-index:1;"></div>
+            <div class="event-text" style="color:var(--red);">用户查看：<strong>什么都没产出</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fix -->
+      <div class="col" style="flex:1;gap:16px;justify-content:center;">
+        <div class="glass" style="padding:16px 20px;background:rgba(248,113,113,0.05);border-color:rgba(248,113,113,0.2);">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:6px;">根因</div>
+          <div style="font-size:14px;color:var(--text-dim);">数据只在 session jsonl（内存），compaction 后 summary 无法完整还原，sub-agent 进入"以为有数据但实际没有"的死循环。</div>
+        </div>
+        <div class="code-block" style="font-size:13px;">
+<span class="c">❌ 错误：说"马上出" 但数据在内存</span>
+<span class="n">data = fetch_data()</span>
+<span class="k">print</span>(<span class="s">"马上生成 PDF..."</span>)  <span class="c"># compaction → 丢</span>
+
+<span class="c">✅ 铁律三步串行（必须落盘）</span>
+<span class="c"># 步骤1：数据 → 文件</span>
+data_file.write_text(json.dumps(data))
+<span class="hl">assert data_file.<span class="f">exists</span>(), <span class="s">"写入失败，停止"</span></span>
+
+<span class="c"># 步骤2：文件 → PDF</span>
+pdf_file = generate_pdf(data_file)
+<span class="hl">assert pdf_file.<span class="f">exists</span>(), <span class="s">"PDF 失败，停止"</span></span>
+
+<span class="c"># 步骤3：PDF → Discord</span>
+send_to_discord(pdf_file)
+</div>
+        <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:14px;color:var(--amber);">
+          铁律：说「马上出」→ 同一个 turn 必须出
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 10 · Python 实现
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="slide-header">
+      <div class="section-label">代码产物</div>
+      <div class="slide-title">asyncio.gather：20 行实现并发 Worker</div>
+      <div class="slide-subtitle">lena-v0.8 核心代码</div>
+    </div>
+    <div class="slide-body" style="gap:32px;align-items:stretch;">
+      <div class="col" style="flex:1;gap:20px;justify-content:center;">
+        <div class="code-block" style="font-size:14px;line-height:1.6;">
+<span class="c"># ❌ 串行（旧）——依次 await</span>
+<span class="k">for</span> subtask <span class="k">in</span> subtasks:
+    result = <span class="k">await</span> worker.run(subtask)  <span class="c"># 阻塞</span>
+    results.append(result)
+<span class="c"># 3 个任务 × 3min = 9min</span>
+
+<span class="c">───────────────────────────────────────</span>
+
+<span class="c"># ✅ 并发（lena-v0.8）——asyncio.gather</span>
+<span class="k">async def</span> <span class="f">dispatch_workers</span>(plan):
+    workers = [
+        SubagentWorker(task=s[<span class="s">"task"</span>], prompt=<span class="f">make_prompt</span>(s))
+        <span class="k">for</span> s <span class="k">in</span> plan.subtasks
+    ]
+
+    <span class="c"># 启动通知</span>
+    [<span class="f">on_start</span>(w.agent_id) <span class="k">for</span> w <span class="k">in</span> workers]
+
+    <span class="c"># 真正并发执行</span>
+    <span class="hl">    results = <span class="k">await</span> asyncio.<span class="f">gather</span>(*[w.<span class="f">run</span>() <span class="k">for</span> w <span class="k">in</span> workers])</span>
+
+    <span class="k">return</span> results  <span class="c"># 所有 &lt;task-notification&gt; 列表</span>
+</div>
+      </div>
+
+      <div class="col" style="flex:0 0 380px;gap:20px;justify-content:center;">
+        <div class="glass" style="padding:24px 28px;">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-bottom:16px;">耗时对比（3 个 3min 任务）</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:14px;color:var(--red);">串行 for-await</span>
+                <span style="font-family:var(--mono);font-weight:700;color:var(--red);">9 分钟</span>
+              </div>
+              <div style="height:24px;background:rgba(248,113,113,0.3);border-radius:4px;border:1px solid rgba(248,113,113,0.4);"></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:14px;color:var(--cyan);">asyncio.gather</span>
+                <span style="font-family:var(--mono);font-weight:700;color:var(--cyan);">3 分钟</span>
+              </div>
+              <div style="height:24px;width:33%;background:rgba(52,211,153,0.3);border-radius:4px;border:1px solid rgba(52,211,153,0.4);"></div>
+            </div>
+          </div>
+          <div style="margin-top:20px;text-align:center;font-family:var(--mono);font-size:18px;font-weight:700;color:var(--cyan);">
+            ⚡ 节省 67% 时间
+          </div>
+        </div>
+        <div class="glass" style="padding:16px 20px;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-bottom:8px;">SubagentWorker 模型选择</div>
+          <div style="font-size:14px;color:var(--text-dim);line-height:1.5;">
+            Orchestrator：<span style="color:var(--purple);">Sonnet</span>（规划决策）<br>
+            Worker：<span style="color:var(--cyan);">Haiku</span>（执行，便宜 20×）
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 11 · OpenClaw 三 Agent 架构
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s11">
+    <div class="slide-header">
+      <div class="section-label">生产案例 · 案例 8.2</div>
+      <div class="slide-title">OpenClaw 三 Agent 分工架构</div>
+      <div class="slide-subtitle">模型分层 + 工具最小权限 · 来自真实生产配置</div>
+    </div>
+    <div class="slide-body" style="flex-direction:column;gap:28px;align-items:stretch;padding-top:16px;">
+      <div class="grid3" style="gap:24px;flex:1;">
+        <!-- main -->
+        <div class="glass" style="padding:28px 24px;border-color:rgba(167,139,250,0.4);position:relative;">
+          <div style="position:absolute;top:16px;right:16px;" class="tag tag-purple">Orchestrator</div>
+          <div style="font-size:28px;font-weight:800;color:var(--purple);margin-bottom:8px;">main</div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);margin-bottom:16px;">Lena · Opus 4.6</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(52,211,153,0.08);border-radius:6px;padding:8px 12px;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--cyan);">tools: all</div>
+              <div style="font-size:12px;color:var(--text-muted);">全工具权限</div>
+            </div>
+            <div style="background:rgba(167,139,250,0.06);border-radius:6px;padding:8px 12px;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--purple);">allowAgents: [researcher, ops]</div>
+              <div style="font-size:12px;color:var(--text-muted);">只能派这两类 Worker</div>
+            </div>
+          </div>
+          <div style="margin-top:20px;font-size:14px;color:var(--text-dim);line-height:1.5;">
+            任务规划、用户交互、最终决策。<br>
+            最贵的模型做最重要的决策。
+          </div>
+        </div>
+
+        <!-- researcher -->
+        <div class="glass" style="padding:28px 24px;border-color:rgba(99,102,241,0.4);position:relative;">
+          <div style="position:absolute;top:16px;right:16px;" class="tag tag-purple" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:#818cf8;">Worker</div>
+          <div style="font-size:28px;font-weight:800;color:#818cf8;margin-bottom:8px;">researcher</div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);margin-bottom:16px;">Sonnet 4.6</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(248,113,113,0.06);border-radius:6px;padding:8px 12px;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--red);">deny: gateway, cron, nodes, tts</div>
+              <div style="font-size:12px;color:var(--text-muted);">不能修改基础设施</div>
+            </div>
+          </div>
+          <div style="margin-top:20px;font-size:14px;color:var(--text-dim);line-height:1.5;">
+            调研、搜索、分析信息。<br>
+            权限限制：只能读，不能改系统配置。
+          </div>
+        </div>
+
+        <!-- ops -->
+        <div class="glass" style="padding:28px 24px;border-color:rgba(245,158,11,0.3);position:relative;">
+          <div style="position:absolute;top:16px;right:16px;" class="tag tag-amber">Worker</div>
+          <div style="font-size:28px;font-weight:800;color:var(--amber);margin-bottom:8px;">ops</div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);margin-bottom:16px;">Haiku 4.5</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(248,113,113,0.06);border-radius:6px;padding:8px 12px;">
+              <div style="font-family:var(--mono);font-size:11px;color:var(--red);">deny: browser, gateway, tts, message</div>
+              <div style="font-size:12px;color:var(--text-muted);">不能发消息，不能操作 UI</div>
+            </div>
+          </div>
+          <div style="margin-top:20px;font-size:14px;color:var(--text-dim);line-height:1.5;">
+            运维任务：监控、健康检查。<br>
+            最便宜的模型处理例行操作。
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:24px;">
+        <div class="glass" style="padding:14px 20px;flex:1;display:flex;align-items:center;gap:12px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);">模型成本比 Opus : Sonnet : Haiku ≈</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;">
+            <span style="color:var(--red);">30</span> <span style="color:var(--text-muted);">:</span>
+            <span style="color:var(--amber);">3</span> <span style="color:var(--text-muted);">:</span>
+            <span style="color:var(--cyan);">1</span>
+          </div>
+        </div>
+        <div class="glass" style="padding:14px 20px;flex:1;display:flex;align-items:center;gap:12px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);">maxConcurrentSessions:</div>
+          <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--purple);">3</div>
+        </div>
+        <div class="glass" style="padding:14px 20px;flex:2;">
+          <div style="font-size:13px;color:var(--text-dim);">
+            <span style="color:var(--cyan);font-weight:600;">设计精髓</span>：工具最小权限 + 模型分层 = 安全（误操作减少）× 便宜（贵模型少用）
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SLIDE 12 · 本章小结
+  ════════════════════════════════════════ -->
+  <div class="slide" id="s12">
+    <div class="slide-header">
+      <div class="section-label">本章小结</div>
+      <div class="slide-title">lena-v0.8：自主拆任务 + 并发派 3 个子 agent</div>
+    </div>
+    <div class="slide-body" style="flex-direction:column;gap:24px;align-items:stretch;padding-top:8px;">
+
+      <!-- 5 concept cards -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
+        <div class="glass" style="padding:20px 16px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:8px;">Plan Mode</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.5;">伪模式<br>工具调用切换<br>permission ctx</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:8px;">:ts:77</div>
+        </div>
+        <div class="glass" style="padding:20px 16px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:8px;">Subagent</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.5;">独立 ask()<br>agentId 区分<br>XML 回传</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:8px;">AgentTool:196</div>
+        </div>
+        <div class="glass" style="padding:20px 16px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:8px;">Fork</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.5;">继承 prompt<br>共享 cache<br>成本 -60%</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:8px;">forkSubagent:60</div>
+        </div>
+        <div class="glass" style="padding:20px 16px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--purple);margin-bottom:8px;">TodoWrite</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.5;">纯内存<br>零 I/O<br>全完成自动清空</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:8px;">TodoWriteTool:67</div>
+        </div>
+        <div class="glass" style="padding:20px 16px;text-align:center;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--cyan);margin-bottom:8px;">四要素</div>
+          <div style="font-size:13px;color:var(--text-dim);line-height:1.5;">Scope<br>Goal / Constraints<br>Output</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:8px;">本书提炼</div>
+        </div>
+      </div>
+
+      <!-- lena version progression -->
+      <div class="glass" style="padding:20px 28px;display:flex;align-items:center;gap:32px;">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--text-muted);">版本递进</div>
+        <div style="font-family:var(--mono);font-size:15px;color:var(--text-dim);">lena-v0.7 &nbsp;→&nbsp;</div>
+        <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--cyan);">lena-v0.8</div>
+        <div style="font-size:15px;color:var(--text-dim);">接到"调研 X" → 自动拆 3 个子任务 → 并发派 Worker → 时间压缩 50%+</div>
+      </div>
+
+      <!-- next chapter -->
+      <div style="background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:18px 28px;display:flex;align-items:center;gap:24px;">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--cyan);min-width:80px;">下一章 →</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);">Ch 9 · Skills：可复用的能力单元</div>
+          <div style="font-size:14px;color:var(--text-dim);margin-top:4px;">lena-v0.8 能拆任务了。但每个子 agent 都要从头描述"怎么做"——如果能注入已经会的能力呢？</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Progress + Counter ── -->
+  <div id="progress-bar"></div>
+  <div id="slide-counter">1 / 12</div>
+  <div id="kbd-hint"><kbd>←</kbd> <kbd>→</kbd> 翻页 &nbsp; <kbd>F</kbd> 全屏</div>
+
+</div><!-- .deck -->
+</div><!-- #scaler -->
+
+<script>
+(function() {
+  const TOTAL = 12;
+  let cur = 1;
+  const slides = [];
+  for (let i = 1; i <= TOTAL; i++) slides.push(document.getElementById('s' + i));
+
+  const progressBar = document.getElementById('progress-bar');
+  const counter = document.getElementById('slide-counter');
+
+  function goto(n) {
+    if (n < 1 || n > TOTAL) return;
+    slides[cur - 1].classList.remove('active');
+    cur = n;
+    slides[cur - 1].classList.add('active');
+    progressBar.style.width = ((cur / TOTAL) * 100) + '%';
+    counter.textContent = cur + ' / ' + TOTAL;
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goto(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goto(cur - 1);
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  // Touch swipe
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) goto(dx < 0 ? cur + 1 : cur - 1);
+  });
+
+  // Scale to viewport
+  function scale() {
+    const scaler = document.getElementById('scaler');
+    const sx = window.innerWidth / 1920;
+    const sy = window.innerHeight / 1080;
+    const s = Math.min(sx, sy);
+    scaler.style.transform = 'scale(' + s + ')';
+    scaler.style.left = ((window.innerWidth - 1920 * s) / 2) + 'px';
+    scaler.style.top = ((window.innerHeight - 1080 * s) / 2) + 'px';
+  }
+  window.addEventListener('resize', scale);
+  scale();
+
+  // Init progress
+  goto(1);
+})();
+</script>
+</body>
+</html>

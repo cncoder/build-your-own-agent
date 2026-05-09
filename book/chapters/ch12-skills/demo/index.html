@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 12 · Skills 渐进披露</title>
+<style>
+/* ── 深空霓虹 · neon-purple accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #a78bfa;        /* neon-purple */
+  --cyan: #22d3ee;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --rose: #fb7185;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 64px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(167,139,250,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(34,211,238,0.04) 0%, transparent 50%);
+}
+header { text-align: center; margin-bottom: 32px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 14px; color: var(--dim); max-width: 620px; margin: 0 auto; line-height: 1.65; }
+
+/* ── 主布局 ── */
+.main { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1060px; margin: 0 auto; }
+@media (max-width: 740px) { .main { grid-template-columns: 1fr; } }
+
+/* ── 面板通用 ── */
+.panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(167,139,250,0.12);
+  border-radius: 14px; padding: 20px;
+}
+.panel-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 16px; }
+
+/* ── 用户提问区 ── */
+.query-section { max-width: 1060px; margin: 0 auto 24px; }
+.query-panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(167,139,250,0.15);
+  border-radius: 14px; padding: 20px;
+}
+.query-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.query-row label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+#query-input {
+  flex: 1; min-width: 200px; padding: 9px 14px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 8px; color: var(--text); font-size: 14px; font-family: var(--sans);
+  outline: none; transition: border-color 0.2s;
+}
+#query-input:focus { border-color: rgba(167,139,250,0.5); }
+.btn-ask {
+  padding: 9px 22px; border-radius: 8px;
+  background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.4);
+  color: var(--accent); font-size: 14px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-ask:hover { background: rgba(167,139,250,0.22); }
+.sample-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sample-btn {
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--dim);
+  transition: all 0.2s;
+}
+.sample-btn:hover { border-color: rgba(167,139,250,0.35); color: var(--accent); }
+
+/* ── Skill 列表 ── */
+.skill-list { display: flex; flex-direction: column; gap: 8px; }
+.skill-item {
+  border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.2); overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.skill-item.matched { border-color: rgba(167,139,250,0.35); box-shadow: 0 0 16px rgba(167,139,250,0.08); }
+.skill-item.loading { border-color: rgba(251,191,36,0.3); }
+.skill-item.loaded  { border-color: rgba(52,211,153,0.3); }
+.skill-header {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
+}
+.skill-name { font-size: 13px; font-weight: 600; }
+.skill-tok { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+.skill-badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 4px;
+}
+.badge-l1 { background: rgba(167,139,250,0.15); color: var(--accent); }
+.badge-l2 { background: rgba(251,191,36,0.15); color: var(--amber); }
+.badge-l3 { background: rgba(34,211,238,0.15); color: var(--cyan); }
+.badge-matched { background: rgba(52,211,153,0.2); color: var(--green); }
+.skill-body {
+  font-family: var(--mono); font-size: 12px; color: var(--dim); line-height: 1.6;
+  max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s;
+  padding: 0 14px;
+}
+.skill-body.open { max-height: 200px; padding: 0 14px 12px; }
+.skill-body pre { background: rgba(0,0,0,0.3); border-radius: 6px; padding: 8px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+
+/* ── 加载过程动画 ── */
+.process-log { display: flex; flex-direction: column; gap: 6px; }
+.log-row {
+  display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+  border-radius: 8px; font-size: 12px; color: var(--dim);
+  border: 1px solid transparent;
+  opacity: 0; transform: translateY(4px);
+  transition: all 0.3s;
+}
+.log-row.show { opacity: 1; transform: translateY(0); }
+.log-row.step-match  { border-color: rgba(167,139,250,0.2); background: rgba(167,139,250,0.05); color: var(--accent); }
+.log-row.step-load   { border-color: rgba(251,191,36,0.15); background: rgba(251,191,36,0.04); color: var(--amber); }
+.log-row.step-exec   { border-color: rgba(52,211,153,0.2);  background: rgba(52,211,153,0.05);  color: var(--green); }
+.log-row.step-boom   { border-color: rgba(251,113,133,0.2); background: rgba(251,113,133,0.06); color: var(--rose); }
+.log-icon { font-size: 14px; flex-shrink: 0; }
+
+/* ── Token 爆炸对比 ── */
+.boom-section { margin-top: 16px; padding: 14px; background: rgba(251,113,133,0.05); border: 1px solid rgba(251,113,133,0.18); border-radius: 10px; }
+.boom-title { font-family: var(--mono); font-size: 10px; color: var(--rose); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+.boom-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.boom-label { color: var(--dim); width: 140px; }
+.boom-bar-wrap { flex: 1; background: rgba(255,255,255,0.04); border-radius: 3px; height: 16px; }
+.boom-bar { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+.boom-val { font-family: var(--mono); font-size: 11px; width: 48px; text-align: right; }
+
+footer { text-align: center; margin-top: 48px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Ch 12 · Skills</div>
+  <h1>Skills 渐进披露：按需加载</h1>
+  <p>Skill 不是一次性塞进 context 的文档，而是三级渐进结构——按需加载，精确控制 token 消耗，让 agent 既「知道」所有技能，又不浪费推理预算。</p>
+</header>
+
+<!-- 提问区 -->
+<div class="query-section">
+  <div class="query-panel">
+    <div class="query-row">
+      <label>模拟用户提问：</label>
+      <input id="query-input" type="text" value="帮我做一个代码审查" placeholder="输入你的问题…">
+      <button class="btn-ask" onclick="runQuery()">▶ 匹配 Skills</button>
+    </div>
+    <div class="sample-btns">
+      <span class="sample-btn" onclick="setQ('帮我做一个代码审查')">代码审查</span>
+      <span class="sample-btn" onclick="setQ('部署到 AWS EKS')">部署到 EKS</span>
+      <span class="sample-btn" onclick="setQ('写一个 Python 测试')">Python 测试</span>
+      <span class="sample-btn" onclick="setQ('今天天气怎样')">今天天气（无匹配）</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 左：Skill 列表 -->
+  <div class="panel">
+    <div class="panel-title">已注册 Skills（8 个）</div>
+    <div class="skill-list" id="skill-list"><!-- 动态 --></div>
+  </div>
+
+  <!-- 右：加载过程 + 反例 -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="panel">
+      <div class="panel-title">加载过程日志</div>
+      <div class="process-log" id="process-log">
+        <div style="font-size:13px;color:var(--muted)">点击"匹配 Skills"开始演示</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">反例：全量加载的 Token 爆炸</div>
+      <div class="boom-section">
+        <div class="boom-title">⚠️ 如果把所有 Skill 全塞入 context</div>
+        <div class="boom-row">
+          <div class="boom-label">渐进披露（当前）</div>
+          <div class="boom-bar-wrap"><div class="boom-bar" id="boom-good" style="width:0%;background:rgba(52,211,153,0.6)"></div></div>
+          <div class="boom-val" id="boom-good-val" style="color:var(--green)">0 tok</div>
+        </div>
+        <div class="boom-row">
+          <div class="boom-label">全量加载（反例）</div>
+          <div class="boom-bar-wrap"><div class="boom-bar" id="boom-bad" style="width:0%;background:rgba(251,113,133,0.6)"></div></div>
+          <div class="boom-val" id="boom-bad-val" style="color:var(--rose)">0 tok</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.55" id="boom-note">
+          渐进披露：Level 1 常驻 ~800 tok · Level 2 按需加载 · Level 3 延迟取
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 12 章 · Skills · 交互式 Demo</footer>
+
+<script>
+// ── Skill 数据 ──
+// Level 1: YAML frontmatter（~100 tok，常驻 context）
+// Level 2: SKILL.md 正文（~2000 tok，按需加载）
+// Level 3: 链接文件（延迟加载）
+const SKILLS = [
+  {
+    id: 'code-review',
+    name: 'code-review',
+    keywords: ['代码审查', '代码', 'review', 'code'],
+    l1: 'trigger: 代码审查 / review\ndesc: 审查代码质量\ntokens: ~100',
+    l2: `# Code Review Skill
+检查代码质量、安全性和可维护性。
+
+## 触发条件
+用户要求 code review 或审查代码
+
+## 执行步骤
+1. 读取目标文件
+2. 检查安全漏洞（SQL注入/XSS）
+3. 检查代码风格
+4. 生成改进建议`,
+    l3: ['security-checklist.md', 'style-guide.md'],
+    l1tok: 100, l2tok: 1800, l3tok: 3200
+  },
+  {
+    id: 'aws-deploy',
+    name: 'aws-deploy',
+    keywords: ['部署', 'deploy', 'AWS', 'EKS', 'kubernetes', 'k8s'],
+    l1: 'trigger: AWS部署 / EKS\ndesc: 部署应用到 AWS\ntokens: ~120',
+    l2: `# AWS Deploy Skill
+将应用部署到 Amazon EKS。
+
+## 触发条件
+部署到 AWS / EKS / Kubernetes
+
+## 执行步骤
+1. 检查 kubectl context
+2. 生成 K8s manifest
+3. apply 并监控状态
+4. 验证 pod 健康`,
+    l3: ['eks-manifest-templates/', 'iam-policies.md'],
+    l1tok: 120, l2tok: 2100, l3tok: 4500
+  },
+  {
+    id: 'python-testing',
+    name: 'python-testing',
+    keywords: ['Python', 'python', '测试', 'test', 'pytest'],
+    l1: 'trigger: Python测试\ndesc: 编写 pytest 测试\ntokens: ~90',
+    l2: `# Python Testing Skill
+使用 pytest 编写 Python 测试。
+
+## 触发条件
+写 Python 测试 / pytest / 单元测试
+
+## 执行步骤
+1. 分析被测函数签名
+2. 生成正常/边界/异常用例
+3. 添加 fixture
+4. 运行并验证覆盖率`,
+    l3: ['pytest-patterns.md', 'coverage-config.py'],
+    l1tok: 90, l2tok: 1600, l3tok: 2800
+  },
+  {
+    id: 'git-workflow',
+    name: 'git-workflow',
+    keywords: ['git', 'commit', 'PR', '分支', 'branch'],
+    l1: 'trigger: git操作 / PR\ndesc: Git 工作流\ntokens: ~80',
+    l2: '# Git Workflow Skill\n...',
+    l3: [],
+    l1tok: 80, l2tok: 1200, l3tok: 0
+  },
+  {
+    id: 'sql-patterns',
+    name: 'sql-patterns',
+    keywords: ['SQL', 'sql', '数据库', 'database', 'query'],
+    l1: 'trigger: SQL查询\ndesc: SQL 最佳实践\ntokens: ~95',
+    l2: '# SQL Patterns Skill\n...',
+    l3: [],
+    l1tok: 95, l2tok: 1900, l3tok: 3100
+  },
+  {
+    id: 'frontend-design',
+    name: 'frontend-design',
+    keywords: ['前端', 'UI', 'CSS', 'React', '界面'],
+    l1: 'trigger: 前端设计\ndesc: UI/UX 实现\ntokens: ~110',
+    l2: '# Frontend Design Skill\n...',
+    l3: [],
+    l1tok: 110, l2tok: 2200, l3tok: 5000
+  },
+  {
+    id: 'docker-patterns',
+    name: 'docker-patterns',
+    keywords: ['Docker', 'docker', 'container', '容器'],
+    l1: 'trigger: Docker\ndesc: 容器化最佳实践\ntokens: ~85',
+    l2: '# Docker Patterns Skill\n...',
+    l3: [],
+    l1tok: 85, l2tok: 1500, l3tok: 2600
+  },
+  {
+    id: 'security-scan',
+    name: 'security-scan',
+    keywords: ['安全', 'security', '漏洞', 'vulnerability', 'scan'],
+    l1: 'trigger: 安全扫描\ndesc: 安全检查\ntokens: ~105',
+    l2: '# Security Scan Skill\n...',
+    l3: [],
+    l1tok: 105, l2tok: 2000, l3tok: 3800
+  },
+];
+
+function setQ(q) {
+  document.getElementById('query-input').value = q;
+  runQuery();
+}
+
+function initSkillList() {
+  const list = document.getElementById('skill-list');
+  list.innerHTML = SKILLS.map(s => `
+    <div class="skill-item" id="skill-${s.id}">
+      <div class="skill-header" onclick="toggleSkill('${s.id}')">
+        <span class="skill-badge badge-l1">L1</span>
+        <span class="skill-name">${s.name}</span>
+        <span class="skill-tok">${s.l1tok} tok</span>
+      </div>
+      <div class="skill-body" id="sbody-${s.id}">
+        <pre>${s.l1}</pre>
+      </div>
+    </div>`).join('');
+}
+
+function toggleSkill(id) {
+  const body = document.getElementById('sbody-' + id);
+  body.classList.toggle('open');
+}
+
+function runQuery() {
+  const query = document.getElementById('query-input').value.trim();
+  if (!query) return;
+  initSkillList();
+  document.getElementById('process-log').innerHTML = '';
+
+  // 找匹配的 skill
+  const matched = SKILLS.filter(s => s.keywords.some(k => query.includes(k)));
+  const log = document.getElementById('process-log');
+
+  const steps = [];
+  steps.push({ cls: 'step-match', icon: '🔍', text: `在 ${SKILLS.length} 个 Skill 的 L1 frontmatter 中搜索关键词…`, delay: 0 });
+
+  if (matched.length === 0) {
+    steps.push({ cls: 'step-match', icon: '○', text: '未匹配到任何 Skill，仅使用基础 context 回答。', delay: 400 });
+    steps.push({ cls: 'step-exec', icon: '✓', text: `总消耗：${SKILLS.reduce((a,s)=>a+s.l1tok,0)} tok（仅 L1 常驻）`, delay: 800 });
+    updateBoom(SKILLS.reduce((a,s)=>a+s.l1tok,0), false);
+  } else {
+    const m = matched[0];
+    steps.push({ cls: 'step-match', icon: '✓', text: `匹配到 Skill: ${m.name}（L1 关键词命中）`, delay: 400 });
+    steps.push({ cls: 'step-load', icon: '⬇', text: `按需加载 ${m.name}.md（Level 2，~${m.l2tok} tok）…`, delay: 900 });
+    // 高亮 skill 卡
+    setTimeout(() => {
+      document.getElementById('skill-' + m.id).classList.add('matched');
+      document.getElementById('sbody-' + m.id).innerHTML = `<pre>${m.l2}</pre>`;
+      document.getElementById('skill-' + m.id).querySelector('.skill-badge').className = 'skill-badge badge-matched';
+      document.getElementById('skill-' + m.id).querySelector('.skill-badge').textContent = 'L2';
+      document.getElementById('skill-' + m.id).querySelector('.skill-tok').textContent = m.l2tok + ' tok';
+    }, 900);
+
+    if (m.l3.length > 0) {
+      steps.push({ cls: 'step-load', icon: '⬇', text: `执行中发现需要 ${m.l3[0]}，延迟加载（Level 3，~${m.l3tok} tok）…`, delay: 1800 });
+      setTimeout(() => {
+        document.getElementById('skill-' + m.id).querySelector('.skill-badge').textContent = 'L3';
+        document.getElementById('skill-' + m.id).querySelector('.skill-tok').textContent = (m.l2tok + m.l3tok) + ' tok';
+      }, 1800);
+    }
+
+    const totalLoaded = m.l1tok + m.l2tok + (m.l3.length > 0 ? m.l3tok : 0);
+    const otherL1 = SKILLS.filter(s => s.id !== m.id).reduce((a, s) => a + s.l1tok, 0);
+    const totalUsed = otherL1 + totalLoaded;
+    const allFull = SKILLS.reduce((a,s) => a + s.l1tok + s.l2tok + s.l3tok, 0);
+
+    steps.push({ cls: 'step-exec', icon: '▶', text: `执行 ${m.name} 工作流…`, delay: m.l3.length > 0 ? 2400 : 1500 });
+    steps.push({ cls: 'step-exec', icon: '✓', text: `完成！总消耗 ${totalUsed.toLocaleString()} tok（vs 全量 ${allFull.toLocaleString()} tok）`, delay: m.l3.length > 0 ? 3000 : 2100 });
+    updateBoom(totalUsed, true, allFull);
+  }
+
+  steps.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'log-row ' + s.cls;
+    row.innerHTML = `<span class="log-icon">${s.icon}</span><span>${s.text}</span>`;
+    log.appendChild(row);
+    setTimeout(() => row.classList.add('show'), s.delay + 50);
+  });
+}
+
+function updateBoom(good, hasBad, bad) {
+  const maxTok = bad || SKILLS.reduce((a,s)=>a+s.l1tok,0) * 10;
+  setTimeout(() => {
+    document.getElementById('boom-good').style.width = Math.min(good / maxTok * 100, 100) + '%';
+    document.getElementById('boom-good-val').textContent = good.toLocaleString() + ' tok';
+    if (hasBad) {
+      document.getElementById('boom-bad').style.width = Math.min(bad / maxTok * 100, 100) + '%';
+      document.getElementById('boom-bad-val').textContent = bad.toLocaleString() + ' tok';
+      const ratio = (bad / good).toFixed(1);
+      document.getElementById('boom-note').textContent =
+        `渐进披露节省 ${((1 - good/bad)*100).toFixed(0)}% token — 全量加载是按需加载的 ${ratio}x`;
+    }
+  }, 2200);
+}
+
+// 初始化
+initSkillList();
+</script>
+</body>
+</html>

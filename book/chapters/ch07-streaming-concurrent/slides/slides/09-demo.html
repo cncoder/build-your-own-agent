@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%, #001208 0%, #050810 60%); }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; gap: 80px; }
+.left { flex: 1.1; display: flex; flex-direction: column; }
+.right { flex: 0.9; display: flex; flex-direction: column; gap: 24px; }
+
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 10px; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 32px; }
+
+/* Terminal window */
+.terminal {
+  flex: 1; background: #0d1117; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+}
+.term-bar {
+  background: #161b22; padding: 12px 20px; display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.dot { width: 13px; height: 13px; border-radius: 50%; }
+.term-title { font-size: 13px; color: rgba(255,255,255,0.35); margin-left: 12px; font-family: "SF Mono", monospace; letter-spacing: 0.05em; }
+.term-body { flex: 1; padding: 24px 28px; font-family: "SF Mono", "Fira Code", Menlo, monospace; font-size: 15px; line-height: 1.7; overflow: hidden; }
+
+.prompt { color: #00c864; }
+.cmd    { color: #eeffff; }
+.out    { color: rgba(255,255,255,0.6); }
+.tool-start { color: #4db8ff; }
+.tool-done  { color: #00c864; }
+.lena-text  { color: #eeffff; }
+.stat-good  { color: #00c864; font-weight: 700; }
+.stat-bad   { color: #ff6b6b; font-weight: 700; }
+.stat-speedup { color: #00c8ff; font-weight: 700; }
+.separator  { color: rgba(255,255,255,0.12); }
+
+/* R5 cases */
+.case-card { padding: 24px 28px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; }
+.case-card .case-tag { display: inline-block; font-size: 12px; color: rgba(255,200,0,0.7); border: 1px solid rgba(255,200,0,0.3); padding: 2px 10px; border-radius: 999px; margin-bottom: 10px; letter-spacing: 0.08em; }
+.case-card h4 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.case-card p  { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+.case-card .lesson { margin-top: 10px; font-size: 14px; color: rgba(255,200,0,0.7); }
+.case-card .lesson::before { content: '⚠ '; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="layout">
+  <div class="left">
+    <h2>终端演示：5 工具并发</h2>
+    <p class="sub">lena-v0.5 · python3 demo/benchmark.py</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot" style="background:#ff5f57"></div>
+        <div class="dot" style="background:#febc2e"></div>
+        <div class="dot" style="background:#28c840"></div>
+        <span class="term-title">lena-v0.5 — demo/benchmark.py</span>
+      </div>
+      <div class="term-body">
+<span class="prompt">$</span> <span class="cmd">python3 demo/benchmark.py</span><br>
+<span class="separator">══════════════════════════════════════════════════</span><br>
+<span class="out">lena-v0.5 串行 vs 并发耗时对比</span><br>
+<span class="separator">══════════════════════════════════════════════════</span><br>
+<br>
+<span class="out">查询列表（5 条）:</span><br>
+<span class="out">  1. 今天北京天气</span><br>
+<span class="out">  2. 最新 AI 新闻</span><br>
+<span class="out">  3. BTC 当前价格</span><br>
+<span class="out">  4. 明天北京→上海航班</span><br>
+<span class="out">  5. Python 3.13 新特性</span><br>
+<br>
+<span class="out">【串行模式】一个接一个...</span><br>
+<span class="out">  ✓ 今天北京天气... 完成</span><br>
+<span class="out">  ✓ 最新 AI 新闻... 完成</span><br>
+<span class="out">  ✓ BTC 当前价... 完成</span><br>
+<span class="out">  ✓ 明天北京→... 完成</span><br>
+<span class="out">  ✓ Python 3.1... 完成</span><br>
+<span class="out">→ 串行总耗时: <span class="stat-bad">6.73s</span></span><br>
+<br>
+<span class="out">【并发模式】asyncio.gather 同时发出...</span><br>
+<span class="tool-start">→ 启动工具: web_search({"query":"今天北京天气"})</span><br>
+<span class="tool-start">→ 启动工具: web_search({"query":"最新 AI 新闻"})</span><br>
+<span class="tool-start">→ 启动工具: web_search({"query":"BTC 当前价格"})</span><br>
+<span class="tool-start">→ 启动工具: web_search({"query":"明天北京→上海航班"})</span><br>
+<span class="tool-start">→ 启动工具: web_search({"query":"Python 3.13 新特性"})</span><br>
+<span class="tool-done">  ✓ 今天北京天气... 完成</span><br>
+<span class="tool-done">  ✓ BTC 当前价... 完成</span><br>
+<span class="tool-done">  ✓ Python 3.1... 完成</span><br>
+<span class="tool-done">  ✓ 最新 AI 新闻... 完成</span><br>
+<span class="tool-done">  ✓ 明天北京→... 完成</span><br>
+<span class="out">→ 并发总耗时: <span class="stat-good">1.87s</span></span><br>
+<br>
+<span class="separator">══════════════════════════════════════════════════</span><br>
+<span class="stat-bad">串行: 6.73s</span>  <span class="stat-good">并发: 1.87s</span>  <span class="stat-speedup">提速: 3.6×  节省: 72%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div style="font-size:14px; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px">真实血泪案例（R5）</div>
+
+    <div class="case-card">
+      <span class="case-tag">案例 5.1</span>
+      <h4>播客 TTS：并发不是万能药</h4>
+      <p>日报 Phase 3 TTS 用 <code style="font-family:'SF Mono',monospace; color:#c3e88d; font-size:12px">Popen</code> 后台跑，Phase 4 立即发消息 → Discord 里「有文字没声音」。</p>
+      <p style="margin-top:8px">修复：改 <code style="font-family:'SF Mono',monospace; color:#c3e88d; font-size:12px">subprocess.run(timeout=900)</code> 同步等待。（commit <code style="font-family:'SF Mono',monospace; color:rgba(255,255,255,0.4); font-size:12px">e011c04</code>）</p>
+      <div class="lesson">有依赖顺序的步骤必须串行，并发只适合独立任务</div>
+    </div>
+
+    <div class="case-card">
+      <span class="case-tag">案例 5.2</span>
+      <h4>CDP collector：200+ Chrome tabs 拥堵</h4>
+      <p>collector crash/timeout 时 tab 不关，累积 200+ 个后 Chrome 内存耗尽，CDP 连接 hang，所有后续 collector 超时失败。</p>
+      <p style="margin-top:8px">修复：<code style="font-family:'SF Mono',monospace; color:#c3e88d; font-size:12px">try/finally: await page.close()</code> + 进程级文件锁 <code style="font-family:'SF Mono',monospace; color:rgba(255,255,255,0.4); font-size:12px">/tmp/.cdp_scrape_lock</code></p>
+      <div class="lesson">并发工具必须 try/finally 释放资源，对应 CC 并发上限的设计意图</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

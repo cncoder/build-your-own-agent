@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ch8 记忆对比 Demo — 有/无记忆滑块切换</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --accent: #58a6ff;
+      --accent-glow: rgba(88, 166, 255, 0.15);
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --green: #3fb950;
+      --red: #f85149;
+      --yellow: #d29922;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 32px;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .toggle-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .toggle-label.active { color: var(--text); font-weight: 600; }
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 28px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 28px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    .slider:before {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      left: 3px; top: 3px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: transform 0.25s, background 0.25s;
+    }
+    input:checked + .slider { background: var(--accent-glow); border: 1px solid var(--accent); }
+    input:checked + .slider:before { transform: translateX(24px); background: var(--accent); }
+
+    /* Main layout */
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+    @media (max-width: 640px) {
+      .demo-grid { grid-template-columns: 1fr; }
+    }
+
+    .pane {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .pane-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot-red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+    .chat-area {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .msg-role {
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .msg.user .msg-role  { color: var(--accent); }
+    .msg.agent .msg-role { color: var(--green); }
+    .msg.agent.no-memory .msg-role { color: var(--red); }
+
+    .msg-body {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .msg.agent.no-memory .msg-body {
+      border-color: rgba(248, 81, 73, 0.3);
+    }
+    .msg.agent.has-memory .msg-body {
+      border-color: rgba(63, 185, 80, 0.3);
+    }
+
+    .tool-call {
+      font-size: 11px;
+      color: var(--yellow);
+      padding: 6px 10px;
+      background: rgba(210, 153, 34, 0.08);
+      border: 1px solid rgba(210, 153, 34, 0.2);
+      border-radius: 4px;
+      font-style: italic;
+    }
+
+    /* Memory panel */
+    .memory-panel {
+      width: 100%;
+      max-width: 900px;
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .memory-panel .pane-header { color: var(--yellow); }
+    .memory-list {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .memory-item {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .mem-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .mem-subject { color: var(--text); font-weight: 600; }
+    .mem-content { color: var(--muted); }
+
+    /* Annotation */
+    .annotation {
+      width: 100%;
+      max-width: 900px;
+      margin-top: 16px;
+      padding: 14px 18px;
+      background: rgba(88, 166, 255, 0.05);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      border-radius: var(--radius);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .annotation strong { color: var(--accent); }
+
+    /* Step nav */
+    .step-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .step-btn {
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .step-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+    .step-btn.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<h1>Ch 8 — 记忆对比 Demo</h1>
+<p class="subtitle">有/无长期记忆时，Lena 对同一个问题的回答差异</p>
+
+<!-- Toggle -->
+<div class="toggle-row">
+  <span class="toggle-label active" id="lbl-off">无记忆</span>
+  <label class="switch">
+    <input type="checkbox" id="mem-toggle" onchange="toggleMemory()">
+    <span class="slider"></span>
+  </label>
+  <span class="toggle-label" id="lbl-on">有记忆</span>
+</div>
+
+<!-- Step selector -->
+<div class="step-nav">
+  <button class="step-btn active" onclick="setStep(1)">场景 1：语言偏好</button>
+  <button class="step-btn" onclick="setStep(2)">场景 2：用户称呼</button>
+  <button class="step-btn" onclick="setStep(3)">场景 3：工作风格</button>
+</div>
+
+<!-- Chat panes -->
+<div class="demo-grid">
+  <div class="pane">
+    <div class="pane-header">
+      <span class="dot dot-red"></span>
+      <span>无记忆 — 新会话</span>
+    </div>
+    <div class="chat-area" id="no-mem-chat"></div>
+  </div>
+  <div class="pane">
+    <div class="pane-header">
+      <span class="dot dot-green"></span>
+      <span>有记忆 — MEMORY.md 已加载</span>
+    </div>
+    <div class="chat-area" id="has-mem-chat"></div>
+  </div>
+</div>
+
+<!-- Memory panel -->
+<div class="memory-panel">
+  <div class="pane-header" style="color: var(--yellow);">
+    <span style="color:#d29922">◈</span>&nbsp; MEMORY.md — 长期记忆索引
+  </div>
+  <div class="memory-list" id="memory-list"></div>
+</div>
+
+<!-- Annotation -->
+<div class="annotation" id="annotation"></div>
+
+<script>
+const SCENARIOS = {
+  1: {
+    session1: [
+      { role: "user",  text: "我叫 Bob，我偏好用 Python 写后端代码。" },
+      { role: "agent", text: "你好 Bob！我已经把你的偏好记下来了。", tool: "save_memory(subject='user_name', content='用户叫 Bob')" },
+      { role: "agent", text: "", tool: "save_memory(subject='programming_language', content='Bob 偏好 Python 写后端，拒绝 Node.js')" },
+    ],
+    question: "帮我写个 hello world。",
+    noMem:  "请问您想用哪种编程语言？Python、JavaScript、还是其他？",
+    hasMem: "好的 Bob，这是 Python 版本：\n\n```python\nprint(\"Hello, World!\")\n```\n\n（我记得你偏好 Python，所以直接给了 Python 版本。）",
+    memories: [
+      { type: "user", subject: "user_name", content: "用户叫 Bob" },
+      { type: "user", subject: "programming_language", content: "Bob 偏好 Python 写后端，拒绝 Node.js" },
+    ],
+    annotation: "<strong>场景 1</strong>：用户在会话 1 告知语言偏好。有记忆版本的 Lena 在第二次会话里从 <code>MEMORY.md</code> 读取偏好，直接给出 Python 版本，无需再问。无记忆版本每次都从零开始。",
+  },
+  2: {
+    session1: [
+      { role: "user",  text: "我叫小明，请以后叫我小明。" },
+      { role: "agent", text: "好的，已经记住了！", tool: "save_memory(subject='preferred_name', content='用户偏好被称为「小明」')" },
+    ],
+    question: "你好，还记得我叫什么吗？",
+    noMem:  "你好！抱歉，我没有关于你姓名的信息。能告诉我你叫什么吗？",
+    hasMem: "你好，小明！当然记得你。有什么我能帮你的吗？",
+    memories: [
+      { type: "user", subject: "preferred_name", content: "用户偏好被称为「小明」" },
+    ],
+    annotation: "<strong>场景 2</strong>：用户告知偏好称呼。有记忆版本在新会话里直接用名字称呼，无记忆版本表现出完全的失忆。这正是"无状态问答机器 vs 有记忆助手"的最直观差距。",
+  },
+  3: {
+    session1: [
+      { role: "user",  text: "以后回答我时不要每次都在结尾总结"本次我完成了什么"，我能看到差异。" },
+      { role: "agent", text: "好的，我会记住这个偏好。", tool: "save_memory(subject='response_style', content='用户不需要结尾总结，直接给结果即可', mem_type='feedback')" },
+    ],
+    question: "帮我把这个变量名 userDataFromServer 改成 snake_case。",
+    noMem:  "将 userDataFromServer 改为 user_data_from_server。\n\n本次操作：将驼峰命名改为下划线命名（snake_case）。",
+    hasMem: "将 userDataFromServer 改为 user_data_from_server。",
+    memories: [
+      { type: "feedback", subject: "response_style", content: "用户不需要结尾总结，直接给结果即可" },
+    ],
+    annotation: "<strong>场景 3</strong>：用户对工作风格的反馈（feedback 类型记忆）。有记忆版本跳过了多余的总结句，无记忆版本仍然在重复用户明确说过不需要的内容。<code>feedback</code> 类型的记忆让 Lena 不再犯同样的错误。",
+  },
+};
+
+let currentStep = 1;
+let memoryOn = false;
+
+function setStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step-btn').forEach((b, i) => {
+    b.classList.toggle('active', i + 1 === n);
+  });
+  render();
+}
+
+function toggleMemory() {
+  memoryOn = document.getElementById('mem-toggle').checked;
+  document.getElementById('lbl-off').classList.toggle('active', !memoryOn);
+  document.getElementById('lbl-on').classList.toggle('active', memoryOn);
+  render();
+}
+
+function msg(role, text, tool, noMem) {
+  const cls = role === 'user' ? 'user' : (noMem ? 'no-memory' : 'has-memory');
+  return `
+    <div class="msg ${role} ${cls}">
+      <span class="msg-role">${role === 'user' ? '用户' : 'Lena'}</span>
+      ${text ? `<div class="msg-body">${escHtml(text)}</div>` : ''}
+      ${tool  ? `<div class="tool-call">⚙ ${escHtml(tool)}</div>` : ''}
+    </div>`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const s = SCENARIOS[currentStep];
+
+  // No-mem pane: session 1 history (greyed) then the question
+  const noMemHtml = [
+    '<div style="opacity:0.35;font-size:11px;color:var(--muted);padding:4px 0">— 会话 1（被遗忘）—</div>',
+    ...s.session1.map(m => msg(m.role, m.text, m.tool, true)),
+    '<div style="font-size:11px;color:var(--muted);padding:4px 0">— 新会话（无记忆加载）—</div>',
+    msg('user', s.question, null, true),
+    msg('agent', s.noMem, null, true),
+  ].join('');
+
+  // Has-mem pane
+  const memBlocks = memoryOn
+    ? s.memories.map(m =>
+        `<div class="tool-call" style="color:var(--green);background:rgba(63,185,80,0.05);border-color:rgba(63,185,80,0.2)">` +
+        `✓ 记忆已加载: [${m.type}] ${m.subject}</div>`
+      ).join('')
+    : '<div class="tool-call" style="opacity:0.4">（记忆未启用）</div>';
+
+  const hasMemHtml = [
+    '<div style="opacity:0.35;font-size:11px;color:var(--muted);padding:4px 0">— 会话 1（已记忆）—</div>',
+    ...s.session1.map(m => msg(m.role, m.text, m.tool, false)),
+    '<div style="font-size:11px;color:var(--muted);padding:4px 0">— 新会话（MEMORY.md 已注入 system prompt）—</div>',
+    memBlocks,
+    msg('user', s.question, null, false),
+    memoryOn
+      ? msg('agent', s.hasMem, null, false)
+      : msg('agent', s.noMem, null, true),
+  ].join('');
+
+  document.getElementById('no-mem-chat').innerHTML = noMemHtml;
+  document.getElementById('has-mem-chat').innerHTML = hasMemHtml;
+
+  // Memory list
+  const memHtml = memoryOn
+    ? s.memories.map(m => `
+        <div class="memory-item">
+          <span class="mem-tag">${m.type}</span>
+          <span class="mem-subject">${m.subject}</span>
+          <span class="mem-content">— ${m.content}</span>
+        </div>`).join('')
+    : '<div style="color:var(--muted);font-size:12px;padding:4px 0">记忆未启用 — 拨动滑块查看差异</div>';
+
+  document.getElementById('memory-list').innerHTML = memHtml;
+  document.getElementById('annotation').innerHTML = s.annotation;
+}
+
+render();
+</script>
+</body>
+</html>

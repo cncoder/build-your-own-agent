@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 90% 50%, #001a0a 0%, #050810 55%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,200,100,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,100,0.025) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; gap: 80px; }
+.left { flex: 1.1; display: flex; flex-direction: column; }
+.right { flex: 0.9; display: flex; flex-direction: column; gap: 24px; }
+
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 10px; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+
+.code-block {
+  background: rgba(0,0,0,0.55); border: 1px solid rgba(0,200,100,0.15);
+  border-radius: 14px; padding: 28px 32px; flex: 1;
+  position: relative; overflow: hidden;
+}
+.code-block::before {
+  content: 'lena-v0.05/demo/benchmark.py';
+  position: absolute; top: 12px; right: 16px;
+  font-size: 11px; color: rgba(0,200,100,0.35); font-family: "SF Mono", monospace;
+}
+pre { font-family: "SF Mono", "Fira Code", monospace; font-size: 16px; line-height: 1.8; }
+.kw   { color: #c792ea; }
+.fn   { color: #82aaff; }
+.str  { color: #c3e88d; }
+.cmt  { color: rgba(255,255,255,0.22); }
+.num  { color: #f78c6c; }
+.hl   { background: rgba(0,200,100,0.08); border-left: 2px solid #00c864; margin: 0 -32px; padding: 0 30px; display: block; }
+.hl2  { background: rgba(0,200,255,0.08); border-left: 2px solid #00c8ff; margin: 0 -32px; padding: 0 30px; display: block; }
+
+/* Right panels */
+.result-panel { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 24px 28px; }
+.result-panel h4 { font-size: 14px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
+
+.timing-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.timing-label { font-size: 17px; color: rgba(255,255,255,0.6); }
+.timing-val-bad  { font-size: 32px; font-weight: 700; color: #ff6b6b; font-variant-numeric: tabular-nums; }
+.timing-val-good { font-size: 32px; font-weight: 700; color: #00c864; font-variant-numeric: tabular-nums; }
+.timing-speedup  { font-size: 36px; font-weight: 800; color: #00c8ff; font-variant-numeric: tabular-nums; }
+
+.bar-compare { margin-top: 12px; }
+.bc-row { margin-bottom: 8px; }
+.bc-label { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.bc-bar-wrap { height: 18px; background: rgba(255,255,255,0.04); border-radius: 4px; overflow: hidden; }
+.bc-bar { height: 100%; border-radius: 4px; }
+
+.dn-card { padding: 24px 28px; background: rgba(0,200,255,0.04); border: 1px solid rgba(0,200,255,0.15); border-radius: 12px; }
+.dn-card .dn-label { font-size: 12px; color: rgba(0,200,255,0.6); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+.dn-card h4 { font-size: 18px; margin-bottom: 8px; }
+.dn-card p  { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.55; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <div class="left">
+    <h2>asyncio.gather — 10 行核心</h2>
+    <p class="sub">并发执行 5 个独立工具，耗时取最慢者</p>
+    <div class="code-block">
+      <pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> tools.web_search <span class="kw">import</span> web_search
+
+<span class="cmt"># 5 个并发查询</span>
+QUERIES = [
+    <span class="str">"今天北京天气"</span>,
+    <span class="str">"最新 AI 新闻"</span>,
+    <span class="str">"BTC 当前价格"</span>,
+    <span class="str">"明天北京→上海航班"</span>,
+    <span class="str">"Python 3.13 新特性"</span>,
+]
+
+<span class="kw">async def</span> <span class="fn">serial_search</span>(queries):
+    <span class="str">"""串行：一个接一个"""</span>
+    <span class="kw">for</span> q <span class="kw">in</span> queries:
+        <span class="kw">await</span> web_search(q)  <span class="cmt"># 等这个完再发下一个</span>
+
+<span class="kw">async def</span> <span class="fn">concurrent_search</span>(queries):
+    <span class="str">"""并发：asyncio.gather 同时发出"""</span>
+<span class="hl">    tasks = [web_search(q) <span class="kw">for</span> q <span class="kw">in</span> queries]</span>
+<span class="hl">    results = <span class="kw">await</span> asyncio.gather(*tasks)</span>
+    <span class="kw">return</span> results
+
+<span class="cmt"># 实测对比</span>
+serial_time     = <span class="num">6.73</span>   <span class="cmt"># 秒（5 次叠加）</span>
+<span class="hl2">concurrent_time = <span class="num">1.87</span>   <span class="cmt"># 秒（取最慢者）</span></span>
+speedup         = <span class="num">3.6</span>    <span class="cmt"># × 提速</span></pre>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="result-panel">
+      <h4>耗时对比（5 个 web_search）</h4>
+      <div class="timing-row">
+        <span class="timing-label">串行模式</span>
+        <span class="timing-val-bad">6.73s</span>
+      </div>
+      <div class="timing-row">
+        <span class="timing-label">并发模式</span>
+        <span class="timing-val-good">1.87s</span>
+      </div>
+      <div class="bar-compare">
+        <div class="bc-row">
+          <div class="bc-label">串行</div>
+          <div class="bc-bar-wrap"><div class="bc-bar" style="width:100%; background:rgba(255,107,107,0.4)"></div></div>
+        </div>
+        <div class="bc-row">
+          <div class="bc-label">并发</div>
+          <div class="bc-bar-wrap"><div class="bc-bar" style="width:28%; background:rgba(0,200,100,0.5)"></div></div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:12px">
+        <span style="font-size:14px; color:rgba(255,255,255,0.3); margin-right:12px">提速</span>
+        <span class="timing-speedup">3.6×</span>
+      </div>
+    </div>
+
+    <div class="dn-card">
+      <div class="dn-label">Design Note · asyncio vs threading</div>
+      <h4>IO 密集型：asyncio 更合适</h4>
+      <p>工具调用本质是「发 HTTP 请求，等响应」。等待期间 CPU 空闲，asyncio 事件循环用这段时间处理其他协程。<br><br>threading 适合 CPU 密集型。有同步库时用 <span style="font-family:'SF Mono',monospace; color:#c3e88d; font-size:13px;">run_in_executor()</span> 包装。</p>
+    </div>
+
+    <div style="padding:20px 24px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px; font-size:15px; color:rgba(255,255,255,0.5); line-height:1.6;">
+      <strong style="color:rgba(255,255,255,0.7)">aiohttp vs httpx</strong><br>
+      两者均可。lena-v0.5 选 aiohttp：<span style="color:rgba(0,200,255,0.7)">TCPConnector(limit=20, keepalive=30s)</span>，生产验证充分（nanoClaw R2 实战同款）。
+    </div>
+  </div>
+</div>
+</body>
+</html>

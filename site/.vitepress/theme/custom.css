@@ -1,0 +1,403 @@
+/* ============================================================
+   深空霓虹主题 — 为 AI Agent 学习网站量身定制
+   ============================================================ */
+
+/* ---------- 基础颜色变量 ---------- */
+:root {
+  --vp-c-brand-1: #00d4ff;
+  --vp-c-brand-2: #00ffd1;
+  --vp-c-brand-3: #7b5ea7;
+  --vp-c-brand-soft: rgba(0, 212, 255, 0.12);
+
+  /* 覆盖默认绿色 */
+  --vp-c-green-1: #00ffd1;
+  --vp-c-green-2: #00d4b4;
+  --vp-c-green-soft: rgba(0, 255, 209, 0.12);
+}
+
+/* 暗色模式专属 */
+.dark {
+  --vp-c-bg: #050810;
+  --vp-c-bg-soft: #0c1220;
+  --vp-c-bg-mute: #111827;
+  --vp-c-bg-alt: #080d18;
+
+  --vp-c-divider: rgba(0, 212, 255, 0.15);
+  --vp-c-text-1: #e2e8f0;
+  --vp-c-text-2: #94a3b8;
+  --vp-c-text-3: #64748b;
+
+  /* 导航栏 */
+  --vp-nav-bg-color: rgba(5, 8, 16, 0.92);
+
+  /* 代码块 */
+  --vp-code-block-bg: #0a0f1e;
+  --vp-code-color: #00ffd1;
+
+  /* 侧栏 */
+  --vp-sidebar-bg-color: #080d18;
+
+  /* 滚动条 */
+  scrollbar-color: rgba(0, 212, 255, 0.3) transparent;
+}
+
+/* ---------- 全局背景 ---------- */
+.dark body {
+  background-color: #050810;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0, 212, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(123, 94, 167, 0.06) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* ---------- 导航栏 ---------- */
+.dark .VPNav {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.12) !important;
+}
+
+.dark .VPNavBar {
+  background: rgba(5, 8, 16, 0.85) !important;
+}
+
+/* Logo 文字发光效果 */
+.dark .VPNavBarTitle .title {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ffd1 50%, #7b5ea7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* ---------- 侧栏 ---------- */
+.dark .VPSidebar {
+  background: rgba(8, 13, 24, 0.95) !important;
+  border-right: 1px solid rgba(0, 212, 255, 0.08) !important;
+}
+
+/* 侧栏 Section 标题 */
+.dark .VPSidebarItem.level-0 > .item > .text {
+  color: #00d4ff;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* 侧栏激活项 */
+.dark .VPSidebarItem.is-active > .item {
+  background: rgba(0, 212, 255, 0.08);
+  border-left: 2px solid #00d4ff;
+  border-radius: 0 6px 6px 0;
+}
+
+.dark .VPSidebarItem.is-active > .item .text {
+  color: #00d4ff !important;
+}
+
+/* ---------- 正文区域 ---------- */
+.dark .VPContent {
+  background: transparent;
+}
+
+/* ---------- Hero 首页 ---------- */
+.dark .VPHero {
+  background: transparent !important;
+}
+
+.dark .VPHero .name {
+  background: linear-gradient(135deg, #00d4ff 0%, #00ffd1 40%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .VPHero .tagline {
+  color: #94a3b8;
+}
+
+/* Hero 按钮 */
+.dark .VPButton.brand {
+  background: linear-gradient(135deg, #00d4ff, #00b4d8);
+  border: none;
+  color: #050810 !important;
+  font-weight: 700;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 0 60px rgba(0, 212, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.dark .VPButton.brand:hover {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.dark .VPButton.alt {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00d4ff !important;
+  transition: all 0.3s ease;
+}
+
+.dark .VPButton.alt:hover {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.6);
+}
+
+/* ---------- Feature 卡片 ---------- */
+.dark .VPFeature {
+  background: rgba(12, 18, 32, 0.8) !important;
+  border: 1px solid rgba(0, 212, 255, 0.12) !important;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.dark .VPFeature:hover {
+  border-color: rgba(0, 212, 255, 0.4) !important;
+  box-shadow: 0 4px 30px rgba(0, 212, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+.dark .VPFeature .title {
+  color: #e2e8f0 !important;
+}
+
+.dark .VPFeature .details {
+  color: #64748b !important;
+}
+
+/* ---------- 代码块 ---------- */
+.dark div[class*="language-"] {
+  background: #080d18 !important;
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(0, 212, 255, 0.02);
+}
+
+.dark div[class*="language-"]::before {
+  color: rgba(0, 212, 255, 0.4) !important;
+}
+
+/* 语言标签 */
+.dark div[class*="language-"] > span.lang {
+  color: rgba(0, 212, 255, 0.5);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+/* 行内代码 */
+.dark :not(pre) > code {
+  background: rgba(0, 212, 255, 0.08);
+  color: #00ffd1;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.875em;
+}
+
+/* ---------- 标题 ---------- */
+.dark .vp-doc h1 {
+  background: linear-gradient(135deg, #ffffff 0%, #00d4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.dark .vp-doc h2 {
+  color: #00d4ff;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+  padding-bottom: 0.25rem;
+}
+
+.dark .vp-doc h3 {
+  color: #00ffd1;
+}
+
+/* ---------- 链接 ---------- */
+.dark .vp-doc a {
+  color: #00d4ff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+  transition: all 0.2s;
+}
+
+.dark .vp-doc a:hover {
+  color: #00ffd1;
+  border-bottom-color: #00ffd1;
+}
+
+/* ---------- 引用块 ---------- */
+.dark .vp-doc blockquote {
+  border-left: 3px solid #00d4ff;
+  background: rgba(0, 212, 255, 0.05);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 20px;
+  color: #94a3b8;
+}
+
+/* ---------- 表格 ---------- */
+.dark .vp-doc table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+.dark .vp-doc th {
+  background: rgba(0, 212, 255, 0.1);
+  color: #00d4ff;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.dark .vp-doc tr:nth-child(even) {
+  background: rgba(0, 212, 255, 0.03);
+}
+
+.dark .vp-doc tr:hover {
+  background: rgba(0, 212, 255, 0.06);
+}
+
+/* ---------- 自定义容器 (tip/warning/danger) ---------- */
+.dark .custom-block.tip {
+  background: rgba(0, 212, 255, 0.06);
+  border-left: 4px solid #00d4ff;
+  border-color: #00d4ff;
+}
+
+.dark .custom-block.warning {
+  background: rgba(255, 191, 0, 0.06);
+  border-color: #ffbf00;
+}
+
+.dark .custom-block.danger {
+  background: rgba(255, 64, 64, 0.06);
+  border-color: #ff4040;
+}
+
+/* ---------- 搜索框 ---------- */
+.dark .VPLocalSearchBox {
+  background: rgba(8, 13, 24, 0.95) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.dark .VPLocalSearchBox .search-input {
+  background: rgba(0, 212, 255, 0.05) !important;
+  border: 1px solid rgba(0, 212, 255, 0.2) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ---------- 媒体播放器样式 ---------- */
+.chapter-audio {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.chapter-audio .audio-label {
+  color: #00d4ff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chapter-audio audio {
+  width: 100%;
+  border-radius: 8px;
+  accent-color: #00d4ff;
+}
+
+.chapter-audio audio::-webkit-media-controls-panel {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+/* ---------- Demo 容器 ---------- */
+.chapter-demo {
+  margin: 2rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 212, 255, 0.05);
+}
+
+.chapter-demo-header {
+  background: rgba(0, 212, 255, 0.08);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #00d4ff;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+.chapter-demo iframe {
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+
+/* ---------- 滚动条 ---------- */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.25);
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.45);
+}
+
+/* ---------- 选中文字 ---------- */
+.dark ::selection {
+  background: rgba(0, 212, 255, 0.25);
+  color: #ffffff;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .dark .VPHero .name {
+    font-size: 2rem !important;
+  }
+
+  .chapter-audio {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chapter-audio audio {
+    width: 100%;
+  }
+}
+
+/* ---------- 加载动画（页面过渡） ---------- */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Part 标题装饰 */
+.dark .VPSidebarItem.level-0 > .item {
+  padding: 8px 12px 4px;
+  margin-top: 8px;
+}

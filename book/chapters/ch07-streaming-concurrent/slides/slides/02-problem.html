@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 100% 60% at 20% 80%, #0d0520 0%, #050810 60%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,150,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,150,255,0.03) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 80px 160px 60px; }
+.header { margin-bottom: 64px; }
+.header h2 { font-size: 52px; font-weight: 700; letter-spacing: -0.01em; }
+.header h2 em { font-style: normal; color: #ff4d4d; }
+.header p { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 12px; }
+
+.two-col { display: flex; gap: 48px; flex: 1; align-items: flex-start; }
+
+.panel {
+  flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px; padding: 40px 44px;
+  position: relative;
+}
+.panel.bad { border-color: rgba(255, 77, 77, 0.2); }
+.panel.good { border-color: rgba(0, 200, 100, 0.2); }
+.panel-label {
+  position: absolute; top: -14px; left: 28px;
+  padding: 4px 16px; border-radius: 999px; font-size: 13px; letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.panel.bad .panel-label { background: rgba(255,77,77,0.15); color: #ff6b6b; border: 1px solid rgba(255,77,77,0.3); }
+.panel.good .panel-label { background: rgba(0,200,100,0.1); color: #00c864; border: 1px solid rgba(0,200,100,0.3); }
+
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.t-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.t-time { font-size: 13px; color: rgba(255,255,255,0.35); font-variant-numeric: tabular-nums; width: 50px; text-align: right; flex-shrink: 0; }
+.t-bar-wrap { flex: 1; position: relative; height: 32px; }
+.t-bar {
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  height: 26px; border-radius: 6px; display: flex; align-items: center;
+  padding: 0 12px; font-size: 13px; white-space: nowrap;
+  font-weight: 500;
+}
+.t-label { font-size: 13px; color: rgba(255,255,255,0.4); margin-left: 12px; white-space: nowrap; }
+.bar-llm   { background: rgba(100,100,255,0.3); border: 1px solid rgba(100,100,255,0.5); color: #a0a0ff; }
+.bar-tool  { background: rgba(0,200,255,0.2); border: 1px solid rgba(0,200,255,0.4); color: #00c8ff; }
+.bar-tool2 { background: rgba(0,200,255,0.15); border: 1px solid rgba(0,200,255,0.3); color: #00c8ff; }
+.bar-tool3 { background: rgba(0,200,255,0.1);  border: 1px solid rgba(0,200,255,0.25); color: #00c8ff; }
+.bar-wait  { background: rgba(255,200,0,0.1); border: 1px dashed rgba(255,200,0,0.3); color: rgba(255,200,0,0.6); }
+
+.total-row { display: flex; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.07); }
+.total-bad  { font-size: 28px; font-weight: 700; color: #ff6b6b; }
+.total-good { font-size: 28px; font-weight: 700; color: #00c864; }
+
+.axis { display: flex; gap: 0; margin-bottom: 8px; margin-left: 66px; }
+.axis-tick { flex: 1; font-size: 11px; color: rgba(255,255,255,0.2); font-variant-numeric: tabular-nums; }
+
+.callout {
+  margin-top: 40px; background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.2);
+  border-radius: 12px; padding: 20px 32px; display: flex; align-items: center; gap: 20px;
+}
+.callout .icon { font-size: 28px; }
+.callout p { font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+.callout p strong { color: #00c8ff; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <div class="header">
+    <h2>5 个工具串行 = <em>5×</em> 延迟</h2>
+    <p>lena-v0.4 的痛点：阻塞等待 + 串行执行，用户盯着空屏等 15 秒</p>
+  </div>
+
+  <div class="two-col">
+    <!-- 串行 -->
+    <div class="panel bad">
+      <span class="panel-label">❌ 串行模式（lena-v0.4）</span>
+      <div class="axis">
+        <span class="axis-tick">0s</span>
+        <span class="axis-tick" style="text-align:center">2s</span>
+        <span class="axis-tick" style="text-align:center">4s</span>
+        <span class="axis-tick" style="text-align:center">6s</span>
+        <span class="axis-tick" style="text-align:center">8s</span>
+        <span class="axis-tick" style="text-align:right">10s</span>
+      </div>
+      <div class="timeline">
+        <div class="t-row">
+          <span class="t-time">0s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-wait" style="width:60%">⏸ LLM 响应（阻塞，无输出）</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">1.5s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-tool" style="left:30%; width:15%">工具 1</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">2.5s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-tool2" style="left:50%; width:15%">工具 2</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">3.5s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-tool3" style="left:70%; width:15%">工具 3</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">5s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-llm" style="left:85%; width:15%">LLM 汇总</div>
+          </div>
+        </div>
+      </div>
+      <div class="total-row"><span class="total-bad">总耗时：~8.5s</span></div>
+    </div>
+
+    <!-- 并发 -->
+    <div class="panel good">
+      <span class="panel-label">✓ 流式抢跑（lena-v0.5）</span>
+      <div class="axis">
+        <span class="axis-tick">0s</span>
+        <span class="axis-tick" style="text-align:center">1s</span>
+        <span class="axis-tick" style="text-align:center">2s</span>
+        <span class="axis-tick" style="text-align:center">3s</span>
+        <span class="axis-tick" style="text-align:right">4s</span>
+      </div>
+      <div class="timeline">
+        <div class="t-row">
+          <span class="t-time">0s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-llm" style="width:75%">LLM 流式传输（字符逐字输出）</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">0.3s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-tool" style="left:22%; width:40%">工具 1（同时启动）</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">0.6s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-tool2" style="left:45%; width:38%">工具 2（同时）</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">0.8s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-tool3" style="left:60%; width:36%">工具 3（同时）</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <span class="t-time">2.5s</span>
+          <div class="t-bar-wrap">
+            <div class="t-bar bar-llm" style="left:80%; width:20%">汇总</div>
+          </div>
+        </div>
+      </div>
+      <div class="total-row"><span class="total-good">总耗时：~3.2s（快 2.7×）</span></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="icon">💡</span>
+    <p>两个独立优化叠加：<strong>流式输出</strong>（第 0.3s 就有字）+ <strong>工具并发抢跑</strong>（流式传输中就开始执行工具）</p>
+  </div>
+</div>
+</body>
+</html>

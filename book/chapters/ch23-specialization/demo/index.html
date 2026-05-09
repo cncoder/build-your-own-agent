@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 19 · Lena-SpecKit 脚手架演示</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #08090f;
+  color: #e0e0e0;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.header-title { font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
+.header-sub { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 3px; }
+.chapter-badge {
+  background: rgba(153,102,255,0.1); border: 1px solid rgba(153,102,255,0.3);
+  padding: 4px 12px; border-radius: 2px; font-size: 11px; color: #9966ff;
+  letter-spacing: 0.2em; font-family: monospace;
+}
+
+/* 三列布局 */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px 360px;
+  gap: 16px;
+  height: calc(100vh - 100px);
+}
+
+.panel {
+  background: #0c0e18; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-header {
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.panel-title { font-size: 11px; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); text-transform: uppercase; }
+.panel-body { flex: 1; overflow: auto; }
+
+/* 左列：命令行 */
+.terminal-body {
+  padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px; line-height: 1.9;
+}
+.cmd-line { display: flex; gap: 8px; margin-bottom: 4px; }
+.prompt { color: rgba(153,102,255,0.6); flex-shrink: 0; }
+.cmd-text { color: #cc88ff; }
+.output-line { color: rgba(255,255,255,0.4); padding-left: 16px; }
+.output-ok { color: #00cc66; padding-left: 0; }
+.output-next { color: #ffcc66; }
+.section-gap { height: 20px; }
+
+/* 中列：派生向导 */
+.wizard-body { padding: 16px; }
+.wizard-step {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+}
+.wizard-step.active {
+  border-color: rgba(153,102,255,0.3);
+  background: rgba(153,102,255,0.04);
+}
+.step-label {
+  font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+  margin-bottom: 8px; color: rgba(255,255,255,0.3);
+}
+.wizard-step.active .step-label { color: #9966ff; }
+.step-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.wizard-step.active .step-title { color: #cc88ff; }
+
+.form-row { margin-bottom: 10px; }
+.form-label { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+.form-input {
+  width: 100%; padding: 6px 10px; background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 4px;
+  color: #cc88ff; font-family: monospace; font-size: 12px; outline: none;
+}
+.form-input:focus { border-color: rgba(153,102,255,0.4); }
+
+.tool-tag {
+  display: inline-block; padding: 3px 8px;
+  border-radius: 3px; font-size: 11px; margin: 2px; cursor: pointer;
+  font-family: monospace; transition: all 0.15s;
+}
+.tool-tag.on  { background: rgba(0,200,100,0.12); border: 1px solid rgba(0,200,100,0.3); color: #00cc66; }
+.tool-tag.off { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.3); text-decoration: line-through; }
+
+.gen-btn {
+  width: 100%; padding: 10px; border-radius: 4px;
+  background: rgba(153,102,255,0.15); border: 1px solid rgba(153,102,255,0.35);
+  color: #cc88ff; font-size: 13px; cursor: pointer; letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.gen-btn:hover { background: rgba(153,102,255,0.25); }
+
+/* 右列：预览 */
+.preview-body { padding: 16px; font-family: monospace; font-size: 12px; }
+.preview-file {
+  margin-bottom: 12px; padding: 10px 12px;
+  background: rgba(0,0,0,0.2); border-radius: 4px;
+  border-left: 2px solid rgba(153,102,255,0.3);
+}
+.preview-filename { font-size: 11px; color: #9966ff; margin-bottom: 6px; }
+.preview-content { color: rgba(255,255,255,0.5); line-height: 1.7; font-size: 11px; }
+.preview-content .k { color: #cc88ff; }
+.preview-content .v { color: #88ddaa; }
+
+/* 底部：已生成 agent 卡片 */
+.agents-section {
+  margin-top: 24px; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.agents-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+.agent-card {
+  flex: 1; min-width: 280px; padding: 20px 18px; border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.agent-card.trading { background: rgba(0,200,100,0.04); border: 1px solid rgba(0,200,100,0.2); }
+.agent-card.podcast  { background: rgba(0,150,255,0.04); border: 1px solid rgba(0,150,255,0.2); }
+.agent-card.devops   { background: rgba(255,150,0,0.04);  border: 1px solid rgba(255,150,0,0.2);  }
+.agent-card:hover { transform: translateY(-2px); }
+.agent-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.agent-card.trading .agent-name { color: #00cc66; }
+.agent-card.podcast  .agent-name { color: #3399ff; }
+.agent-card.devops   .agent-name { color: #ff9900; }
+.agent-meta { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 10px; font-family: monospace; }
+.agent-tools-list { font-size: 11px; font-family: monospace; color: rgba(255,255,255,0.4); line-height: 1.8; }
+.agents-header { font-size: 12px; letter-spacing: 0.2em; color: rgba(255,255,255,0.25); text-transform: uppercase; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-title">Lena-SpecKit 脚手架</div>
+    <div class="header-sub">三种派生姿势全部可视化操作</div>
+  </div>
+  <div class="chapter-badge">CH 19 · SPECIALIZATION PATTERN</div>
+</div>
+
+<div class="main-grid">
+  <!-- 左列：命令行输出 -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">命令行输出</div>
+      <div style="font-size:11px;color:rgba(153,102,255,0.5);font-family:monospace;">lena-spec CLI</div>
+    </div>
+    <div class="panel-body">
+      <div class="terminal-body" id="terminal">
+        <div class="cmd-line"><span class="prompt">$</span><span class="cmd-text">python -m spec_kit.cli create trader \</span></div>
+        <div class="cmd-line"><span class="prompt"> </span><span class="cmd-text">  --role "crypto trader" --template trading</span></div>
+        <div class="output-line" style="margin-top:8px">创建专用 agent：<span style="color:#cc88ff">trader</span></div>
+        <div class="output-line">  角色：crypto trader</div>
+        <div class="output-line">  模板：trading</div>
+        <div class="section-gap"></div>
+        <div class="output-ok">✓ 创建成功：agents/trader</div>
+        <div class="output-ok">✓ system prompt: agents/trader/system_prompt.md</div>
+        <div class="output-ok">✓ 工具集 (7 个): agents/trader/tool_profile.json</div>
+        <div class="output-ok">✓ skills: agents/trader/skills/trading-sop.md</div>
+        <div class="output-ok">✓ config: agents/trader/config.json</div>
+        <div class="section-gap"></div>
+        <div class="output-next">下一步：</div>
+        <div class="output-line">  1. vim agents/trader/config.json</div>
+        <div class="output-line">  2. python -m spec_kit.cli test trader</div>
+        <div class="output-line">  3. python -m spec_kit.cli deploy trader</div>
+        <div class="section-gap"></div>
+        <div class="cmd-line"><span class="prompt">$</span><span class="cmd-text" id="cursor-line"></span><span style="display:inline-block;width:8px;height:13px;background:#9966ff;animation:blink 1s infinite;vertical-align:middle;"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中列：派生向导 -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">派生向导</div>
+    </div>
+    <div class="panel-body">
+      <div class="wizard-body">
+        <div class="wizard-step active">
+          <div class="step-label">姿势 ①</div>
+          <div class="step-title">System Prompt 特化</div>
+          <div class="form-row">
+            <div class="form-label">Agent 名称</div>
+            <input class="form-input" id="agentName" value="trader" oninput="updatePreview()"/>
+          </div>
+          <div class="form-row">
+            <div class="form-label">角色描述</div>
+            <input class="form-input" id="agentRole" value="crypto quantitative trader" oninput="updatePreview()"/>
+          </div>
+        </div>
+
+        <div class="wizard-step active" style="margin-top:12px">
+          <div class="step-label">姿势 ②</div>
+          <div class="step-title">工具集裁剪</div>
+          <div style="margin-bottom:8px;font-size:11px;color:rgba(255,255,255,0.35);">点击切换保留/删除</div>
+          <div id="toolTags"></div>
+        </div>
+
+        <div class="wizard-step active" style="margin-top:12px">
+          <div class="step-label">姿势 ③</div>
+          <div class="step-title">Skills 注入</div>
+          <div class="form-row">
+            <div class="form-label">模板类型</div>
+            <select class="form-input" id="template" onchange="updatePreview()">
+              <option value="trading">trading（量化交易）</option>
+              <option value="podcaster">podcaster（播客生产）</option>
+              <option value="devops">devops（DevOps 监控）</option>
+            </select>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px;">技能文件：skills/trading-sop.md</div>
+        </div>
+
+        <button class="gen-btn" style="margin-top:16px" onclick="generateAgent()">生成专用 agent 配置 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右列：配置预览 -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">生成的配置预览</div>
+    </div>
+    <div class="panel-body">
+      <div class="preview-body" id="preview">
+        <!-- 动态生成 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部：已派生 agent 卡片 -->
+<div class="agents-section">
+  <div class="agents-header">已派生的专用 agent</div>
+  <div class="agents-grid">
+    <div class="agent-card trading" onclick="selectAgent('trading')">
+      <div class="agent-name">TradingBot</div>
+      <div class="agent-meta">template: trading · tools: 7 · v1.9</div>
+      <div class="agent-tools-list">get_price · get_indicators · get_positions<br>place_order · close_position · get_pnl · send_message</div>
+    </div>
+    <div class="agent-card podcast" onclick="selectAgent('podcaster')">
+      <div class="agent-name">PodcastBot</div>
+      <div class="agent-meta">template: podcaster · tools: 4 · v1.9</div>
+      <div class="agent-tools-list">collect_news · summarize<br>tts_synthesize · send_message</div>
+    </div>
+    <div class="agent-card devops" onclick="selectAgent('devops')">
+      <div class="agent-name">DevOpsBot</div>
+      <div class="agent-meta">template: devops · tools: 3 · v1.9</div>
+      <div class="agent-tools-list">list_alarms · restart_service<br>send_message</div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes blink { 50% { opacity: 0; } }
+</style>
+
+<script>
+const PROFILES = {
+  trading: ["get_price","get_indicators","get_positions","place_order","close_position","get_pnl","send_message"],
+  podcaster: ["collect_news","summarize","tts_synthesize","send_message"],
+  devops: ["list_alarms","restart_service","send_message"],
+};
+const ALL_TOOLS = ["get_price","get_indicators","get_positions","place_order","close_position","get_pnl","collect_news","summarize","tts_synthesize","list_alarms","restart_service","send_message","read_file","execute_code","web_search"];
+
+let activeTools = new Set(PROFILES.trading);
+
+function initTools() {
+  const el = document.getElementById('toolTags');
+  el.innerHTML = '';
+  ALL_TOOLS.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'tool-tag ' + (activeTools.has(t) ? 'on' : 'off');
+    tag.textContent = t;
+    tag.onclick = () => {
+      if (activeTools.has(t)) activeTools.delete(t);
+      else activeTools.add(t);
+      tag.className = 'tool-tag ' + (activeTools.has(t) ? 'on' : 'off');
+      updatePreview();
+    };
+    el.appendChild(tag);
+  });
+}
+
+function updatePreview() {
+  const name = document.getElementById('agentName').value || 'trader';
+  const role = document.getElementById('agentRole').value || 'crypto trader';
+  const template = document.getElementById('template').value;
+  const tools = [...activeTools];
+
+  const preview = document.getElementById('preview');
+  preview.innerHTML = `
+    <div class="preview-file">
+      <div class="preview-filename">system_prompt.md</div>
+      <div class="preview-content">
+        <span class="k">你是</span> <span class="v">${name}</span>，一个专用 agent。<br>
+        <span class="k">角色</span>：${role}<br>
+        <span class="k">模板</span>：${template}<br>
+        <span class="k">风控优先，数字说话，不做微操</span>
+      </div>
+    </div>
+    <div class="preview-file">
+      <div class="preview-filename">tool_profile.json</div>
+      <div class="preview-content">
+        {<br>
+        &nbsp;"profile": "<span class="v">${template}</span>",<br>
+        &nbsp;"tools": [<br>
+        ${tools.map(t => `&nbsp;&nbsp;"<span class="v">${t}</span>"`).join(',<br>')}<br>
+        &nbsp;]<br>
+        }
+      </div>
+    </div>
+    <div class="preview-file">
+      <div class="preview-filename">skills/${template}-sop.md</div>
+      <div class="preview-content">
+        <span class="k"># ${template.charAt(0).toUpperCase() + template.slice(1)} SOP</span><br>
+        Step 1: 扫描... Step 2: 确认信号...<br>
+        Step 3: 风控检查（代码层硬编码）<br>
+        Step 4: 执行 + 记录
+      </div>
+    </div>
+    <div class="preview-file">
+      <div class="preview-filename">config.json</div>
+      <div class="preview-content">
+        {<br>
+        &nbsp;"agent_name": "<span class="v">${name}</span>",<br>
+        &nbsp;"model": "<span class="v">us.anthropic.claude-sonnet-4-6</span>",<br>
+        &nbsp;"template": "<span class="v">${template}</span>"<br>
+        }
+      </div>
+    </div>
+  `;
+}
+
+function generateAgent() {
+  const name = document.getElementById('agentName').value || 'trader';
+  const terminal = document.getElementById('terminal');
+  const newLine = `\n<div class="cmd-line"><span class="prompt">$</span><span class="cmd-text">python -m spec_kit.cli create ${name} --role "${document.getElementById('agentRole').value}" --template ${document.getElementById('template').value}</span></div>`;
+  const okLines = `<div class="output-ok">✓ 生成成功：agents/${name}/</div><div class="output-ok">✓ 工具集：${[...activeTools].length} 个工具</div>`;
+  terminal.innerHTML += newLine + okLines;
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function selectAgent(template) {
+  document.getElementById('template').value = template;
+  activeTools = new Set(PROFILES[template] || PROFILES.trading);
+  initTools();
+  updatePreview();
+}
+
+initTools();
+updatePreview();
+</script>
+</body>
+</html>

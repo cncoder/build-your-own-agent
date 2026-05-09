@@ -1,0 +1,22 @@
+{
+  "agent": {
+    "id": "lena",
+    "name": "Lena"
+  },
+  "heartbeat": {
+    "intervalMs": 3600000,
+    "activeHours": {
+      "timezone": "Asia/Shanghai",
+      "weekdays": { "start": 8, "end": 22 },
+      "weekend":  { "start": 10, "end": 20 }
+    }
+  },
+  "telegram": {
+    "botToken": "<your-telegram-bot-token>",
+    "chatId":   "<your-telegram-chat-id>"
+  },
+  "alertChannel": {
+    "botToken": "<your-watchdog-bot-token>",
+    "chatId":   "<your-telegram-chat-id>"
+  }
+}

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1190" height="842" viewBox="0 0 1190 842" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#060612"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <!-- Purple glow -->
+    <radialGradient id="purpleGlow" cx="25%" cy="25%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Cyan glow -->
+    <radialGradient id="cyanGlow" cx="75%" cy="75%" r="50%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Short-term gradient -->
+    <linearGradient id="shortGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.05"/>
+    </linearGradient>
+    <!-- Long-term gradient -->
+    <linearGradient id="longGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.05"/>
+    </linearGradient>
+    <!-- Arrow marker -->
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee" opacity="0.8"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7" opacity="0.8"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ade80" opacity="0.8"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb923c" opacity="0.8"/>
+    </marker>
+    <!-- Drop shadow -->
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1190" height="842" fill="url(#bgGrad)"/>
+  <rect width="1190" height="842" fill="url(#purpleGlow)"/>
+  <rect width="1190" height="842" fill="url(#cyanGlow)"/>
+
+  <!-- Grid lines subtle -->
+  <g opacity="0.03" stroke="#ffffff" stroke-width="0.5">
+    <line x1="0" y1="210" x2="1190" y2="210"/>
+    <line x1="0" y1="420" x2="1190" y2="420"/>
+    <line x1="0" y1="630" x2="1190" y2="630"/>
+    <line x1="298" y1="0" x2="298" y2="842"/>
+    <line x1="595" y1="0" x2="595" y2="842"/>
+    <line x1="892" y1="0" x2="892" y2="842"/>
+  </g>
+
+  <!-- ===== HEADER ===== -->
+  <!-- Chapter badge -->
+  <rect x="40" y="28" width="160" height="30" rx="15" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+  <circle cx="60" cy="43" r="5" fill="#22d3ee"/>
+  <text x="75" y="48" font-size="12" fill="#22d3ee" letter-spacing="1">Ch 06 · Memory</text>
+
+  <!-- Title -->
+  <text x="40" y="105" font-size="42" font-weight="800" fill="url(#bgGrad)">
+    <tspan fill="#a855f7">记忆</tspan><tspan fill="#ffffff">与</tspan><tspan fill="#22d3ee">上下文</tspan><tspan fill="#64748b" font-size="28" font-weight="400"> — Agent 两层记忆全景</tspan>
+  </text>
+
+  <!-- Subtitle -->
+  <text x="40" y="135" font-size="16" fill="#64748b">短期记忆（SQLite）→ 长期记忆（文件系统）· compaction 触发 · CLAUDE.md-like 自动加载</text>
+
+  <!-- Divider -->
+  <line x1="40" y1="155" x2="1150" y2="155" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- ===== SHORT-TERM MEMORY BOX ===== -->
+  <rect x="40" y="170" width="540" height="220" rx="16" fill="url(#shortGrad)" stroke="rgba(34,211,238,0.25)" stroke-width="1.5"/>
+  <!-- Inner glow top border -->
+  <rect x="40" y="170" width="540" height="3" rx="1.5" fill="rgba(34,211,238,0.5)"/>
+
+  <!-- Short-term label -->
+  <text x="64" y="202" font-size="13" font-weight="700" fill="#22d3ee" letter-spacing="2">⚡ 短期记忆（会话级）</text>
+
+  <!-- messages[] box -->
+  <rect x="60" y="215" width="185" height="80" rx="10" fill="rgba(0,0,0,0.4)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+  <text x="152" y="240" font-size="11" fill="#22d3ee" text-anchor="middle" font-weight="700">messages[]</text>
+  <text x="152" y="258" font-size="10" fill="rgba(226,232,240,0.6)" text-anchor="middle">in-memory</text>
+  <text x="152" y="274" font-size="10" fill="rgba(226,232,240,0.6)" text-anchor="middle">当前对话历史</text>
+  <text x="152" y="289" font-size="10" fill="rgba(251,146,60,0.8)" text-anchor="middle">⚠️ 进程退出即清空</text>
+
+  <!-- Arrow messages -> SQLite -->
+  <line x1="245" y1="255" x2="280" y2="255" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-cyan)" opacity="0.7"/>
+  <text x="262" y="248" font-size="9" fill="#64748b" text-anchor="middle">持久化</text>
+
+  <!-- SQLite box -->
+  <rect x="282" y="215" width="185" height="80" rx="10" fill="rgba(0,0,0,0.4)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+  <text x="374" y="240" font-size="11" fill="#22d3ee" text-anchor="middle" font-weight="700">SQLite</text>
+  <text x="374" y="258" font-size="10" fill="rgba(226,232,240,0.6)" text-anchor="middle">sessions + messages</text>
+  <text x="374" y="274" font-size="10" fill="rgba(226,232,240,0.6)" text-anchor="middle">JSON content</text>
+  <text x="374" y="289" font-size="10" fill="#4ade80" text-anchor="middle">✓ 重启可恢复</text>
+
+  <!-- Compaction warning -->
+  <rect x="60" y="310" width="490" height="62" rx="10" fill="rgba(251,146,60,0.06)" stroke="rgba(251,146,60,0.25)" stroke-width="1"/>
+  <text x="72" y="330" font-size="11" fill="#fb923c" font-weight="700">⚠️ autoCompact 陷阱（案例 6.2）</text>
+  <text x="72" y="348" font-size="10" fill="rgba(226,232,240,0.6)">context_window - 13000 token 触发 → LLM 生成摘要替换历史</text>
+  <text x="72" y="363" font-size="10" fill="rgba(251,146,60,0.8)">摘要可能幻觉（把已否决方案当待办）→ 铁律：不信摘要，对照 MEMORY.md</text>
+
+  <!-- ===== ARROW DOWN ===== -->
+  <!-- Compaction trigger arrow -->
+  <line x1="310" y1="390" x2="310" y2="430" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-orange)" opacity="0.7"/>
+  <text x="325" y="415" font-size="10" fill="#fb923c">compaction / 重要决策</text>
+
+  <!-- Auto load arrow -->
+  <line x1="740" y1="560" x2="740" y2="390" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow-green)" opacity="0.7"/>
+  <text x="750" y="480" font-size="10" fill="#4ade80">自动加载 →</text>
+  <text x="750" y="494" font-size="10" fill="#4ade80">system prompt</text>
+
+  <!-- ===== LONG-TERM MEMORY BOX ===== -->
+  <rect x="40" y="440" width="880" height="255" rx="16" fill="url(#longGrad)" stroke="rgba(168,85,247,0.25)" stroke-width="1.5"/>
+  <!-- Inner glow top border -->
+  <rect x="40" y="440" width="880" height="3" rx="1.5" fill="rgba(168,85,247,0.5)"/>
+
+  <!-- Long-term label -->
+  <text x="64" y="473" font-size="13" font-weight="700" fill="#a855f7" letter-spacing="2">🗄️ 长期记忆（跨会话）— 文件系统</text>
+
+  <!-- MEMORY.md box -->
+  <rect x="60" y="488" width="180" height="185" rx="12" fill="rgba(0,0,0,0.5)" stroke="rgba(168,85,247,0.35)" stroke-width="1.5"/>
+  <text x="150" y="512" font-size="12" fill="#a855f7" text-anchor="middle" font-weight="700">MEMORY.md</text>
+  <text x="150" y="528" font-size="10" fill="rgba(226,232,240,0.5)" text-anchor="middle">索引（快速扫描）</text>
+
+  <!-- MEMORY.md content preview -->
+  <rect x="72" y="538" width="156" height="120" rx="6" fill="rgba(0,0,0,0.4)"/>
+  <text x="80" y="556" font-size="8.5" fill="#64748b" font-family="'SF Mono', monospace">| 文件 | 类型 | 主题 |</text>
+  <text x="80" y="570" font-size="8.5" fill="#64748b" font-family="'SF Mono', monospace">|-----|------|------|</text>
+  <text x="80" y="584" font-size="8.5" fill="#22d3ee" font-family="'SF Mono', monospace">| mem_001.md |</text>
+  <text x="80" y="596" font-size="8.5" fill="rgba(226,232,240,0.5)" font-family="'SF Mono', monospace">| preference |</text>
+  <text x="80" y="608" font-size="8.5" fill="#4ade80" font-family="'SF Mono', monospace">| lang_pref  |</text>
+  <text x="80" y="622" font-size="8.5" fill="#22d3ee" font-family="'SF Mono', monospace">| mem_002.md |</text>
+  <text x="80" y="634" font-size="8.5" fill="rgba(226,232,240,0.5)" font-family="'SF Mono', monospace">| fact       |</text>
+  <text x="80" y="646" font-size="8.5" fill="#4ade80" font-family="'SF Mono', monospace">| user_name  |</text>
+
+  <!-- Arrow MEMORY.md -> memory files -->
+  <line x1="240" y1="580" x2="272" y2="580" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-purple)" opacity="0.7"/>
+  <text x="256" y="572" font-size="9" fill="#64748b" text-anchor="middle">按需读取</text>
+
+  <!-- Memory files: 3 cards -->
+  <!-- Card 1: preference -->
+  <rect x="275" y="488" width="185" height="185" rx="10" fill="rgba(0,0,0,0.45)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+  <text x="367" y="511" font-size="10" fill="#22d3ee" text-anchor="middle" font-weight="700">mem_001.md · preference</text>
+  <rect x="285" y="520" width="165" height="138" rx="6" fill="rgba(0,0,0,0.4)"/>
+  <text x="293" y="538" font-size="8" fill="#64748b" font-family="'SF Mono', monospace">---</text>
+  <text x="293" y="552" font-size="8" fill="#a855f7" font-family="'SF Mono', monospace">id: mem_20240115_001</text>
+  <text x="293" y="566" font-size="8" fill="#22d3ee" font-family="'SF Mono', monospace">type: preference</text>
+  <text x="293" y="580" font-size="8" fill="#fbbf24" font-family="'SF Mono', monospace">subject: lang_pref</text>
+  <text x="293" y="594" font-size="8" fill="#4ade80" font-family="'SF Mono', monospace">confidence: 0.95</text>
+  <text x="293" y="608" font-size="8" fill="#64748b" font-family="'SF Mono', monospace">---</text>
+  <text x="293" y="624" font-size="8" fill="rgba(226,232,240,0.7)" font-family="'SF Mono', monospace">用户偏好 Python，</text>
+  <text x="293" y="638" font-size="8" fill="rgba(226,232,240,0.7)" font-family="'SF Mono', monospace">拒绝 Node.js。</text>
+  <text x="293" y="652" font-size="8" fill="rgba(226,232,240,0.5)" font-family="'SF Mono', monospace">理由：生态更完整。</text>
+
+  <!-- Card 2: fact -->
+  <rect x="473" y="488" width="185" height="185" rx="10" fill="rgba(0,0,0,0.45)" stroke="rgba(168,85,247,0.25)" stroke-width="1"/>
+  <text x="565" y="511" font-size="10" fill="#a855f7" text-anchor="middle" font-weight="700">mem_002.md · fact</text>
+  <rect x="483" y="520" width="165" height="138" rx="6" fill="rgba(0,0,0,0.4)"/>
+  <text x="491" y="538" font-size="8" fill="#64748b" font-family="'SF Mono', monospace">---</text>
+  <text x="491" y="552" font-size="8" fill="#a855f7" font-family="'SF Mono', monospace">id: mem_20240115_002</text>
+  <text x="491" y="566" font-size="8" fill="#a855f7" font-family="'SF Mono', monospace">type: fact</text>
+  <text x="491" y="580" font-size="8" fill="#fbbf24" font-family="'SF Mono', monospace">subject: user_name</text>
+  <text x="491" y="594" font-size="8" fill="#4ade80" font-family="'SF Mono', monospace">confidence: 1.0</text>
+  <text x="491" y="608" font-size="8" fill="#64748b" font-family="'SF Mono', monospace">---</text>
+  <text x="491" y="624" font-size="8" fill="rgba(226,232,240,0.7)" font-family="'SF Mono', monospace">用户叫 Bob，</text>
+  <text x="491" y="638" font-size="8" fill="rgba(226,232,240,0.7)" font-family="'SF Mono', monospace">AWS ML Engineer，</text>
+  <text x="491" y="652" font-size="8" fill="rgba(226,232,240,0.5)" font-family="'SF Mono', monospace">深港双城，INTJ。</text>
+
+  <!-- Card 3: instruction -->
+  <rect x="671" y="488" width="185" height="185" rx="10" fill="rgba(0,0,0,0.45)" stroke="rgba(74,222,128,0.25)" stroke-width="1"/>
+  <text x="763" y="511" font-size="10" fill="#4ade80" text-anchor="middle" font-weight="700">mem_003.md · instruction</text>
+  <rect x="681" y="520" width="165" height="138" rx="6" fill="rgba(0,0,0,0.4)"/>
+  <text x="689" y="538" font-size="8" fill="#64748b" font-family="'SF Mono', monospace">---</text>
+  <text x="689" y="552" font-size="8" fill="#a855f7" font-family="'SF Mono', monospace">id: mem_20240116_003</text>
+  <text x="689" y="566" font-size="8" fill="#4ade80" font-family="'SF Mono', monospace">type: instruction</text>
+  <text x="689" y="580" font-size="8" fill="#fbbf24" font-family="'SF Mono', monospace">subject: resp_style</text>
+  <text x="689" y="594" font-size="8" fill="#4ade80" font-family="'SF Mono', monospace">confidence: 0.9</text>
+  <text x="689" y="608" font-size="8" fill="#64748b" font-family="'SF Mono', monospace">---</text>
+  <text x="689" y="624" font-size="8" fill="rgba(226,232,240,0.7)" font-family="'SF Mono', monospace">简洁，结论先行，</text>
+  <text x="689" y="638" font-size="8" fill="rgba(226,232,240,0.7)" font-family="'SF Mono', monospace">不要废话。</text>
+  <text x="689" y="652" font-size="8" fill="rgba(226,232,240,0.5)" font-family="'SF Mono', monospace">Design Note 侧栏可加。</text>
+
+  <!-- ===== RIGHT PANEL: System Prompt + Lena ===== -->
+  <rect x="940" y="170" width="210" height="505" rx="16" fill="rgba(0,0,0,0.35)" stroke="rgba(74,222,128,0.2)" stroke-width="1.5"/>
+  <!-- Green top border -->
+  <rect x="940" y="170" width="210" height="3" rx="1.5" fill="rgba(74,222,128,0.6)"/>
+
+  <text x="1045" y="202" font-size="12" fill="#4ade80" text-anchor="middle" font-weight="700">system prompt 拼合</text>
+  <text x="1045" y="218" font-size="10" fill="#64748b" text-anchor="middle">prompts.ts:492</text>
+
+  <!-- System prompt sections -->
+  <rect x="956" y="228" width="178" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.2)" stroke-width="0.5"/>
+  <text x="1045" y="248" font-size="10" fill="#22d3ee" text-anchor="middle">session_guidance</text>
+
+  <rect x="956" y="268" width="178" height="40" rx="6" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5"/>
+  <text x="1045" y="285" font-size="10" fill="#a855f7" text-anchor="middle" font-weight="700">memory (CLAUDE.md)</text>
+  <text x="1045" y="300" font-size="9" fill="#a855f7" text-anchor="middle">← 长期记忆注入位置</text>
+
+  <rect x="956" y="316" width="178" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.2)" stroke-width="0.5"/>
+  <text x="1045" y="336" font-size="10" fill="#22d3ee" text-anchor="middle">env_info_simple</text>
+
+  <rect x="956" y="356" width="178" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.2)" stroke-width="0.5"/>
+  <text x="1045" y="376" font-size="10" fill="#22d3ee" text-anchor="middle">language</text>
+
+  <rect x="956" y="396" width="178" height="32" rx="6" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.2)" stroke-width="0.5"/>
+  <text x="1045" y="416" font-size="10" fill="#22d3ee" text-anchor="middle">工具 prompt</text>
+
+  <!-- Recitation section -->
+  <rect x="956" y="436" width="178" height="44" rx="6" fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="1045" y="454" font-size="10" fill="#fb923c" text-anchor="middle" font-weight="700">Recitation</text>
+  <text x="1045" y="470" font-size="9" fill="#fb923c" text-anchor="middle">末尾重申 · 防漂移</text>
+
+  <!-- Lena icon -->
+  <circle cx="1045" cy="545" r="28" fill="rgba(168,85,247,0.15)" stroke="rgba(168,85,247,0.4)" stroke-width="1.5"/>
+  <text x="1045" y="553" font-size="28" text-anchor="middle">🤖</text>
+  <text x="1045" y="593" font-size="13" fill="#a855f7" text-anchor="middle" font-weight="700">Lena v0.6</text>
+  <text x="1045" y="610" font-size="10" fill="#64748b" text-anchor="middle">有记忆的 Agent</text>
+
+  <!-- Arrow from long-term to system prompt -->
+  <path d="M 856 580 Q 930 580 940 480" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="5,4" fill="none" marker-end="url(#arrow-green)" opacity="0.6"/>
+  <text x="895" y="568" font-size="9" fill="#4ade80">自动加载</text>
+
+  <!-- ===== MANUS QUOTE ===== -->
+  <rect x="40" y="715" width="840" height="90" rx="14" fill="rgba(251,191,36,0.05)" stroke="rgba(251,191,36,0.2)" stroke-width="1"/>
+  <rect x="40" y="715" width="4" height="90" rx="2" fill="#fbbf24"/>
+  <text x="62" y="747" font-size="18" font-weight="700" fill="#fbbf24">"文件系统是无限外部记忆</text>
+  <text x="62" y="770" font-size="18" font-weight="700" fill="#fbbf24">——把重要上下文持久化到文件，不要指望 context window 装得下"</text>
+  <text x="62" y="793" font-size="12" fill="#64748b">Manus 团队 · Context Engineering Lessons · R3-ecosystem-2025.md §二第1条</text>
+
+  <!-- ===== LEGEND ===== -->
+  <rect x="940" y="645" width="210" height="155" rx="12" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <text x="1045" y="668" font-size="12" fill="rgba(226,232,240,0.6)" text-anchor="middle" font-weight="700">图例</text>
+  <line x1="956" y1="680" x2="996" y2="680" stroke="#22d3ee" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="1002" y="684" font-size="10" fill="rgba(226,232,240,0.6)">短期记忆流</text>
+  <line x1="956" y1="700" x2="996" y2="700" stroke="#a855f7" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="1002" y="704" font-size="10" fill="rgba(226,232,240,0.6)">长期记忆流</text>
+  <line x1="956" y1="720" x2="996" y2="720" stroke="#4ade80" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="1002" y="724" font-size="10" fill="rgba(226,232,240,0.6)">自动加载</text>
+  <line x1="956" y1="740" x2="996" y2="740" stroke="#fb923c" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="1002" y="744" font-size="10" fill="rgba(226,232,240,0.6)">compaction 触发</text>
+  <rect x="956" y="754" width="14" height="10" rx="2" fill="rgba(251,146,60,0.15)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="976" y="763" font-size="10" fill="rgba(226,232,240,0.6)">风险 / 警告</text>
+  <rect x="956" y="770" width="14" height="10" rx="2" fill="rgba(74,222,128,0.15)" stroke="rgba(74,222,128,0.3)" stroke-width="1"/>
+  <text x="976" y="779" font-size="10" fill="rgba(226,232,240,0.6)">推荐方案</text>
+  <rect x="956" y="786" width="14" height="10" rx="2" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.4)" stroke-width="1"/>
+  <text x="976" y="795" font-size="10" fill="rgba(226,232,240,0.6)">关键注入位置</text>
+
+  <!-- Version tag -->
+  <text x="1150" y="832" font-size="11" fill="#1e293b" text-anchor="end">lena-v0.6 · Ch06 · 从零构建你的 AI Agent</text>
+</svg>

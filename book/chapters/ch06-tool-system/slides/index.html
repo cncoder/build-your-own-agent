@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch 04 · Tool 系统：任何能力都是工具</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #0f1424;
+    --surface: rgba(255,255,255,0.04);
+    --surface2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --cyan: #00d4ff;
+    --blue: #4169e1;
+    --pink: #ff2d78;
+    --purple: #9f7aea;
+    --green: #00ff88;
+    --text: #e8ecf4;
+    --muted: rgba(232,236,244,0.5);
+    --dim: rgba(232,236,244,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans SC', system-ui, sans-serif;
+  }
+
+  /* ── Deck container ─────────────────────────────────────── */
+  #deck {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: top left;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    background: var(--bg);
+    display: none;
+    overflow: hidden;
+  }
+
+  .slide.active { display: block; }
+
+  /* ── Nav controls ──────────────────────────────────────── */
+  #controls {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(10,14,26,0.92);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 10px 20px;
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+  }
+
+  #controls button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  #controls button:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0,212,255,0.3);
+  }
+
+  #slide-counter {
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* ── Common components ─────────────────────────────────── */
+  .slide-bg {
+    position: absolute;
+    inset: 0;
+  }
+
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .noise-overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px;
+  }
+
+  .slide-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    padding: 80px 120px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--surface);
+  }
+
+  .chip.cyan { border-color: rgba(0,212,255,0.3); color: var(--cyan); background: rgba(0,212,255,0.05); }
+  .chip.pink { border-color: rgba(255,45,120,0.3); color: var(--pink); background: rgba(255,45,120,0.05); }
+  .chip.green { border-color: rgba(0,255,136,0.3); color: var(--green); background: rgba(0,255,136,0.05); }
+
+  .glass-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    padding: 32px;
+  }
+
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .code-block {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #a8b5cc;
+    overflow: hidden;
+  }
+
+  .code-block .kw { color: #c792ea; }
+  .code-block .fn { color: #82aaff; }
+  .code-block .str { color: #c3e88d; }
+  .code-block .num { color: #f78c6c; }
+  .code-block .cm { color: #546e7a; font-style: italic; }
+  .code-block .cy { color: var(--cyan); }
+  .code-block .pk { color: var(--pink); }
+  .code-block .yn { color: #ffcb6b; }
+
+  .glow-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.4;
+  }
+
+  /* ── Slide-specific footer ─────────────────────────────── */
+  .slide-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 120px;
+    right: 120px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 1 · COVER
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide active" id="s1">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <!-- Radial glow -->
+      <div style="position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:1200px;height:800px;background:radial-gradient(ellipse,rgba(65,105,225,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+      <div style="position:absolute;bottom:-100px;right:200px;width:600px;height:600px;background:radial-gradient(circle,rgba(0,212,255,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+      <!-- Tool icons grid background -->
+      <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(4,1fr);gap:0;opacity:0.04;">
+        <div style="display:contents;">
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">read_file</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">write_file</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">shell</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">web_search</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">get_time</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">send_email</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">search_db</div>
+          <div style="border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;">call_api</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-content" style="align-items:center;justify-content:center;text-align:center;gap:32px;">
+      <div class="chip cyan">Ch 04 · Tool System</div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;align-items:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:108px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-0.02em;">
+          Tool 系统
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:400;background:linear-gradient(135deg,var(--cyan),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+          任何能力都是工具
+        </div>
+      </div>
+
+      <div class="glow-line" style="width:600px;"></div>
+
+      <!-- 4 tool pills -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+        <div class="glass-card" style="padding:20px 32px;display:flex;align-items:center;gap:12px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);"></div>
+          <span class="mono" style="color:var(--cyan);font-size:16px;">read_file</span>
+          <span style="font-size:12px;color:var(--muted);">只读 · ∞</span>
+        </div>
+        <div class="glass-card" style="padding:20px 32px;display:flex;align-items:center;gap:12px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);"></div>
+          <span class="mono" style="color:var(--pink);font-size:16px;">write_file</span>
+          <span style="font-size:12px;color:var(--muted);">破坏性 · 串行</span>
+        </div>
+        <div class="glass-card" style="padding:20px 32px;display:flex;align-items:center;gap:12px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);"></div>
+          <span class="mono" style="color:var(--pink);font-size:16px;">shell</span>
+          <span style="font-size:12px;color:var(--muted);">破坏性 · 串行</span>
+        </div>
+        <div class="glass-card" style="padding:20px 32px;display:flex;align-items:center;gap:12px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);"></div>
+          <span class="mono" style="color:var(--green);font-size:16px;">web_search</span>
+          <span style="font-size:12px;color:var(--muted);">只读 · 并发</span>
+        </div>
+      </div>
+
+      <div style="font-size:15px;color:var(--dim);">
+        加工具不改核心 · ToolRegistry · @tool 装饰器 · Pydantic→JSON Schema · 三标志
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>从零构建你的 AI Agent · 第四章</span>
+      <span>1 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 2 · PROBLEM
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;top:0;right:0;width:800px;height:800px;background:radial-gradient(circle at top right,rgba(255,45,120,0.08),transparent 60%);"></div>
+    </div>
+    <div class="slide-content" style="gap:48px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip pink">问题</div>
+        <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:700;color:var(--text);">为什么 <span class="mono" style="color:var(--pink);">get_time</span> 不够用？</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;flex:1;">
+        <!-- Left: v0.3 problem -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,45,120,0.2);border:1px solid var(--pink);display:flex;align-items:center;justify-content:center;color:var(--pink);font-size:14px;font-weight:bold;">v0.3</div>
+            <span style="color:var(--muted);font-size:16px;">硬编码工具列表</span>
+          </div>
+          <div class="code-block" style="font-size:13px;">
+<span class="cm"># tools.py — v0.3：硬编码</span>
+<span class="kw">TOOLS</span> = [
+  {
+    <span class="str">"schema"</span>: {
+      <span class="str">"name"</span>: <span class="str">"get_time"</span>,
+      <span class="str">"description"</span>: <span class="str">"获取当前时间"</span>,
+      <span class="str">"input_schema"</span>: {
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {
+          <span class="str">"timezone"</span>: {
+            <span class="str">"type"</span>: <span class="str">"string"</span>
+          }
+        }
+      }
+    },
+    <span class="str">"handler"</span>: <span class="fn">get_time_handler</span>,
+  }
+]
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);border-radius:8px;">
+              <span style="color:var(--pink);font-size:18px;">✕</span>
+              <span style="color:var(--text);font-size:15px;">加工具 <strong style="color:var(--pink);">必须改 tools.py</strong></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);border-radius:8px;">
+              <span style="color:var(--pink);font-size:18px;">✕</span>
+              <span style="color:var(--text);font-size:15px;">加工具 <strong style="color:var(--pink);">还要改 lena.py</strong></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);border-radius:8px;">
+              <span style="color:var(--pink);font-size:18px;">✕</span>
+              <span style="color:var(--text);font-size:15px;">JSON Schema <strong style="color:var(--pink);">手写，容易出错</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: what we need -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,212,255,0.2);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:14px;font-weight:bold;">目标</div>
+            <span style="color:var(--muted);font-size:16px;">开闭原则：加工具不改核心</span>
+          </div>
+
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:28px;padding:40px;background:rgba(0,212,255,0.03);border:1px solid rgba(0,212,255,0.15);border-radius:12px;">
+            <!-- The OCP diagram -->
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--cyan);text-align:center;">开闭原则 (Open/Closed)</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;">
+              <div style="padding:16px 40px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:8px;color:var(--green);font-size:16px;text-align:center;width:80%;">
+                对扩展 <strong>开放</strong> — 加新工具 ✓
+              </div>
+              <div style="width:2px;height:24px;background:rgba(255,255,255,0.1);"></div>
+              <div style="padding:16px 40px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);border-radius:8px;color:var(--muted);font-size:16px;text-align:center;width:80%;">
+                对修改 <strong style="color:var(--pink);">关闭</strong> — 核心循环不变 ✓
+              </div>
+            </div>
+            <div style="color:var(--dim);font-size:13px;font-style:italic;text-align:center;">— Bertrand Meyer, 1988</div>
+          </div>
+
+          <div style="padding:20px 24px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
+            <div style="color:var(--text);font-size:15px;line-height:1.7;">
+              Claude Code 有 <strong style="color:var(--cyan);">40+ 内置工具</strong>，还支持 MCP 动态注册第三方工具——但核心 agent loop <strong style="color:var(--cyan);">从不变</strong>。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>2 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 3 · TOOL REGISTRY
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;top:-100px;left:-100px;width:800px;height:800px;background:radial-gradient(circle,rgba(65,105,225,0.1),transparent 60%);"></div>
+    </div>
+    <div class="slide-content" style="gap:48px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip cyan">解决方案</div>
+        <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:700;color:var(--text);">ToolRegistry + <span style="color:var(--cyan);">@tool</span> 装饰器</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;flex:1;align-items:center;">
+        <div class="code-block" style="font-size:14px;line-height:1.8;">
+<span class="cm"># 只改 tools.py，核心不动</span>
+
+<span class="kw">from</span> registry <span class="kw">import</span> registry
+
+<span class="kw">class</span> <span class="fn">ReadFileInput</span>(BaseModel):
+    path: <span class="yn">str</span>
+    encoding: <span class="yn">str</span> = <span class="str">"utf-8"</span>
+
+<span class="cy">@registry.tool</span>(
+    description=<span class="str">"读取本地文件内容"</span>,
+    is_read_only=<span class="num">True</span>,
+    is_concurrency_safe=<span class="num">True</span>,
+    max_result_size_chars=<span class="num">None</span>,  <span class="cm"># ∞</span>
+)
+<span class="kw">def</span> <span class="fn">read_file</span>(input: ReadFileInput) -> <span class="yn">str</span>:
+    <span class="kw">return</span> Path(input.path).read_text()
+
+<span class="cm"># lena.py 核心循环</span>
+<span class="cm"># 完全不知道有哪些工具 ↓</span>
+tools = registry.get_schemas()  <span class="cm"># 动态获取</span>
+result = registry.execute(name, inputs)
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <!-- Flow diagram -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+            <div style="padding:20px 40px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.3);border-radius:8px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:15px;text-align:center;width:100%;">
+              @tool 装饰器
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;">
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+              <div style="font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;">inspect.get_type_hints()</div>
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+            </div>
+            <div style="padding:20px 40px;background:rgba(159,122,234,0.08);border:1px solid rgba(159,122,234,0.3);border-radius:8px;color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:15px;text-align:center;width:100%;">
+              Pydantic BaseModel
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;">
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+              <div style="font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;">.model_json_schema()</div>
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+            </div>
+            <div style="padding:20px 40px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:8px;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:15px;text-align:center;width:100%;">
+              JSON Schema → LLM
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;">
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+              <div style="font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;">registry._tools[fn.__name__]</div>
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+            </div>
+            <div style="padding:20px 40px;background:rgba(65,105,225,0.08);border:1px solid rgba(65,105,225,0.3);border-radius:8px;color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:15px;text-align:center;width:100%;">
+              ToolRegistry._tools{}
+            </div>
+          </div>
+
+          <div style="padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+            <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+              参考：<span style="color:var(--cyan);">R1</span> §2 <span class="mono" style="color:var(--dim);">buildTool(def)</span> <span class="mono" style="color:var(--dim);">Tool.ts:783</span><br>
+              Python 版 <span class="mono" style="color:var(--dim);">@tool</span> 装饰器对应 TS 的 <span class="mono" style="color:var(--dim);">buildTool</span> 工厂
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>3 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 4 · PYDANTIC → JSON SCHEMA
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;bottom:0;right:0;width:600px;height:600px;background:radial-gradient(circle at bottom right,rgba(159,122,234,0.08),transparent 60%);"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip" style="border-color:rgba(159,122,234,0.3);color:var(--purple);background:rgba(159,122,234,0.05);">自动生成</div>
+        <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:700;color:var(--text);">Pydantic <span style="color:var(--purple);">→</span> JSON Schema</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:0;flex:1;align-items:stretch;">
+        <!-- Left: manual -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--pink);"></div>
+            <span style="color:var(--pink);font-size:14px;font-family:'JetBrains Mono',monospace;">v0.3 手写 JSON Schema</span>
+          </div>
+          <div class="code-block" style="font-size:12.5px;flex:1;">
+<span class="cm"># 手写 — 繁琐，容易遗漏</span>
+<span class="str">"input_schema"</span>: {
+  <span class="str">"type"</span>: <span class="str">"object"</span>,
+  <span class="str">"properties"</span>: {
+    <span class="str">"path"</span>: {
+      <span class="str">"type"</span>: <span class="str">"string"</span>,
+      <span class="str">"description"</span>: <span class="str">"文件路径"</span>
+    },
+    <span class="str">"encoding"</span>: {
+      <span class="str">"type"</span>: <span class="str">"string"</span>,
+      <span class="str">"description"</span>: <span class="str">"文件编码"</span>,
+      <span class="str">"default"</span>: <span class="str">"utf-8"</span>
+    }
+  },
+  <span class="str">"required"</span>: [<span class="str">"path"</span>]
+}
+
+<span class="cm"># 问题：</span>
+<span class="cm"># - 描述文字重复写两次</span>
+<span class="cm"># - required 手动维护</span>
+<span class="cm"># - 无类型验证</span>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="display:flex;align-items:center;justify-content:center;">
+          <div style="font-size:36px;color:var(--purple);opacity:0.6;">→</div>
+        </div>
+
+        <!-- Right: pydantic -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--cyan);"></div>
+            <span style="color:var(--cyan);font-size:14px;font-family:'JetBrains Mono',monospace;">v0.4 Pydantic 自动生成</span>
+          </div>
+          <div class="code-block" style="font-size:12.5px;flex:1;">
+<span class="cm"># Pydantic v2 模型 — 自动提取</span>
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+
+<span class="kw">class</span> <span class="fn">ReadFileInput</span>(BaseModel):
+    path: <span class="yn">str</span> = Field(
+        description=<span class="str">"文件路径"</span>
+    )
+    encoding: <span class="yn">str</span> = Field(
+        default=<span class="str">"utf-8"</span>,
+        description=<span class="str">"文件编码"</span>
+    )
+
+<span class="cm"># 一行生成 Schema</span>
+schema = ReadFileInput.<span class="fn">model_json_schema</span>()
+
+<span class="cm"># 优势：</span>
+<span class="cm"># ✓ 类型验证（int/str/bool）</span>
+<span class="cm"># ✓ 默认值自动填充</span>
+<span class="cm"># ✓ description 即文档</span>
+<span class="cm"># ✓ required 自动推断</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom highlight -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+        <div style="padding:16px 20px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:8px;text-align:center;">
+          <div style="color:var(--cyan);font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;">类型验证</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:6px;">运行时拦截类型错误</div>
+        </div>
+        <div style="padding:16px 20px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);border-radius:8px;text-align:center;">
+          <div style="color:var(--green);font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;">自动文档</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:6px;">Field(description=) 即文档</div>
+        </div>
+        <div style="padding:16px 20px;background:rgba(159,122,234,0.05);border:1px solid rgba(159,122,234,0.15);border-radius:8px;text-align:center;">
+          <div style="color:var(--purple);font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;">零冗余</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:6px;">描述只写一次</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>4 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 5 · 三标志
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1000px;height:600px;background:radial-gradient(ellipse,rgba(65,105,225,0.06),transparent 70%);pointer-events:none;"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:20px;">
+          <div class="chip cyan">三标志设计</div>
+          <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:700;color:var(--text);">
+            来自 <span class="mono" style="color:var(--cyan);">Tool.ts:362</span>
+          </div>
+        </div>
+        <div style="padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);">
+          Claude Code 源码引用
+        </div>
+      </div>
+
+      <!-- Three flags explanation -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+        <div style="padding:28px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:12px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);margin-bottom:12px;">isReadOnly(input)</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:12px;">只读标志</div>
+          <div style="font-size:14px;color:var(--muted);line-height:1.6;">
+            <strong style="color:var(--cyan);">true</strong> → 只读操作，Permission 系统<br>可自动批准，无需用户确认<br><br>
+            服务于：<span style="color:var(--cyan);">权限决策系统</span>
+          </div>
+        </div>
+        <div style="padding:28px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);border-radius:12px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--pink);margin-bottom:12px;">isDestructive?(input)</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:12px;">破坏性标志</div>
+          <div style="font-size:14px;color:var(--muted);line-height:1.6;">
+            <strong style="color:var(--pink);">true</strong> → 不可逆操作，必须<br>暂停等待用户确认弹框<br><br>
+            服务于：<span style="color:var(--pink);">权限决策系统</span>（Ch10）
+          </div>
+        </div>
+        <div style="padding:28px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:12px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);margin-bottom:12px;">isConcurrencySafe(input)</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:12px;">并发安全标志</div>
+          <div style="font-size:14px;color:var(--muted);line-height:1.6;">
+            <strong style="color:var(--green);">true</strong> → 可与其他工具并发执行<br><strong style="color:var(--pink);">false</strong> → 必须串行等待<br><br>
+            服务于：<span style="color:var(--green);">并发调度系统</span>（Ch5）
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:rgba(255,255,255,0.03);">
+              <th style="padding:16px 24px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);font-weight:400;">工具</th>
+              <th style="padding:16px 24px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);font-weight:400;">isReadOnly</th>
+              <th style="padding:16px 24px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pink);font-weight:400;">isDestructive</th>
+              <th style="padding:16px 24px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);font-weight:400;">isConcurrencySafe</th>
+              <th style="padding:16px 24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);font-weight:400;">maxResultSize</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:14px 24px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);">read_file</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--cyan);font-size:18px;">✓</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--dim);font-size:18px;">—</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--green);font-size:18px;">✓</td>
+              <td style="padding:14px 24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--cyan);">∞ (None)</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:14px 24px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--pink);">write_file</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--dim);font-size:18px;">—</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--pink);font-size:18px;">✓</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--pink);font-size:18px;">✕</td>
+              <td style="padding:14px 24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);">500</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:14px 24px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--pink);">shell</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--dim);font-size:18px;">—</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--pink);font-size:18px;">✓</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--pink);font-size:18px;">✕</td>
+              <td style="padding:14px 24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);">4000</td>
+            </tr>
+            <tr style="border-top:1px solid var(--border);">
+              <td style="padding:14px 24px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);">web_search</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--cyan);font-size:18px;">✓</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--dim);font-size:18px;">—</td>
+              <td style="padding:14px 24px;text-align:center;color:var(--green);font-size:18px;">✓</td>
+              <td style="padding:14px 24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted);">3000</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>5 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 6 · maxResultSizeChars
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;bottom:0;left:0;width:700px;height:700px;background:radial-gradient(circle at bottom left,rgba(0,212,255,0.07),transparent 60%);"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip cyan">持久化机制</div>
+        <div style="font-family:'Syne',sans-serif;font-size:46px;font-weight:700;color:var(--text);">
+          <span class="mono" style="color:var(--cyan);">maxResultSizeChars</span> 与 <span style="color:var(--cyan);">∞</span> 的设计
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;flex:1;">
+        <!-- Left: flowchart -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="font-size:16px;color:var(--muted);margin-bottom:8px;">toolResultStorage.ts:30 — 超限处理流程</div>
+
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:0;">
+            <div style="padding:18px 28px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);border-radius:8px;width:80%;color:var(--text);font-size:15px;">
+              工具执行返回结果
+            </div>
+            <div style="width:2px;height:20px;background:rgba(255,255,255,0.1);margin-left:36px;"></div>
+            <div style="padding:16px 28px;background:rgba(255,203,107,0.08);border:1px solid rgba(255,203,107,0.25);border-radius:8px;width:80%;color:#ffcb6b;font-size:15px;">
+              len(result) &gt; maxResultSizeChars?
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;width:80%;margin-left:0;">
+              <div style="display:flex;flex-direction:column;align-items:center;">
+                <div style="width:2px;height:20px;background:rgba(255,45,120,0.5);margin-left:-40px;"></div>
+                <div style="font-size:12px;color:var(--pink);font-family:'JetBrains Mono',monospace;margin-left:-40px;">是</div>
+                <div style="width:2px;height:20px;background:rgba(255,45,120,0.5);margin-left:-40px;"></div>
+                <div style="padding:14px 20px;background:rgba(255,45,120,0.08);border:1px solid rgba(255,45,120,0.25);border-radius:8px;color:var(--pink);font-size:13px;margin-left:-40px;width:140px;text-align:center;">
+                  Claude Code:<br>写入磁盘<br>&lt;persisted-output&gt;
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;">
+                <div style="width:2px;height:20px;background:rgba(0,255,136,0.5);"></div>
+                <div style="font-size:12px;color:var(--green);font-family:'JetBrains Mono',monospace;">否</div>
+                <div style="width:2px;height:20px;background:rgba(0,255,136,0.5);"></div>
+                <div style="padding:14px 20px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);border-radius:8px;color:var(--green);font-size:13px;width:140px;text-align:center;">
+                  直接放入<br>messages[]
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+            applyToolResultBudget() · toolResultStorage.ts:924
+          </div>
+        </div>
+
+        <!-- Right: why infinity for read_file -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <div style="padding:28px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:12px;">
+            <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--cyan);margin-bottom:16px;">
+              为什么 read_file = ∞ ？
+            </div>
+            <div style="font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:20px;">
+              如果截断 read_file 的结果：
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;padding:16px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.15);border-radius:8px;margin-bottom:16px;">
+              <div style="font-size:14px;color:var(--text);font-family:'JetBrains Mono',monospace;">LLM: "内容被截断，我需要读后续"</div>
+              <div style="font-size:14px;color:var(--text);font-family:'JetBrains Mono',monospace;">→ 再次调用 read_file (offset=500)</div>
+              <div style="font-size:14px;color:var(--text);font-family:'JetBrains Mono',monospace;">→ 还是被截断</div>
+              <div style="font-size:14px;color:var(--pink);font-family:'JetBrains Mono',monospace;">→ ... 无限循环 ⚠️</div>
+            </div>
+            <div style="padding:16px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);border-radius:8px;">
+              <div style="color:var(--green);font-size:14px;line-height:1.6;">
+                宁可一次给完整内容，也不要触发<br>
+                <strong>Read 循环</strong>（Read loop）<br>
+                <br>
+                Claude Code <span class="mono" style="font-size:12px;">FileReadTool.maxResultSizeChars = Infinity</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+            <div style="font-size:15px;color:var(--text);line-height:1.7;">
+              如果文件真的太大，正确做法：<br>
+              在工具里加 <span class="mono" style="color:var(--cyan);">offset</span> / <span class="mono" style="color:var(--cyan);">limit</span> 参数，<br>让 LLM 主动决定读哪一段。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>6 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 7 · 四工具实现
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+    </div>
+    <div class="slide-content" style="gap:32px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip green">四工具</div>
+        <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:700;color:var(--text);">lena-v0.4 工具实现</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;">
+        <!-- read_file -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);"></div>
+            <span class="mono" style="color:var(--cyan);font-size:15px;">read_file</span>
+            <span style="color:var(--dim);font-size:12px;">· 只读 · 并发 · ∞</span>
+          </div>
+          <div class="code-block" style="font-size:12px;flex:1;">
+<span class="cy">@registry.tool</span>(description=<span class="str">"读文件"</span>,
+    is_read_only=<span class="num">True</span>,
+    is_concurrency_safe=<span class="num">True</span>,
+    max_result_size_chars=<span class="num">None</span>)  <span class="cm"># ∞</span>
+<span class="kw">def</span> <span class="fn">read_file</span>(input: ReadFileInput) -> <span class="yn">str</span>:
+    path = Path(input.path)
+    <span class="kw">if not</span> path.exists():
+        <span class="kw">return</span> <span class="str">f"错误：文件不存在"</span>
+    content = path.read_text(encoding=input.encoding)
+    lines = content.splitlines()
+    <span class="kw">return</span> <span class="str">f"=== {input.path} ({len(lines)} 行) ===\n{content}"</span>
+          </div>
+        </div>
+
+        <!-- write_file -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);"></div>
+            <span class="mono" style="color:var(--pink);font-size:15px;">write_file</span>
+            <span style="color:var(--dim);font-size:12px;">· 破坏性 · 串行</span>
+          </div>
+          <div class="code-block" style="font-size:12px;flex:1;">
+<span class="cy">@registry.tool</span>(description=<span class="str">"写文件"</span>,
+    is_read_only=<span class="num">False</span>,
+    is_destructive=<span class="num">True</span>,    <span class="cm"># Ch10 会拦截</span>
+    is_concurrency_safe=<span class="num">False</span>,  <span class="cm"># 串行防竞态</span>
+    max_result_size_chars=<span class="num">500</span>)
+<span class="kw">def</span> <span class="fn">write_file</span>(input: WriteFileInput) -> <span class="yn">str</span>:
+    path = Path(input.path)
+    path.parent.mkdir(parents=<span class="num">True</span>, exist_ok=<span class="num">True</span>)
+    mode = <span class="str">"a"</span> <span class="kw">if</span> input.append <span class="kw">else</span> <span class="str">"w"</span>
+    <span class="kw">with</span> <span class="fn">open</span>(path, mode, encoding=<span class="str">"utf-8"</span>) <span class="kw">as</span> f:
+        f.write(input.content)
+    <span class="kw">return</span> <span class="str">f"成功写入 {len(input.content)} 字符"</span>
+          </div>
+        </div>
+
+        <!-- shell -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);"></div>
+            <span class="mono" style="color:var(--pink);font-size:15px;">shell</span>
+            <span style="color:var(--dim);font-size:12px;">· 白名单安全 · 破坏性 · 串行</span>
+          </div>
+          <div class="code-block" style="font-size:12px;flex:1;">
+BLOCKED = (<span class="str">"rm "</span>, <span class="str">"sudo "</span>, <span class="str">"| bash"</span>, ...)
+ALLOWED = (<span class="str">"ls"</span>, <span class="str">"cat"</span>, <span class="str">"grep"</span>, <span class="str">"find"</span>, ...)
+
+<span class="cy">@registry.tool</span>(description=<span class="str">"执行 shell（白名单）"</span>,
+    is_destructive=<span class="num">True</span>, is_concurrency_safe=<span class="num">False</span>)
+<span class="kw">def</span> <span class="fn">shell</span>(input: ShellInput) -> <span class="yn">str</span>:
+    <span class="kw">for</span> blocked <span class="kw">in</span> BLOCKED:
+        <span class="kw">if</span> blocked <span class="kw">in</span> input.command:
+            <span class="kw">return</span> <span class="str">"🚫 安全阻断"</span>
+    <span class="kw">if not</span> <span class="fn">any</span>(input.command.startswith(p) <span class="kw">for</span> p <span class="kw">in</span> ALLOWED):
+        <span class="kw">return</span> <span class="str">"⚠️ 不在白名单"</span>
+    result = subprocess.run(input.command, ...)
+    <span class="kw">return</span> result.stdout
+          </div>
+        </div>
+
+        <!-- web_search -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);"></div>
+            <span class="mono" style="color:var(--green);font-size:15px;">web_search</span>
+            <span style="color:var(--dim);font-size:12px;">· 只读 · 并发 · DuckDuckGo</span>
+          </div>
+          <div class="code-block" style="font-size:12px;flex:1;">
+<span class="cm"># DuckDuckGo Instant API，无需 Key</span>
+<span class="cy">@registry.tool</span>(description=<span class="str">"搜索互联网"</span>,
+    is_read_only=<span class="num">True</span>,
+    is_concurrency_safe=<span class="num">True</span>,  <span class="cm"># 并发！</span>
+    max_result_size_chars=<span class="num">3000</span>)
+<span class="kw">def</span> <span class="fn">web_search</span>(input: WebSearchInput) -> <span class="yn">str</span>:
+    url = (<span class="str">f"https://api.duckduckgo.com/"</span>
+           <span class="str">f"?q={urllib.parse.quote(input.query)}&format=json"</span>)
+    <span class="kw">with</span> urllib.request.urlopen(url) <span class="kw">as</span> resp:
+        data = json.loads(resp.read())
+    <span class="kw">return</span> <span class="fn">format_results</span>(data)
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>7 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 8 · PERMISSION FLOW
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;top:0;right:0;width:700px;height:700px;background:radial-gradient(circle at top right,rgba(65,105,225,0.08),transparent 60%);"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip" style="border-color:rgba(65,105,225,0.3);color:var(--blue);background:rgba(65,105,225,0.05);">Permission 系统</div>
+        <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:700;color:var(--text);">五步权限决策流程</div>
+      </div>
+
+      <div style="flex:1;display:flex;align-items:center;gap:24px;">
+        <!-- Flow chain -->
+        <div style="flex:1;display:flex;flex-direction:column;gap:0;">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;align-items:stretch;">
+            <!-- Step 1 -->
+            <div style="display:flex;flex-direction:column;">
+              <div style="padding:24px 20px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);border-radius:8px 0 0 8px;text-align:center;flex:1;">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:8px;">STEP 1</div>
+                <div style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:8px;">validateInput</div>
+                <div style="font-size:12px;color:var(--muted);">Pydantic<br>类型验证</div>
+              </div>
+            </div>
+            <!-- Arrow 1 -->
+            <div style="display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.01);">
+              <div style="font-size:20px;color:var(--dim);">→</div>
+            </div>
+            <!-- Step 2 -->
+            <div style="display:flex;flex-direction:column;">
+              <div style="padding:24px 20px;background:rgba(159,122,234,0.08);border:1px solid rgba(159,122,234,0.25);border-radius:0;text-align:center;flex:1;">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:8px;">STEP 2</div>
+                <div style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:8px;">checkPermissions</div>
+                <div style="font-size:12px;color:var(--muted);">工具自定义<br>权限检查</div>
+              </div>
+            </div>
+            <!-- Arrow 2 -->
+            <div style="display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.01);">
+              <div style="font-size:20px;color:var(--dim);">→</div>
+            </div>
+            <!-- Step 3 -->
+            <div style="display:flex;flex-direction:column;">
+              <div style="padding:24px 20px;background:rgba(255,203,107,0.06);border:1px solid rgba(255,203,107,0.2);border-radius:0 8px 8px 0;text-align:center;flex:1;">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:8px;">STEP 3</div>
+                <div style="font-size:14px;font-weight:700;color:#ffcb6b;margin-bottom:8px;">规则匹配</div>
+                <div style="font-size:12px;color:var(--muted);">alwaysAllow<br>alwaysDeny</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:center;padding:12px 0;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:2px;height:24px;background:rgba(255,255,255,0.1);"></div>
+              <span style="font-size:12px;color:var(--dim);">无匹配 →</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:0;align-items:stretch;">
+            <!-- Step 4 -->
+            <div style="padding:24px 28px;background:rgba(65,105,225,0.08);border:1px solid rgba(65,105,225,0.25);border-radius:8px;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:8px;">STEP 4 · mode 决策</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="font-size:12px;color:var(--muted);padding:8px;background:rgba(0,212,255,0.05);border-radius:4px;">
+                  <span class="mono" style="color:var(--cyan);font-size:11px;">plan</span> + isReadOnly → 自动批准
+                </div>
+                <div style="font-size:12px;color:var(--muted);padding:8px;background:rgba(255,45,120,0.05);border-radius:4px;">
+                  <span class="mono" style="color:var(--pink);font-size:11px;">default</span> + isDestructive → 弹框
+                </div>
+                <div style="font-size:12px;color:var(--muted);padding:8px;background:rgba(0,255,136,0.05);border-radius:4px;">
+                  <span class="mono" style="color:var(--green);font-size:11px;">bypass</span> → 全部自动
+                </div>
+                <div style="font-size:12px;color:var(--muted);padding:8px;background:rgba(255,203,107,0.05);border-radius:4px;">
+                  <span class="mono" style="color:#ffcb6b;font-size:11px;">acceptEdits</span> → 文件自动
+                </div>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div style="display:flex;align-items:center;justify-content:center;">
+              <div style="font-size:20px;color:var(--dim);">→</div>
+            </div>
+
+            <!-- Step 5 -->
+            <div style="padding:24px 28px;background:rgba(255,45,120,0.06);border:1px solid rgba(255,45,120,0.2);border-radius:8px;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:12px;">STEP 5 · UI 弹框</div>
+              <div style="padding:16px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,45,120,0.3);border-radius:8px;font-size:13px;color:var(--text);line-height:1.6;">
+                "Lena 想要执行<br><span class="mono" style="color:var(--pink);">write_file</span><br>是否允许？"<br>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                  <span style="padding:4px 12px;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);border-radius:4px;color:var(--cyan);font-size:11px;">允许</span>
+                  <span style="padding:4px 12px;background:rgba(255,45,120,0.15);border:1px solid rgba(255,45,120,0.3);border-radius:4px;color:var(--pink);font-size:11px;">拒绝</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: note -->
+        <div style="width:320px;display:flex;flex-direction:column;gap:20px;">
+          <div style="padding:24px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:12px;">
+            <div style="font-size:14px;color:var(--cyan);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;">v0.4 实现了什么</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);">
+                <span style="color:var(--cyan);">✓</span> Step 1 Pydantic 验证
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);">
+                <span style="color:var(--cyan);">✓</span> Step 3 白名单/黑名单
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--dim);">
+                <span style="color:var(--dim);">·</span> Step 2/4/5 → Ch10 安全专章
+              </div>
+            </div>
+          </div>
+          <div style="padding:20px;background:rgba(65,105,225,0.05);border:1px solid rgba(65,105,225,0.2);border-radius:12px;font-size:13px;color:var(--muted);line-height:1.7;">
+            三标志在 Step 4 发挥作用：<br>
+            <span class="mono" style="color:var(--cyan);">isReadOnly</span> + plan → 自动<br>
+            <span class="mono" style="color:var(--pink);">isDestructive</span> + default → 弹框
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>8 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 9 · 案例 4.2
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s9">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;top:50%;right:-100px;transform:translateY(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(255,203,107,0.06),transparent 60%);"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip" style="border-color:rgba(255,203,107,0.3);color:#ffcb6b;background:rgba(255,203,107,0.05);">案例 4.2</div>
+        <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:700;color:var(--text);">类型 Bug 的教训</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;flex:1;">
+        <!-- Left: the bug story -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <div style="padding:24px;background:rgba(255,203,107,0.05);border:1px solid rgba(255,203,107,0.2);border-radius:12px;">
+            <div style="font-size:18px;font-weight:700;color:#ffcb6b;margin-bottom:16px;">HA 华为空调 MQTT Bug</div>
+            <div style="font-size:15px;color:var(--muted);line-height:1.8;">
+              控制器 A 发送：
+            </div>
+            <div class="code-block" style="font-size:15px;margin:8px 0 16px;">
+<span class="cm"># 控制器 A（Python bool）</span>
+{<span class="str">"on"</span>: <span class="num">true</span>}
+
+<span class="cm"># 解析器 B 期待</span>
+{<span class="str">"on"</span>: <span class="num">1</span>}  <span class="cm"># 或 {"on": "true"}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);border-radius:8px;">
+              <span style="color:var(--pink);font-size:18px;">✕</span>
+              <span style="color:var(--text);font-size:14px;">空调不响应，<strong style="color:var(--pink);">没有报错，没有日志</strong></span>
+            </div>
+            <div style="margin-top:12px;font-size:14px;color:var(--muted);line-height:1.7;">
+              根因：<strong style="color:#ffcb6b;">类型不一致</strong>。<br>
+              <span class="mono" style="font-size:13px;">true</span>（bool）vs <span class="mono" style="font-size:13px;">1</span>（int）在 JSON 是不同值，但人类看都是"开"。
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: pydantic prevention -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <div style="font-size:16px;color:var(--muted);">Pydantic 如何预防这类 bug</div>
+          <div class="code-block" style="font-size:13px;line-height:1.7;flex:1;">
+<span class="kw">class</span> <span class="fn">ACControlInput</span>(BaseModel):
+    on: <span class="yn">bool</span> = Field(description=<span class="str">"开机：True/False"</span>)
+    temperature: <span class="yn">float</span> = Field(ge=<span class="num">16</span>, le=<span class="num">30</span>)
+
+<span class="cm"># LLM 传入不规范的值</span>
+validated = ACControlInput(**{
+    <span class="str">"on"</span>: <span class="num">1</span>,           <span class="cm"># int</span>
+    <span class="str">"temperature"</span>: <span class="str">"24"</span>  <span class="cm"># str</span>
+})
+
+<span class="cm"># Pydantic v2 自动转换</span>
+print(validated.on)           <span class="cm"># True  (int→bool)</span>
+print(validated.temperature)  <span class="cm"># 24.0  (str→float)</span>
+
+<span class="cm"># 需要严格模式？</span>
+<span class="kw">class</span> <span class="fn">StrictInput</span>(BaseModel):
+    model_config = ConfigDict(strict=<span class="num">True</span>)
+    on: <span class="yn">bool</span>
+<span class="cm"># ACControlInput(on=1) → ValidationError!</span>
+          </div>
+
+          <div style="padding:20px 24px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.2);border-radius:8px;">
+            <div style="font-size:15px;color:var(--text);line-height:1.7;">
+              <strong style="color:var(--green);">教训</strong>：Pydantic 验证层是工具输入的<br>最后一道防线——把运行时 bug<br>变成清晰的 <span class="mono" style="color:var(--cyan);">ValidationError</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>9 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 10 · DESIGN NOTE
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1400px;height:800px;background:radial-gradient(ellipse,rgba(159,122,234,0.07),transparent 60%);pointer-events:none;"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip" style="border-color:rgba(159,122,234,0.3);color:var(--purple);background:rgba(159,122,234,0.05);">Design Note</div>
+        <div style="font-family:'Syne',sans-serif;font-size:44px;font-weight:700;color:var(--text);">为什么不用函数直接 eval？</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;flex:1;">
+        <!-- Security -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid rgba(255,45,120,0.2);">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,45,120,0.15);border:1px solid rgba(255,45,120,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;">🔒</div>
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--pink);">安全</div>
+          </div>
+          <div style="font-size:15px;color:var(--muted);line-height:1.8;">
+            直接 eval LLM 生成的代码：<br>
+            <br>
+            <strong style="color:var(--pink);">LLM 幻觉 → 执行任意代码</strong><br>
+            <br>
+            工具系统：白名单注册，<br>只有已知工具可执行，<br>输入经 Pydantic 验证。<br>
+            <br>
+            <span style="font-size:13px;color:var(--dim);">参考 R2 nanoClaw ShellSandbox<br>三层过滤（BLOCKED/CONFIRM/EXECUTE）</span>
+          </div>
+          <div style="padding:16px;background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.15);border-radius:8px;margin-top:auto;">
+            <div class="code-block" style="font-size:12px;">
+<span class="cm"># ❌ 危险</span>
+eval(llm_generated_code)
+
+<span class="cm"># ✓ 安全</span>
+registry.execute(<span class="str">"read_file"</span>, inputs)
+            </div>
+          </div>
+        </div>
+
+        <!-- Permissions -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid rgba(65,105,225,0.2);">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(65,105,225,0.15);border:1px solid rgba(65,105,225,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;">🎛</div>
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--blue);">权限</div>
+          </div>
+          <div style="font-size:15px;color:var(--muted);line-height:1.8;">
+            直接 eval：<br>
+            无法拦截、无法审批、<br>无法回溯。<br>
+            <br>
+            工具系统：<br>
+            <strong style="color:var(--blue);">五步决策流程</strong> 在执行前<br>给用户确认机会。<br>
+            <br>
+            三标志让每个工具的<br>安全意图在声明时就确定。
+          </div>
+          <div style="padding:16px;background:rgba(65,105,225,0.05);border:1px solid rgba(65,105,225,0.15);border-radius:8px;margin-top:auto;font-size:14px;color:var(--muted);line-height:1.7;">
+            <span class="mono" style="color:var(--cyan);">isDestructive=True</span><br>
+            → Ch10 弹框确认<br>
+            → 审计日志记录<br>
+            → 可撤销机制
+          </div>
+        </div>
+
+        <!-- Concurrency -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid rgba(0,255,136,0.2);">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,255,136,0.12);border:1px solid rgba(0,255,136,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;">⚡</div>
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--green);">并发</div>
+          </div>
+          <div style="font-size:15px;color:var(--muted);line-height:1.8;">
+            直接 eval：<br>
+            并发时难以控制执行顺序，<br>竞态条件无法预防。<br>
+            <br>
+            工具系统：<br>
+            <strong style="color:var(--green);">isConcurrencySafe</strong> 标志<br>让调度器精确控制——<br>只有安全的工具才并发。<br>
+            <br>
+            <span style="font-size:13px;color:var(--dim);">Ch5 StreamingToolExecutor<br>asyncio.gather() 实现</span>
+          </div>
+          <div style="padding:16px;background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.12);border-radius:8px;margin-top:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);">
+            read_file  ████████ concurrent<br>
+            web_search ████████ concurrent<br>
+            write_file ████     serial<br>
+            shell            ████ serial
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>Ch 04 · Tool 系统</span>
+      <span>10 / 11</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SLIDE 11 · SUMMARY
+  ══════════════════════════════════════════════════════════════════ -->
+  <div class="slide" id="s11">
+    <div class="slide-bg">
+      <div class="grid-overlay"></div>
+      <div style="position:absolute;bottom:-200px;left:50%;transform:translateX(-50%);width:1400px;height:600px;background:radial-gradient(ellipse,rgba(0,212,255,0.08),rgba(65,105,225,0.06),transparent 70%);pointer-events:none;"></div>
+    </div>
+    <div class="slide-content" style="gap:40px;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div class="chip cyan">本章小结</div>
+        <div style="font-family:'Syne',sans-serif;font-size:52px;font-weight:700;color:var(--text);">lena-v0.4 完成</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:48px;flex:1;">
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div style="font-size:16px;color:var(--muted);margin-bottom:4px;">本章掌握了三件事</div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="padding:20px 24px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:10px;display:flex;align-items:flex-start;gap:16px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,212,255,0.2);border:1px solid rgba(0,212,255,0.4);display:flex;align-items:center;justify-content:center;color:var(--cyan);font-weight:700;flex-shrink:0;">1</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">@tool 装饰器 + ToolRegistry</div>
+                <div style="font-size:14px;color:var(--muted);">声明式注册，Pydantic 自动生成 JSON Schema，<strong style="color:var(--cyan);">加工具不改核心循环</strong></div>
+              </div>
+            </div>
+            <div style="padding:20px 24px;background:rgba(159,122,234,0.05);border:1px solid rgba(159,122,234,0.2);border-radius:10px;display:flex;align-items:flex-start;gap:16px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(159,122,234,0.2);border:1px solid rgba(159,122,234,0.4);display:flex;align-items:center;justify-content:center;color:var(--purple);font-weight:700;flex-shrink:0;">2</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">三标志（Tool.ts:362）</div>
+                <div style="font-size:14px;color:var(--muted);"><span class="mono" style="font-size:12px;">isReadOnly / isDestructive / isConcurrencySafe</span><br>为权限系统和并发调度<strong style="color:var(--purple);">埋下基础</strong></div>
+              </div>
+            </div>
+            <div style="padding:20px 24px;background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.15);border-radius:10px;display:flex;align-items:flex-start;gap:16px;">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,255,136,0.15);border:1px solid rgba(0,255,136,0.3);display:flex;align-items:center;justify-content:center;color:var(--green);font-weight:700;flex-shrink:0;">3</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">maxResultSizeChars · Infinity</div>
+                <div style="font-size:14px;color:var(--muted);">工具结果预算控制，<strong style="color:var(--green);">read_file 设 ∞ 防 Read 循环</strong><br>（toolResultStorage.ts:30）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <!-- v0.3 vs v0.4 diff -->
+          <div style="font-size:16px;color:var(--muted);">v0.3 → v0.4 变化</div>
+          <div style="padding:20px 24px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:10px;flex:1;">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="color:var(--cyan);font-size:14px;">+</span>
+                <span class="mono" style="color:var(--cyan);font-size:13px;">registry.py</span>
+                <span style="color:var(--muted);font-size:13px;">ToolRegistry + @tool</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="color:var(--cyan);font-size:14px;">+</span>
+                <span class="mono" style="color:var(--cyan);font-size:13px;">tools.py</span>
+                <span style="color:var(--muted);font-size:13px;">四个工具实现</span>
+              </div>
+              <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="color:var(--dim);font-size:14px;">=</span>
+                <span class="mono" style="color:var(--dim);font-size:13px;">lena.py</span>
+                <span style="color:var(--dim);font-size:13px;">核心循环一字未改</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="color:var(--dim);font-size:14px;">=</span>
+                <span class="mono" style="color:var(--dim);font-size:13px;">provider.py</span>
+                <span style="color:var(--dim);font-size:13px;">完全复用</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next chapter -->
+          <div style="padding:24px;background:linear-gradient(135deg,rgba(65,105,225,0.08),rgba(0,212,255,0.05));border:1px solid rgba(65,105,225,0.25);border-radius:10px;">
+            <div style="font-size:13px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:8px;">NEXT</div>
+            <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--blue);margin-bottom:8px;">Ch 05 · 并发执行</div>
+            <div style="font-size:14px;color:var(--muted);line-height:1.6;">
+              read_file + web_search 同时执行，<br>
+              asyncio.gather() + isConcurrencySafe，<br>
+              对应 <span class="mono" style="font-size:12px;">StreamingToolExecutor.ts:40</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>从零构建你的 AI Agent · 第四章</span>
+      <span>11 / 11</span>
+    </div>
+  </div>
+
+</div><!-- #deck -->
+
+<!-- Navigation controls -->
+<div id="controls">
+  <button id="btn-prev" title="上一张 (←)">&#8592;</button>
+  <span id="slide-counter">1 / 11</span>
+  <button id="btn-next" title="下一张 (→)">&#8594;</button>
+</div>
+
+<script>
+  // ── Scale ──────────────────────────────────────────────────────
+  const deck = document.getElementById('deck');
+  const DECK_W = 1920, DECK_H = 1080;
+
+  function scaleDeck() {
+    const sw = window.innerWidth, sh = window.innerHeight;
+    const scale = Math.min(sw / DECK_W, sh / DECK_H);
+    deck.style.transform = `scale(${scale})`;
+    deck.style.marginLeft = ((sw - DECK_W * scale) / 2) + 'px';
+    deck.style.marginTop = ((sh - DECK_H * scale) / 2) + 'px';
+  }
+  window.addEventListener('resize', scaleDeck);
+  scaleDeck();
+
+  // ── Slide navigation ───────────────────────────────────────────
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('slide-counter');
+  let current = parseInt(localStorage.getItem('ch04-slide') || '0');
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = Math.max(0, Math.min(slides.length - 1, n));
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    localStorage.setItem('ch04-slide', current);
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => showSlide(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => showSlide(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); showSlide(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); showSlide(current - 1);
+    } else if (e.key === 'Home') {
+      showSlide(0);
+    } else if (e.key === 'End') {
+      showSlide(slides.length - 1);
+    } else if (e.key >= '1' && e.key <= '9') {
+      showSlide(parseInt(e.key) - 1);
+    }
+  });
+
+  // Restore saved position
+  showSlide(current);
+</script>
+</body>
+</html>

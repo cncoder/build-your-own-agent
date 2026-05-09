@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 09 · Skills：可复用的能力单元</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Canvas ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0d1117; }
+
+/* ── Design Tokens ── */
+:root {
+  --bg:         #0d1117;
+  --bg2:        #161b22;
+  --bg3:        #1c2128;
+  --border:     #30363d;
+  --border2:    #21262d;
+  --text:       #e6edf3;
+  --text-dim:   #8b949e;
+  --text-dim2:  #6e7681;
+  --blue:       #58a6ff;
+  --blue-dark:  #1f6feb;
+  --green:      #3fb950;
+  --green-dark: #238636;
+  --orange:     #f0883e;
+  --purple:     #bc8cff;
+  --red:        #f85149;
+  --cyan:       #79c0ff;
+  --yellow:     #e3b341;
+
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Noto Sans SC', system-ui, sans-serif;
+  --font-serif: 'Noto Serif SC', serif;
+}
+
+/* ── Deck Stage ── */
+.deck { width: 1920px; height: 1080px; position: relative; }
+.slide {
+  width: 1920px; height: 1080px;
+  position: absolute; inset: 0;
+  display: none;
+  background: var(--bg);
+  font-family: var(--font-sans);
+  color: var(--text);
+  overflow: hidden;
+}
+.slide.active { display: flex; }
+
+/* ── Counter ── */
+#counter {
+  position: fixed; bottom: 24px; right: 36px;
+  font-family: var(--font-mono); font-size: 13px;
+  color: var(--text-dim2); letter-spacing: .1em;
+  z-index: 999; pointer-events: none;
+}
+
+/* ── Common Layout Helpers ── */
+.col { display: flex; flex-direction: column; }
+.row { display: flex; flex-direction: row; }
+.center { align-items: center; justify-content: center; }
+.pad { padding: 80px 100px; }
+.pad-lg { padding: 80px 120px; }
+.gap-sm { gap: 16px; }
+.gap-md { gap: 28px; }
+.gap-lg { gap: 48px; }
+.flex-1 { flex: 1; }
+
+/* ── Typography ── */
+.hero { font-family: var(--font-serif); font-size: 120px; font-weight: 900; line-height: 1.05; }
+.h1   { font-family: var(--font-serif); font-size: 72px;  font-weight: 900; line-height: 1.1; }
+.h2   { font-family: var(--font-sans);  font-size: 48px;  font-weight: 700; line-height: 1.2; }
+.h3   { font-family: var(--font-sans);  font-size: 32px;  font-weight: 700; }
+.body { font-size: 26px; line-height: 1.75; color: var(--text-dim); }
+.body-lg { font-size: 30px; line-height: 1.8; color: var(--text-dim); }
+.label { font-family: var(--font-mono); font-size: 14px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-dim2); }
+.mono { font-family: var(--font-mono); }
+
+/* ── Accent Colors ── */
+.blue   { color: var(--blue); }
+.green  { color: var(--green); }
+.orange { color: var(--orange); }
+.purple { color: var(--purple); }
+.red    { color: var(--red); }
+.cyan   { color: var(--cyan); }
+.yellow { color: var(--yellow); }
+
+/* ── Code Block ── */
+.code-block {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 32px 40px;
+  font-family: var(--font-mono); font-size: 22px; line-height: 1.7;
+  white-space: pre; overflow: hidden;
+}
+.code-block .kw  { color: #ff7b72; }
+.code-block .str { color: #a5d6ff; }
+.code-block .fn  { color: #d2a8ff; }
+.code-block .cm  { color: #8b949e; }
+.code-block .op  { color: #79c0ff; }
+.code-block .fm  { color: #ffa657; }
+.code-block .ok  { color: var(--green); }
+.code-block .hl  { background: rgba(56,139,253,.15); border-radius:3px; padding:0 4px; }
+
+/* ── Card ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 36px 44px;
+}
+.card-blue  { border-color: var(--blue-dark); }
+.card-green { border-color: var(--green-dark); }
+.card-orange{ border-color: #9e5600; }
+
+/* ── Tag ── */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 6px 16px; border-radius: 20px;
+  font-family: var(--font-mono); font-size: 16px; font-weight: 600;
+  letter-spacing: .05em;
+}
+.tag-blue   { background: rgba(56,139,253,.15); color: var(--blue); border: 1px solid var(--blue-dark); }
+.tag-green  { background: rgba(63,185,80,.12);  color: var(--green);  border: 1px solid var(--green-dark); }
+.tag-orange { background: rgba(240,136,62,.12); color: var(--orange); border: 1px solid #9e5600; }
+.tag-purple { background: rgba(188,140,255,.12);color: var(--purple); border: 1px solid #6e40c9; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); }
+
+/* ── Page Header / Footer ── */
+.pg-header {
+  height: 64px; padding: 0 100px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border2);
+  font-family: var(--font-mono); font-size: 13px; color: var(--text-dim2);
+  flex-shrink: 0;
+}
+.pg-footer {
+  height: 56px; padding: 0 100px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--border2);
+  font-family: var(--font-mono); font-size: 13px; color: var(--text-dim2);
+  flex-shrink: 0;
+}
+
+/* ── Grid Noise BG ── */
+.noise {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(56,139,253,.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(63,185,80,.04) 0%, transparent 50%),
+    radial-gradient(circle at 60% 10%, rgba(240,136,62,.03) 0%, transparent 40%);
+}
+
+/* ── Step Arrow ── */
+.step-arrow {
+  display: flex; align-items: center; gap: 0;
+}
+.step-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px 28px;
+  font-family: var(--font-mono); font-size: 20px; text-align: center;
+  white-space: nowrap;
+}
+.step-arrow-icon {
+  color: var(--blue-dark); font-size: 28px; margin: 0 8px;
+}
+
+/* ── Terminal ── */
+.terminal {
+  background: #010409; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.terminal-bar {
+  background: #161b22; padding: 10px 18px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.terminal-dot { width: 13px; height: 13px; border-radius: 50%; }
+.terminal-body { padding: 24px 32px; font-family: var(--font-mono); font-size: 21px; line-height: 1.75; }
+.term-prompt { color: var(--green); }
+.term-cmd    { color: var(--text); }
+.term-out    { color: var(--text-dim); }
+.term-ok     { color: var(--green); }
+.term-info   { color: var(--cyan); }
+
+/* ── Neon Glow ── */
+.glow-blue  { text-shadow: 0 0 20px rgba(56,139,253,.6); }
+.glow-green { text-shadow: 0 0 20px rgba(63,185,80,.6); }
+.glow-orange{ text-shadow: 0 0 20px rgba(240,136,62,.6); }
+
+/* ── Timeline dot ── */
+.tl-dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
+
+/* ── Venn ── */
+.venn-ring {
+  border-radius: 50%; position: absolute;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Slide 01 · Cover ── */
+#s01 { flex-direction: column; }
+#s01 .main-area {
+  flex: 1; display: flex; align-items: center; padding: 60px 120px;
+  gap: 80px;
+}
+#s01 .left { flex: 1; }
+#s01 .right {
+  width: 640px; display: flex; flex-direction: column; gap: 28px;
+}
+#s01 .chapter-tag {
+  font-family: var(--font-mono); font-size: 15px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--text-dim2); margin-bottom: 24px;
+}
+#s01 .hero-line { font-family: var(--font-serif); font-size: 88px; font-weight: 900; line-height: 1.08; }
+#s01 .hero-line span { color: var(--blue); }
+#s01 .tagline { font-size: 28px; line-height: 1.65; color: var(--text-dim); margin-top: 28px; }
+#s01 .tagline em { color: var(--orange); font-style: normal; font-weight: 700; }
+#s01 .divider-v { width: 1px; background: var(--border); align-self: stretch; margin: 0 20px; }
+#s01 .meta-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; }
+#s01 .meta-card .label { margin-bottom: 10px; }
+#s01 .meta-card .val { font-size: 20px; color: var(--text); line-height: 1.8; }
+#s01 .accent-bar { width: 80px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--blue), var(--green)); margin-bottom: 32px; }
+
+/* ── Slide 02 · Tools vs Skills ── */
+#s02 { flex-direction: column; }
+#s02 .two-col { flex: 1; display: flex; gap: 0; }
+#s02 .col-side {
+  flex: 1; padding: 56px 72px;
+  display: flex; flex-direction: column; gap: 32px;
+}
+#s02 .col-left  { background: rgba(248,81,73,.04); border-right: 1px solid var(--border); }
+#s02 .col-right { background: rgba(63,185,80,.04); }
+#s02 .col-title { font-family: var(--font-serif); font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+#s02 .col-sub   { font-family: var(--font-mono); font-size: 18px; color: var(--text-dim2); margin-bottom: 16px; }
+#s02 .row-item  { display: flex; gap: 24px; align-items: flex-start; padding: 20px 24px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+#s02 .row-item .icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+#s02 .row-item .txt h4 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+#s02 .row-item .txt p  { font-size: 19px; color: var(--text-dim); line-height: 1.6; }
+#s02 .vs-badge {
+  width: 80px; align-self: stretch; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif); font-size: 40px; font-weight: 900; color: var(--text-dim2);
+  border-left: 1px solid var(--border2); border-right: 1px solid var(--border2);
+}
+
+/* ── Slide 03 · File Format ── */
+#s03 { flex-direction: column; }
+#s03 .content { flex: 1; display: flex; padding: 48px 80px; gap: 64px; }
+#s03 .left { width: 780px; display: flex; flex-direction: column; gap: 24px; }
+#s03 .right { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s03 .annotation { display: flex; gap: 16px; align-items: flex-start; }
+#s03 .ann-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 8px; flex-shrink: 0; }
+#s03 .ann-text h4 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+#s03 .ann-text p { font-size: 18px; color: var(--text-dim); line-height: 1.6; }
+
+/* ── Slide 04 · Load Mechanism ── */
+#s04 { flex-direction: column; }
+#s04 .flow { flex: 1; display: flex; align-items: center; padding: 40px 80px; gap: 0; }
+#s04 .flow-step {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 32px 36px; flex: 1;
+}
+#s04 .flow-step .step-num { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim2); letter-spacing: .1em; }
+#s04 .flow-step .step-icon { font-size: 44px; }
+#s04 .flow-step .step-title { font-size: 24px; font-weight: 700; text-align: center; }
+#s04 .flow-step .step-detail { font-family: var(--font-mono); font-size: 16px; color: var(--text-dim); text-align: center; line-height: 1.6; }
+#s04 .flow-arr { font-size: 36px; color: var(--blue-dark); padding: 0 12px; flex-shrink: 0; }
+#s04 .source-note { padding: 20px 80px; font-family: var(--font-mono); font-size: 14px; color: var(--text-dim2); border-top: 1px solid var(--border2); }
+
+/* ── Slide 05 · $ARGUMENTS ── */
+#s05 { flex-direction: column; }
+#s05 .content { flex: 1; display: flex; padding: 48px 80px; gap: 64px; align-items: center; }
+#s05 .left { flex: 1; display: flex; flex-direction: column; gap: 28px; }
+#s05 .right { width: 680px; display: flex; flex-direction: column; gap: 20px; }
+#s05 .step-row { display: flex; gap: 20px; align-items: center; padding: 18px 24px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; }
+#s05 .step-num-badge { width: 40px; height: 40px; border-radius: 50%; background: var(--blue-dark); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 18px; font-weight: 700; flex-shrink: 0; }
+#s05 .step-content h4 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+#s05 .step-content p  { font-size: 17px; color: var(--text-dim); }
+
+/* ── Slide 06 · weather.md Example ── */
+#s06 { flex-direction: column; }
+#s06 .content { flex: 1; display: flex; padding: 36px 60px; gap: 48px; }
+#s06 .left  { width: 860px; display: flex; flex-direction: column; gap: 16px; }
+#s06 .right { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Slide 07 · Anthropic Article ── */
+#s07 { flex-direction: column; }
+#s07 .content { flex: 1; display: flex; flex-direction: column; padding: 56px 120px; gap: 48px; align-items: center; justify-content: center; }
+#s07 .quote-wrap { background: var(--bg2); border: 1px solid var(--border); border-left: 4px solid var(--blue); border-radius: 0 12px 12px 0; padding: 48px 60px; max-width: 1400px; }
+#s07 .quote-text { font-family: var(--font-serif); font-size: 44px; line-height: 1.45; color: var(--text); margin-bottom: 24px; }
+#s07 .quote-attr { font-family: var(--font-mono); font-size: 18px; color: var(--text-dim2); }
+#s07 .points-row { display: flex; gap: 32px; max-width: 1400px; width: 100%; }
+#s07 .point-card { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px 36px; }
+#s07 .point-card h4 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+#s07 .point-card p  { font-size: 19px; color: var(--text-dim); line-height: 1.6; }
+
+/* ── Slide 08 · Industry Timeline ── */
+#s08 { flex-direction: column; }
+#s08 .content { flex: 1; display: flex; padding: 56px 100px; gap: 48px; align-items: flex-start; }
+#s08 .timeline { flex: 1; display: flex; flex-direction: column; gap: 0; position: relative; }
+#s08 .tl-line { position: absolute; left: 10px; top: 20px; bottom: 20px; width: 1px; background: var(--border); }
+#s08 .tl-item { display: flex; gap: 40px; align-items: flex-start; padding: 28px 0; padding-left: 52px; position: relative; }
+#s08 .tl-item .tl-dot { position: absolute; left: 0; top: 30px; width: 20px; height: 20px; border-radius: 50%; }
+#s08 .tl-item .tl-date { font-family: var(--font-mono); font-size: 18px; color: var(--text-dim2); width: 180px; flex-shrink: 0; padding-top: 4px; }
+#s08 .tl-item .tl-content h4 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+#s08 .tl-item .tl-content p  { font-size: 20px; color: var(--text-dim); line-height: 1.65; }
+#s08 .right-panel { width: 600px; display: flex; flex-direction: column; gap: 24px; }
+
+/* ── Slide 09 · Skills vs MCP ── */
+#s09 { flex-direction: column; }
+#s09 .content { flex: 1; display: flex; padding: 48px 80px; gap: 64px; align-items: center; }
+#s09 .venn-area { width: 760px; height: 700px; position: relative; flex-shrink: 0; }
+#s09 .v-ring-left {
+  position: absolute; width: 500px; height: 500px;
+  border-radius: 50%; top: 100px; left: 0;
+  background: radial-gradient(circle at 40% 50%, rgba(56,139,253,.18) 0%, rgba(56,139,253,.06) 60%, transparent 100%);
+  border: 1.5px solid rgba(56,139,253,.4);
+  display: flex; align-items: center; justify-content: center; padding-right: 80px;
+}
+#s09 .v-ring-right {
+  position: absolute; width: 500px; height: 500px;
+  border-radius: 50%; top: 100px; right: 0;
+  background: radial-gradient(circle at 60% 50%, rgba(63,185,80,.15) 0%, rgba(63,185,80,.05) 60%, transparent 100%);
+  border: 1.5px solid rgba(63,185,80,.4);
+  display: flex; align-items: center; justify-content: center; padding-left: 80px;
+}
+#s09 .v-label { font-size: 20px; font-weight: 700; text-align: center; line-height: 1.6; }
+#s09 .v-intersection {
+  position: absolute; width: 180px; top: 160px; left: 50%; transform: translateX(-50%);
+  text-align: center; font-family: var(--font-mono); font-size: 16px; color: var(--text-dim); line-height: 1.6;
+}
+#s09 .right-list { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+#s09 .compare-row { display: flex; gap: 28px; }
+#s09 .compare-cell { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; }
+#s09 .compare-cell h5 { font-size: 18px; font-weight: 700; margin-bottom: 8px; font-family: var(--font-mono); }
+#s09 .compare-cell p  { font-size: 17px; color: var(--text-dim); line-height: 1.6; }
+
+/* ── Slide 10 · Terminal Demo ── */
+#s10 { flex-direction: column; }
+#s10 .content { flex: 1; display: flex; padding: 40px 80px; gap: 48px; }
+#s10 .term-wrap { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+#s10 .term-label { font-family: var(--font-mono); font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-dim2); }
+
+/* ── Slide 11 · Design Note ── */
+#s11 { flex-direction: column; }
+#s11 .content { flex: 1; display: flex; padding: 48px 80px; gap: 64px; }
+#s11 .left { flex: 1; display: flex; flex-direction: column; gap: 32px; }
+#s11 .right { width: 680px; display: flex; flex-direction: column; gap: 20px; }
+#s11 .dn-card { background: var(--bg2); border: 1px solid var(--border); border-left: 4px solid var(--yellow); border-radius: 0 10px 10px 0; padding: 32px 40px; }
+#s11 .dn-card h3 { font-size: 26px; font-weight: 700; margin-bottom: 12px; color: var(--yellow); }
+#s11 .dn-card p  { font-size: 20px; color: var(--text-dim); line-height: 1.7; }
+#s11 .strategy { display: flex; gap: 16px; align-items: flex-start; padding: 18px 22px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+#s11 .strategy .icon { font-size: 28px; flex-shrink: 0; }
+#s11 .strategy .txt h4 { font-size: 21px; font-weight: 700; margin-bottom: 6px; }
+#s11 .strategy .txt p  { font-size: 18px; color: var(--text-dim); line-height: 1.6; }
+
+/* ── Slide 12 · Summary ── */
+#s12 { flex-direction: column; }
+#s12 .content { flex: 1; display: flex; padding: 48px 80px; gap: 64px; }
+#s12 .left { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+#s12 .right { width: 680px; display: flex; flex-direction: column; gap: 24px; }
+#s12 .kv-row { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+#s12 .kv-key { background: var(--bg2); padding: 14px 20px; font-family: var(--font-mono); font-size: 18px; color: var(--blue); width: 230px; flex-shrink: 0; display: flex; align-items: center; border-right: 1px solid var(--border); }
+#s12 .kv-val { padding: 14px 20px; font-size: 19px; color: var(--text-dim); display: flex; align-items: center; flex: 1; }
+#s12 .preview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 36px 44px; }
+#s12 .preview-card h3 { font-family: var(--font-serif); font-size: 36px; font-weight: 900; margin-bottom: 16px; color: var(--cyan); }
+#s12 .preview-card p  { font-size: 22px; color: var(--text-dim); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 01 · Cover -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide noise active" id="s01">
+  <div class="pg-header">
+    <span>《从零构建你的 AI Agent》· Ch 09</span>
+    <span>Skills：可复用的能力单元 · lena-v0.9</span>
+  </div>
+  <div class="main-area">
+    <div class="left">
+      <div class="accent-bar"></div>
+      <div class="chapter-tag">Chapter 09 · Skill System</div>
+      <div class="hero-line">Skills：<span>可复用</span>的</div>
+      <div class="hero-line">能力单元</div>
+      <p class="tagline" style="margin-top:32px;">
+        工具解决「<em>能不能做</em>」<br>
+        Skills 解决「<em>怎么做得好</em>」
+      </p>
+    </div>
+    <div class="divider-v"></div>
+    <div class="right">
+      <div class="meta-card card-blue" style="background:var(--bg2);border:1px solid var(--blue-dark);border-radius:12px;padding:28px 32px;">
+        <div class="label" style="margin-bottom:14px;">本章核心产出</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;"><span class="tag tag-green">代码</span><span style="font-size:20px;">lena-v0.9 动态加载 Skills</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span class="tag tag-blue">概念</span><span style="font-size:20px;">Tools vs Skills 本质差异</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span class="tag tag-orange">案例</span><span style="font-size:20px;">ironman-config 跨机器同步</span></div>
+          <div style="display:flex;align-items:center;gap:12px;"><span class="tag tag-purple">趋势</span><span style="font-size:20px;">Anthropic 2025-10 → OpenAI 2025-12</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:8px;">
+        <div class="label" style="margin-bottom:12px;">版本递进</div>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 20px;font-family:var(--font-mono);font-size:18px;">lena-v0.8<div style="font-size:14px;color:var(--text-dim2);margin-top:4px;">拆任务+并发子 agent</div></div>
+          <div style="font-size:28px;color:var(--blue);">→</div>
+          <div style="background:rgba(56,139,253,.1);border:1px solid var(--blue-dark);border-radius:8px;padding:14px 20px;font-family:var(--font-mono);font-size:18px;color:var(--blue);">lena-v0.9<div style="font-size:14px;color:var(--text-dim);margin-top:4px;">动态 Skills 加载</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>lena-v0.9 · skills/ 动态加载 · $ARGUMENTS 参数替换</span>
+    <span>R1 loadSkillsDir.ts · R3 Anthropic 2025-10-16 · R5 案例 9.1/9.2</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 02 · Tools vs Skills -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s02">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">02 / 12 · Tools vs Skills 本质差异</span>
+  </div>
+  <div class="two-col">
+    <div class="col-side col-left">
+      <div>
+        <div class="label" style="margin-bottom:12px;">传统方式</div>
+        <div class="col-title red">Tool（工具）</div>
+        <div class="col-sub">描述"能做什么"</div>
+      </div>
+      <div class="code-block" style="font-size:19px;">
+<span class="cm"># 工具 = 函数</span>
+<span class="kw">def</span> <span class="fn">get_weather</span>(<span class="op">city</span>: str) -> dict:
+    <span class="str">"""查询城市天气"""</span>
+    resp = requests.get(API + city)
+    <span class="kw">return</span> resp.json()
+
+<span class="cm"># 工具告诉 agent：</span>
+<span class="cm"># "我有这个能力"</span>
+<span class="cm"># 但不告诉 agent：</span>
+<span class="cm"># "调用前该做什么？"</span>
+<span class="cm"># "失败了该怎么办？"</span>
+<span class="cm"># "结果该怎么呈现？"</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="row-item">
+          <div class="icon">⚡</div>
+          <div class="txt"><h4>输入 → 输出</h4><p>固定签名，无 SOP 知识</p></div>
+        </div>
+        <div class="row-item">
+          <div class="icon">🔧</div>
+          <div class="txt"><h4>修改 = 改代码+部署</h4><p>工程师才能维护</p></div>
+        </div>
+        <div class="row-item">
+          <div class="icon">🧩</div>
+          <div class="txt"><h4>无法编码"经验"</h4><p>最佳实践写不进函数签名</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vs-badge">vs</div>
+
+    <div class="col-side col-right">
+      <div>
+        <div class="label" style="margin-bottom:12px;">Skills 方式</div>
+        <div class="col-title green">Skill（技能）</div>
+        <div class="col-sub">描述"怎么做"</div>
+      </div>
+      <div class="code-block" style="font-size:19px;">
+<span class="cm"># Skill = SOP + 可选代码（Markdown）</span>
+<span class="fm">---</span>
+<span class="fm">name: weather</span>
+<span class="fm">description: 查询天气并生成简报</span>
+<span class="fm">---</span>
+
+查询 <span class="hl">$ARGUMENTS</span> 的天气，步骤：
+1. 先确认城市名拼写正确
+2. 调用 get_weather 工具
+3. 格式化：温度、趋势、建议
+<span class="cm"># 失败时：说明原因，不暴露 API 错误</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="row-item">
+          <div class="icon">📋</div>
+          <div class="txt"><h4>SOP + 知识</h4><p>编码专家做事方法</p></div>
+        </div>
+        <div class="row-item">
+          <div class="icon">✏️</div>
+          <div class="txt"><h4>修改 = 改 Markdown</h4><p>非工程师也能维护</p></div>
+        </div>
+        <div class="row-item">
+          <div class="icon">🔄</div>
+          <div class="txt"><h4>跨 agent 可共享</h4><p>一份 .md 文件即可复用</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>Tool = 函数（输入→输出）· Skill = SOP（这类任务应该怎么做的编码）</span>
+    <span>R1 §3 Skills 段</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 03 · CC Skills File Format -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s03">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">03 / 12 · CC Skills 文件格式</span>
+  </div>
+  <div class="content">
+    <div class="left">
+      <div class="h2" style="margin-bottom:8px;">Skills 文件格式</div>
+      <div class="label" style="margin-bottom:16px;">YAML frontmatter + Markdown 正文</div>
+      <div class="code-block" style="font-size:20px;flex:1;">
+<span class="fm">---</span>
+<span class="fm">name:</span> <span class="str">weather</span>          <span class="cm"># → /weather 命令</span>
+<span class="fm">description:</span> <span class="str">查询城市天气</span>
+<span class="fm">argument-hint:</span> <span class="str">"&lt;城市名&gt;"</span>   <span class="cm"># UI 提示</span>
+<span class="fm">allowed-tools:</span>             <span class="cm"># 工具白名单</span>
+  - <span class="str">get_weather</span>
+<span class="fm">tags:</span>
+  - <span class="str">weather</span>
+  - <span class="str">utility</span>
+<span class="fm">---</span>
+
+查询 <span class="hl">$ARGUMENTS</span> 的当前天气。
+
+<span class="cm">## 步骤</span>
+1. 确认城市名（别名→标准名）
+2. 调用 get_weather 工具
+3. 格式化：温度/湿度/风速/趋势
+4. 给出出行建议（一句话）
+
+<span class="cm">## 错误处理</span>
+- API 错误：<span class="str">"天气服务暂不可用"</span>
+- 城市不识别：询问用户确认
+      </div>
+    </div>
+    <div class="right">
+      <div class="h3" style="margin-bottom:20px;">字段说明</div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="annotation">
+          <div class="ann-dot" style="background:var(--orange);"></div>
+          <div class="ann-text">
+            <h4 class="orange">frontmatter（YAML）</h4>
+            <p><span style="color:var(--text);font-weight:700;">name</span> → slash 命令名 <span class="mono" style="font-size:16px;color:var(--text-dim2);">commands.ts:563</span><br>
+            <span style="color:var(--text);font-weight:700;">description</span> → 帮助列表显示<br>
+            <span style="color:var(--text);font-weight:700;">argument-hint</span> → UI 参数提示<br>
+            <span style="color:var(--text);font-weight:700;">allowed-tools</span> → 工具权限白名单</p>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="annotation">
+          <div class="ann-dot" style="background:var(--blue);"></div>
+          <div class="ann-text">
+            <h4 class="blue">正文（Markdown）</h4>
+            <p><span style="font-family:var(--font-mono);color:var(--yellow);">$ARGUMENTS</span> → 用户输入替换<br>
+            SOP 步骤 → 注入 system prompt<br>
+            错误处理 → 编码在 Skill 里<br>
+            <strong style="color:var(--green);">改 MD 即生效，无需重新部署</strong></p>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="annotation">
+          <div class="ann-dot" style="background:var(--green);"></div>
+          <div class="ann-text">
+            <h4 class="green">文件名 → 命令名</h4>
+            <p>无 name 字段时，文件名自动成为命令名<br>
+            <span class="mono" style="font-size:17px;">skills/pdf-report.md → /pdf-report</span><br>
+            支持子目录：<span class="mono" style="font-size:17px;">reports/q3.md → /reports/q3</span></p>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="annotation">
+          <div class="ann-dot" style="background:var(--purple);"></div>
+          <div class="ann-text">
+            <h4 class="purple">扫描路径（三层优先级）</h4>
+            <p class="mono" style="font-size:17px;line-height:1.8;">
+              ~/.claude/skills/   ← 全局<br>
+              .claude/skills/     ← 项目（优先）<br>
+              .claude/commands/   ← 旧格式兼容
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>loadSkillsDir.ts:887 · gray-matter 解析 frontmatter · commands.ts:563 构建 Command 对象</span>
+    <span>R1 §3 Skills 段</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 04 · loadSkillsDir 加载机制 -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide noise" id="s04">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">04 / 12 · 加载机制：loadSkillsDir.ts</span>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:48px 80px;gap:40px;">
+    <div style="display:flex;gap:24px;align-items:center;">
+      <div class="h2">加载流水线</div>
+      <div class="tag tag-blue" style="font-size:16px;">loadSkillsDir.ts · 887行</div>
+    </div>
+    <div class="flow" style="flex:1;display:flex;align-items:center;gap:0;padding:0;">
+      <div class="flow-step" style="background:rgba(56,139,253,.08);border-color:var(--blue-dark);">
+        <div class="step-num">STEP 01</div>
+        <div class="step-icon">📁</div>
+        <div class="step-title blue">目录扫描</div>
+        <div class="step-detail">rglob("*.md")<br>~/.claude/skills/<br>.claude/skills/<br>.claude/commands/</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step" style="background:rgba(240,136,62,.08);border-color:#9e5600;">
+        <div class="step-num">STEP 02</div>
+        <div class="step-icon">📝</div>
+        <div class="step-title orange">读取文件</div>
+        <div class="step-detail">UTF-8 读取<br>每个 .md 文件<br>内容到内存</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step" style="background:rgba(188,140,255,.08);border-color:#6e40c9;">
+        <div class="step-num">STEP 03</div>
+        <div class="step-icon">🔍</div>
+        <div class="step-title purple">frontmatter 解析</div>
+        <div class="step-detail">gray-matter 库<br>YAML → 对象<br>name/desc/tools</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step" style="background:rgba(121,192,255,.08);border-color:rgba(121,192,255,.4);">
+        <div class="step-num">STEP 04</div>
+        <div class="step-icon">🏗️</div>
+        <div class="step-title cyan">Command 对象</div>
+        <div class="step-detail">commands.ts:563<br>name/desc/<br>content/$ARGS<br>allowedTools</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step" style="background:rgba(63,185,80,.08);border-color:var(--green-dark);">
+        <div class="step-num">STEP 05</div>
+        <div class="step-icon">📦</div>
+        <div class="step-title green">CommandRegistry</div>
+        <div class="step-detail">注册完成<br>/weather<br>/pdf-report<br>用户可调用</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:24px;">
+      <div class="card flex-1" style="background:rgba(56,139,253,.06);border-color:var(--blue-dark);">
+        <div class="label" style="margin-bottom:12px;">优先级规则</div>
+        <p style="font-size:20px;color:var(--text-dim);line-height:1.6;">同名 Skill：<span class="blue">项目级 > 全局级</span><br>后者覆盖前者（本地定制优先）</p>
+      </div>
+      <div class="card flex-1" style="background:rgba(63,185,80,.06);border-color:var(--green-dark);">
+        <div class="label" style="margin-bottom:12px;">命名空间支持</div>
+        <p style="font-size:20px;color:var(--text-dim);line-height:1.6;">子目录 = 命名空间<br><span class="mono" style="font-size:18px;">reports/q3.md → /reports/q3</span></p>
+      </div>
+      <div class="card flex-1" style="background:rgba(188,140,255,.06);border-color:#6e40c9;">
+        <div class="label" style="margin-bottom:12px;">启动时加载</div>
+        <p style="font-size:20px;color:var(--text-dim);line-height:1.6;">CC 启动时一次性扫描<br>新增 Skill 需重启生效</p>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>完整实现：loadSkillsDir.ts:887 · Command 对象构建：commands.ts:563</span>
+    <span>R1 §3 Skills 段 · CC 源码 skills/ 目录</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 05 · $ARGUMENTS 替换机制 -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s05">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">05 / 12 · $ARGUMENTS 参数替换</span>
+  </div>
+  <div class="content">
+    <div class="left">
+      <div class="h2" style="margin-bottom:24px;"><span class="yellow mono">$ARGUMENTS</span> 参数替换</div>
+      <div class="body-lg" style="margin-bottom:32px;">
+        用户输入 <span class="mono green">/weather 上海</span> 时：<br>
+        Skill 正文里所有 <span class="mono yellow">$ARGUMENTS</span><br>
+        被替换为 <span class="mono orange">上海</span>，然后注入 system prompt。
+      </div>
+      <div class="card" style="background:rgba(227,179,65,.06);border-color:rgba(227,179,65,.3);">
+        <div class="label yellow" style="margin-bottom:16px;">本质：参数化的 system prompt 片段</div>
+        <p class="body">Skills 本质上是<strong style="color:var(--text);">可复用的 system prompt 模板</strong>。<br>
+        每次调用时，动态展开并追加到当前 system prompt 末尾。<br>
+        简单、透明、可预期——没有任何黑盒逻辑。</p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="label" style="margin-bottom:12px;">执行步骤</div>
+      <div class="step-row">
+        <div class="step-num-badge">1</div>
+        <div class="step-content">
+          <h4>用户输入</h4>
+          <p class="mono" style="font-size:20px;color:var(--green);">/weather 上海</p>
+        </div>
+      </div>
+      <div style="padding-left:20px;color:var(--border);font-size:24px;">↓</div>
+      <div class="step-row" style="background:rgba(56,139,253,.06);border-color:var(--blue-dark);">
+        <div class="step-num-badge" style="background:var(--blue-dark);">2</div>
+        <div class="step-content">
+          <h4>匹配 CommandRegistry</h4>
+          <p>找到 <span class="mono" style="font-size:16px;">skills/weather.md</span> → Command 对象</p>
+        </div>
+      </div>
+      <div style="padding-left:20px;color:var(--border);font-size:24px;">↓</div>
+      <div class="step-row" style="background:rgba(227,179,65,.06);border-color:rgba(227,179,65,.3);">
+        <div class="step-num-badge" style="background:#9e5600;">3</div>
+        <div class="step-content">
+          <h4>$ARGUMENTS 替换</h4>
+          <p><span class="mono yellow" style="font-size:16px;">"查询 $ARGUMENTS 的天气"</span><br>→ <span class="mono orange" style="font-size:16px;">"查询 上海 的天气"</span></p>
+        </div>
+      </div>
+      <div style="padding-left:20px;color:var(--border);font-size:24px;">↓</div>
+      <div class="step-row" style="background:rgba(240,136,62,.06);border-color:#9e5600;">
+        <div class="step-num-badge" style="background:#9e5600;">4</div>
+        <div class="step-content">
+          <h4>注入 system prompt</h4>
+          <p>替换后内容追加到当前 system prompt</p>
+        </div>
+      </div>
+      <div style="padding-left:20px;color:var(--border);font-size:24px;">↓</div>
+      <div class="step-row" style="background:rgba(63,185,80,.06);border-color:var(--green-dark);">
+        <div class="step-num-badge" style="background:var(--green-dark);">5</div>
+        <div class="step-content">
+          <h4>LLM 执行</h4>
+          <p>使用 allowed-tools + Skill SOP 完成任务</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>$ARGUMENTS = 唯一占位符 · 替换后追加 system prompt · allowed-tools 自动注入</span>
+    <span>R1 §3 Skills 段 · loadSkillsDir.ts:887</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 06 · weather.md 完整示例 -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s06">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">06 / 12 · weather.md 完整示例</span>
+  </div>
+  <div class="content">
+    <div class="left">
+      <div class="label" style="margin-bottom:10px;">skills/weather.md · 源文件</div>
+      <div class="code-block" style="font-size:18px;flex:1;">
+<span class="fm">---</span>
+<span class="fm">name:</span> <span class="str">weather</span>
+<span class="fm">description:</span> <span class="str">查询城市天气并生成易读简报</span>
+<span class="fm">argument-hint:</span> <span class="str">"&lt;城市名&gt;"</span>
+<span class="fm">allowed-tools:</span>
+  - <span class="str">get_weather</span>
+<span class="fm">---</span>
+
+查询 <span class="hl">$ARGUMENTS</span> 的当前天气，按以下 SOP 处理：
+
+<span class="cm">## 步骤</span>
+1. <span class="op">确认城市名</span>：别名自动转换标准名
+2. <span class="op">调用工具</span>：使用 get_weather 获取数据
+3. <span class="op">格式化输出</span>：温度/体感/描述/湿度/风速/趋势
+4. <span class="op">出行建议</span>：一句话总结
+
+<span class="cm">## 错误处理</span>
+- API 错误→ <span class="str">"天气服务暂不可用，请稍后重试"</span>
+- 城市不识别 → 询问用户并提供相似城市
+- 超时 → 提示检查网络
+
+<span class="cm">## 输出格式</span>
+<span class="str">🌤 {城市} 天气（{日期时间}）</span>
+<span class="str">温度：{temp}°C（体感 {feels}°C）</span>
+<span class="str">天气：{description}</span>
+<span class="str">湿度：{humidity}% | 风速：{wind}</span>
+<span class="str">未来 24h：▲/▼ {forecast}</span>
+<span class="str">💡 建议：{advice}</span>
+      </div>
+    </div>
+    <div class="right">
+      <div class="label" style="margin-bottom:10px;">执行效果 · /weather 上海</div>
+      <div class="terminal" style="flex:1;">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background:#ff5f57;"></div>
+          <div class="terminal-dot" style="background:#febc2e;"></div>
+          <div class="terminal-dot" style="background:#28c840;"></div>
+          <span style="font-family:var(--font-mono);font-size:14px;color:var(--text-dim2);margin-left:12px;">lena-v0.9 · skills demo</span>
+        </div>
+        <div class="terminal-body">
+<span class="term-prompt">Lena &gt; </span><span class="term-cmd">/weather 上海</span>
+
+<span class="term-info">[ Skills ] 加载 weather.md</span>
+<span class="term-info">[ Skills ] $ARGUMENTS → "上海"</span>
+<span class="term-info">[ Tools  ] 调用 get_weather("上海")</span>
+<span class="term-ok">[ Done   ] 天气数据获取成功</span>
+
+<span style="color:var(--cyan);">🌤 上海天气（2026-05-05 14:00）</span>
+<span class="term-out">温度：22°C（体感 20°C）</span>
+<span class="term-out">天气：多云转晴</span>
+<span class="term-out">湿度：65% | 风速：3级东北风</span>
+
+<span class="term-out">未来 24h：▲ 明日最高 26°C</span>
+<span class="term-out">          午后有阵雨可能</span>
+
+<span style="color:var(--yellow);">💡 建议随身带伞，下午注意阵雨。</span>
+        </div>
+      </div>
+      <div class="card" style="background:rgba(63,185,80,.06);border-color:var(--green-dark);">
+        <p style="font-size:20px;line-height:1.7;color:var(--text-dim);">
+          <strong style="color:var(--green);">关键：</strong>错误处理、格式规范、出行建议——这些"经验"编码在 Skill 里，不在工具里，不在 agent 主逻辑里。<strong style="color:var(--text);">改 MD 文件即生效。</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>skills/weather.md · 参数替换 · allowed-tools: get_weather · SOP 驱动执行</span>
+    <span>lena-v0.9 code/lena-v0.09/skills/weather.md</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 07 · Anthropic 2025-10-16 -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide noise" id="s07">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">07 / 12 · Anthropic 2025-10-16 核心观点</span>
+  </div>
+  <div class="content">
+    <div style="display:flex;align-items:center;gap:24px;max-width:1400px;">
+      <div style="background:rgba(56,139,253,.1);border:1px solid var(--blue-dark);border-radius:12px;padding:20px 28px;font-family:var(--font-mono);font-size:14px;color:var(--cyan);white-space:nowrap;">
+        Anthropic Engineering Blog<br>2025-10-16
+      </div>
+      <div class="h2" style="font-size:40px;">Equipping Agents for the Real World with Agent Skills</div>
+    </div>
+    <div class="quote-wrap">
+      <div class="quote-text">
+        「Skills 是可以在 agent 之间<span class="blue">共享的能力单元</span>，把专家知识编码为<span class="green">可复用的 Markdown 文档</span>。」
+      </div>
+      <div class="quote-attr">— Anthropic Engineering Blog · 2025-10-16 · https://www.anthropic.com/engineering</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:24px;max-width:1400px;background:rgba(63,185,80,.06);border:1px solid var(--green-dark);border-radius:12px;padding:24px 36px;">
+      <div style="font-size:52px;flex-shrink:0;">💬</div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:14px;color:var(--text-dim2);margin-bottom:8px;">Simon Willison · simonwillison.net · 2025-10-16</div>
+        <div style="font-family:var(--font-serif);font-size:34px;color:var(--green);font-weight:700;">"a bigger deal than MCP"</div>
+        <div style="font-size:20px;color:var(--text-dim);margin-top:8px;line-height:1.6;">
+          MCP 解决工具连接的标准化，Skills 解决知识复用——后者生态价值更大，因为<strong style="color:var(--text);">知识比工具更难获取、更难标准化</strong>。
+        </div>
+      </div>
+    </div>
+    <div class="points-row">
+      <div class="point-card">
+        <h4 class="blue">可共享性</h4>
+        <p>一个专家写的 Skill 可以被所有 agent 复用，跨机器、跨团队、跨项目</p>
+      </div>
+      <div class="point-card">
+        <h4 class="green">互补不替代</h4>
+        <p>Skills 不替代工具。工具提供<strong style="color:var(--text);">能力</strong>，Skills 提供<strong style="color:var(--text);">知识</strong></p>
+      </div>
+      <div class="point-card">
+        <h4 class="orange">低门槛扩展</h4>
+        <p>非工程师也能扩展 agent 能力，只需写 Markdown，无需编码、无需部署</p>
+      </div>
+      <div class="point-card">
+        <h4 class="purple">生态价值</h4>
+        <p>形成"技能市场"——专家贡献 Skill，所有人受益。类比 npm 包但针对知识</p>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>Anthropic Engineering Blog · 2025-10-16 · "Equipping Agents for the Real World with Agent Skills"</span>
+    <span>R3 §二第 2 条 · Simon Willison 评论</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 08 · Industry Timeline -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s08">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">08 / 12 · 行业收敛：Skills 成为标准</span>
+  </div>
+  <div class="content">
+    <div class="timeline" style="flex:1;">
+      <div class="tl-line"></div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--text-dim2);"></div>
+        <div class="tl-date">2024-11</div>
+        <div class="tl-content">
+          <h4 style="color:var(--text-dim);">Anthropic 发布 MCP</h4>
+          <p>工具连接标准化协议，快速成为 agent 工具接入标准。Skills 的前置基础设施。</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--blue);box-shadow:0 0 12px rgba(56,139,253,.6);"></div>
+        <div class="tl-date">2025-10-16</div>
+        <div class="tl-content card-blue" style="background:var(--bg2);border:1px solid var(--blue-dark);border-radius:10px;padding:20px 28px;flex:1;">
+          <h4 class="blue">Anthropic 发布 Agent Skills</h4>
+          <p style="margin-top:8px;">Anthropic Engineering Blog 正式文章，定义 Skills 为"可在 agent 间共享的能力单元"。Simon Willison："a bigger deal than MCP"。</p>
+          <div style="margin-top:12px;font-family:var(--font-mono);font-size:15px;color:var(--text-dim2);">https://www.anthropic.com/engineering</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--orange);box-shadow:0 0 12px rgba(240,136,62,.6);"></div>
+        <div class="tl-date">2025-12-12</div>
+        <div class="tl-content card-orange" style="background:var(--bg2);border:1px solid #9e5600;border-radius:10px;padding:20px 28px;flex:1;">
+          <h4 class="orange">OpenAI 跟进 Skills</h4>
+          <p style="margin-top:8px;">OpenAI 在 ChatGPT 和 Codex CLI 中悄悄加入 Skills 功能，格式与 CC Skills 高度相似（Markdown + frontmatter + 参数替换）。<strong style="color:var(--text);">行业收敛信号确立。</strong></p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--green);box-shadow:0 0 12px rgba(63,185,80,.6);"></div>
+        <div class="tl-date">2026 →</div>
+        <div class="tl-content card-green" style="background:var(--bg2);border:1px solid var(--green-dark);border-radius:10px;padding:20px 28px;flex:1;">
+          <h4 class="green">Skills 成为 agent 行业标准</h4>
+          <p style="margin-top:8px;">两大头部玩家在两个月内相继推出，确认了 Skills 作为"知识复用标准"的地位。预期更多 agent 框架会跟进类似机制。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="h3" style="margin-bottom:8px;">为什么行业集体收敛？</div>
+      <div class="card" style="background:rgba(56,139,253,.06);border-color:var(--blue-dark);">
+        <h4 class="blue" style="font-size:22px;margin-bottom:10px;">工具已经够了，知识不够</h4>
+        <p style="font-size:19px;color:var(--text-dim);line-height:1.7;">MCP 解决了"工具连接"，但 agent 还是不知道"如何用好工具"。Skills 填补了这个缺口。</p>
+      </div>
+      <div class="card" style="background:rgba(63,185,80,.06);border-color:var(--green-dark);">
+        <h4 class="green" style="font-size:22px;margin-bottom:10px;">非工程师也要参与</h4>
+        <p style="font-size:19px;color:var(--text-dim);line-height:1.7;">代码工具只有工程师能写。Markdown Skills 让领域专家（医生、律师、分析师）也能扩展 agent。</p>
+      </div>
+      <div class="card" style="background:rgba(240,136,62,.06);border-color:#9e5600;">
+        <h4 class="orange" style="font-size:22px;margin-bottom:10px;">生态效应</h4>
+        <p style="font-size:19px;color:var(--text-dim);line-height:1.7;">一个 Skill 写好，所有 agent 受益——形成正向飞轮。类比 npm 包的生态，但针对知识而非代码。</p>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>Anthropic 2025-10-16 → OpenAI 2025-12-12 · 两个月内双巨头跟进</span>
+    <span>R3 §二第 2 条 · Simon Willison 评论</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 09 · Skills vs MCP -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide noise" id="s09">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">09 / 12 · Skills vs MCP：互补关系</span>
+  </div>
+  <div class="content">
+    <div class="venn-area">
+      <div class="v-ring-left">
+        <div class="v-label blue" style="padding-right:40px;">
+          <div style="font-size:40px;margin-bottom:12px;">🔌</div>
+          <div style="font-size:26px;font-weight:900;">MCP</div>
+          <div style="font-size:18px;color:var(--text-dim);margin-top:8px;">工具连接协议</div>
+          <div style="font-size:16px;color:var(--text-dim2);margin-top:4px;">JSON-RPC on stdio</div>
+          <div style="font-size:16px;color:var(--text-dim2);">"agent 能连接什么"</div>
+        </div>
+      </div>
+      <div class="v-ring-right">
+        <div class="v-label green" style="padding-left:40px;">
+          <div style="font-size:40px;margin-bottom:12px;">📋</div>
+          <div style="font-size:26px;font-weight:900;">Skills</div>
+          <div style="font-size:18px;color:var(--text-dim);margin-top:8px;">知识复用单元</div>
+          <div style="font-size:16px;color:var(--text-dim2);margin-top:4px;">Markdown + SOP</div>
+          <div style="font-size:16px;color:var(--text-dim2);">"agent 怎么做得好"</div>
+        </div>
+      </div>
+      <div class="v-intersection" style="top:240px;">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;">
+          <div style="font-size:18px;color:var(--text);font-weight:700;margin-bottom:6px;">互补</div>
+          <div style="font-size:15px;color:var(--text-dim);line-height:1.6;">Skill 可以<br>指定<br>allowed-tools<br>（MCP 工具）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-list">
+      <div class="h2" style="margin-bottom:8px;">一张表说清楚</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--bg2);padding:16px 20px;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--text-dim2);">维度</div>
+        <div style="background:rgba(56,139,253,.08);padding:16px 20px;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--blue);">MCP</div>
+        <div style="background:rgba(63,185,80,.08);padding:16px 20px;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--green);">Skills</div>
+
+        <div style="background:var(--bg2);padding:14px 20px;font-size:18px;color:var(--text-dim2);">解决问题</div>
+        <div style="background:rgba(56,139,253,.04);padding:14px 20px;font-size:18px;">工具怎么连接</div>
+        <div style="background:rgba(63,185,80,.04);padding:14px 20px;font-size:18px;">任务怎么做好</div>
+
+        <div style="background:var(--bg2);padding:14px 20px;font-size:18px;color:var(--text-dim2);">形态</div>
+        <div style="background:rgba(56,139,253,.04);padding:14px 20px;font-size:18px;">JSON-RPC 协议</div>
+        <div style="background:rgba(63,185,80,.04);padding:14px 20px;font-size:18px;">Markdown 文档</div>
+
+        <div style="background:var(--bg2);padding:14px 20px;font-size:18px;color:var(--text-dim2);">谁来写</div>
+        <div style="background:rgba(56,139,253,.04);padding:14px 20px;font-size:18px;">工程师</div>
+        <div style="background:rgba(63,185,80,.04);padding:14px 20px;font-size:18px;">任何人</div>
+
+        <div style="background:var(--bg2);padding:14px 20px;font-size:18px;color:var(--text-dim2);">类比</div>
+        <div style="background:rgba(56,139,253,.04);padding:14px 20px;font-size:18px;">USB 接口标准</div>
+        <div style="background:rgba(63,185,80,.04);padding:14px 20px;font-size:18px;">操作手册标准</div>
+
+        <div style="background:var(--bg2);padding:14px 20px;font-size:18px;color:var(--text-dim2);">关系</div>
+        <div colspan="2" style="background:rgba(188,140,255,.06);padding:14px 20px;font-size:18px;color:var(--purple);grid-column:span 2;">互补 · 同时需要 · Skill 可引用 MCP 工具</div>
+      </div>
+      <div class="card" style="background:rgba(188,140,255,.06);border-color:#6e40c9;">
+        <p style="font-size:22px;line-height:1.7;color:var(--text-dim);">
+          生产级 agent 同时需要两者：<strong style="color:var(--purple);">MCP</strong> 负责连接能力，<strong style="color:var(--purple);">Skills</strong> 负责编码知识。<br>
+          不是竞争关系，是<strong style="color:var(--text);">互补关系</strong>。
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>MCP = 工具层（怎么连）· Skills = 知识层（怎么做）· 两层都不可缺</span>
+    <span>R3 §二第 2 条 · R1 §3</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 10 · Terminal Demo -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s10">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">10 / 12 · lena-v0.9 终端演示</span>
+  </div>
+  <div class="content">
+    <div class="term-wrap">
+      <div class="term-label">演示 1：/weather 上海</div>
+      <div class="terminal" style="flex:1;">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background:#ff5f57;"></div>
+          <div class="terminal-dot" style="background:#febc2e;"></div>
+          <div class="terminal-dot" style="background:#28c840;"></div>
+          <span style="font-family:var(--font-mono);font-size:13px;color:var(--text-dim2);margin-left:12px;">python3 main.py --demo</span>
+        </div>
+        <div class="terminal-body" style="font-size:18px;">
+<span class="term-prompt">$</span> <span class="term-cmd">python3 main.py --list-skills</span>
+
+<span class="term-ok">已加载 2 个 Skill（来自 skills/ 目录）</span>
+
+  <span class="term-info">名称:   /weather</span>
+  <span class="term-out">说明:   查询城市天气并生成易读简报</span>
+  <span class="term-out">参数:   &lt;城市名&gt;</span>
+  <span class="term-out">工具:   get_weather</span>
+
+  <span class="term-info">名称:   /pdf-report</span>
+  <span class="term-out">说明:   从结构化数据生成专业 PDF 报告</span>
+  <span class="term-out">参数:   &lt;数据文件路径或描述&gt;</span>
+  <span class="term-out">标签:   report, document</span>
+
+<span class="term-prompt">$</span> <span class="term-cmd">python3 main.py</span>
+<span class="term-ok">=== Lena v0.9 (支持 Skills) ===</span>
+<span class="term-out">已加载 2 个 Skill：/weather, /pdf-report</span>
+        </div>
+      </div>
+    </div>
+    <div class="term-wrap">
+      <div class="term-label">演示 2：/pdf-report 季度数据</div>
+      <div class="terminal" style="flex:1;">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background:#ff5f57;"></div>
+          <div class="terminal-dot" style="background:#febc2e;"></div>
+          <div class="terminal-dot" style="background:#28c840;"></div>
+          <span style="font-family:var(--font-mono);font-size:13px;color:var(--text-dim2);margin-left:12px;">lena interactive mode</span>
+        </div>
+        <div class="terminal-body" style="font-size:18px;">
+<span class="term-prompt">你: </span><span class="term-cmd">/weather 上海</span>
+
+<span class="term-info">[ Skills ] weather.md 加载</span>
+<span class="term-info">[ Skills ] $ARGUMENTS → "上海"</span>
+<span class="term-info">[ Skills ] 注入 system prompt</span>
+<span class="term-info">[ Tools  ] get_weather("上海")</span>
+
+<span style="color:var(--cyan);">🌤 上海天气（2026-05-05）</span>
+<span class="term-out">温度：22°C | 多云转晴 | 湿度 65%</span>
+<span class="term-out">未来 24h：▲ 明日最高 26°C，午后有阵雨</span>
+<span style="color:var(--yellow);">💡 建议随身带伞，下午注意阵雨。</span>
+
+<span class="term-prompt">你: </span><span class="term-cmd">/pdf-report 季度销售数据摘要</span>
+
+<span class="term-info">[ Skills ] pdf-report.md 加载</span>
+<span class="term-info">[ Skills ] $ARGUMENTS → "季度销售数据摘要"</span>
+<span style="color:var(--cyan);">📄 报告生成完成</span>
+<span class="term-out">文件：/tmp/report.md · 页数：2 页</span>
+<span class="term-ok">结论 1: 数据趋势整体向好</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:16px 80px 20px;border-top:1px solid var(--border2);font-family:var(--font-mono);font-size:13px;color:var(--text-dim2);display:flex;gap:48px;">
+    <span>代码目录：book/chapters/ch09-skills/code/lena-v0.09/</span>
+    <span>运行：python3 main.py --demo</span>
+    <span>依赖：pip3 install anthropic PyYAML（或演示模式无需 API Key）</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 11 · Design Note: SOP 过时问题 -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide noise" id="s11">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">11 / 12 · Design Note：Skills 版本管理</span>
+  </div>
+  <div class="content">
+    <div class="left">
+      <div class="h2" style="margin-bottom:24px;">Skills 怎么防止 SOP 过时？</div>
+      <div class="dn-card">
+        <h3>Design Note</h3>
+        <p>Skills 的 SOP 是"活的知识"——API 可能变，最佳实践可能更新，错误处理方式可能改进。一个写于 2025 年的 Skill，2026 年还可用吗？这不是技术问题，而是知识管理问题。</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="strategy">
+          <div class="icon">📋</div>
+          <div class="txt">
+            <h4>Frontmatter 版本字段</h4>
+            <p>在 frontmatter 里加 <span class="mono" style="font-size:15px;">version: 1.2</span> 和 <span class="mono" style="font-size:15px;">last-updated: 2026-05</span>，让使用者知道 Skill 的新鲜程度</p>
+          </div>
+        </div>
+        <div class="strategy">
+          <div class="icon">🔄</div>
+          <div class="txt">
+            <h4>learn.sh 自动 PR 流</h4>
+            <p>踩坑后立即 <span class="mono" style="font-size:15px;">bash learn.sh --skill</span> 更新并提 PR，知识的半衰期比你想象的短</p>
+          </div>
+        </div>
+        <div class="strategy">
+          <div class="icon">📊</div>
+          <div class="txt">
+            <h4>skill-usage.jsonl 埋点</h4>
+            <p>每次调用记录成功/失败，每周聚合——高失败率 = Skill 可能过时了</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="h3" style="margin-bottom:16px;">案例 9.1 · ironman-config 实践</div>
+      <div class="code-block" style="font-size:18px;margin-bottom:16px;">
+<span class="cm"># 学到新技能立即同步</span>
+<span class="ok">$</span> bash ~/ironman-config/learn.sh \
+    --skill ~/.claude/skills/my-skill.md \
+    <span class="str">"技能描述"</span>
+
+<span class="cm"># learn.sh 自动做：</span>
+<span class="cm"># 1. git checkout -b learn/skill-xxx</span>
+<span class="cm"># 2. cp skill → ironman-config/skills/</span>
+<span class="cm"># 3. git add + commit + push</span>
+<span class="cm"># 4. gh pr create</span>
+
+<span class="cm"># 其他机器同步：</span>
+<span class="ok">$</span> git pull &amp;&amp; bash install.sh
+      </div>
+      <div class="card" style="background:rgba(248,81,73,.06);border-color:#6e1a1a;">
+        <div style="font-size:18px;font-weight:700;color:var(--red);margin-bottom:10px;">血泪教训：断更 27 天</div>
+        <p style="font-size:18px;color:var(--text-dim);line-height:1.65;">ironman-config 有 2026-03-21 → 2026-04-18 的 27 天空白期。这段时间踩的坑没有同步，后来又遇到同样问题才发现代价。<strong style="color:var(--text);">铁律：踩坑当天就用 learn.sh 记录。</strong></p>
+      </div>
+      <div class="card" style="background:rgba(63,185,80,.06);border-color:var(--green-dark);">
+        <div style="font-size:18px;font-weight:700;color:var(--green);margin-bottom:10px;">案例 9.2 · Voyager 式自进化</div>
+        <p style="font-size:18px;color:var(--text-dim);line-height:1.65;">Lena 每周日聚合 <span class="mono" style="font-size:14px;">skill-usage.jsonl</span>，零使用 7 天自动归档。Skills 不是静态的，而是<strong style="color:var(--text);">可以演化的</strong>。</p>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>ironman-config learn.sh · skill-usage.jsonl 埋点 · Voyager 式自进化</span>
+    <span>R5 案例 9.1（ironman-config）· 案例 9.2（Lena 自进化）</span>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+<!-- Slide 12 · Summary + Preview Ch10 -->
+<!-- ──────────────────────────────────────────────────────────── -->
+<div class="slide" id="s12">
+  <div class="pg-header">
+    <span>Ch 09 · Skills 能力单元</span>
+    <span class="mono">12 / 12 · 本章小结 + 预告 Ch10</span>
+  </div>
+  <div class="content">
+    <div class="left">
+      <div class="h2" style="margin-bottom:20px;">本章知识地图</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="kv-row">
+          <div class="kv-key">Skills vs Tools</div>
+          <div class="kv-val">Tool = 函数，Skill = SOP；能力 vs 知识</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">文件格式</div>
+          <div class="kv-val">YAML frontmatter + Markdown 正文 + $ARGUMENTS</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">加载机制</div>
+          <div class="kv-val">三目录扫描 → frontmatter 解析 → Command 对象注册</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">$ARGUMENTS</div>
+          <div class="kv-val">用户输入替换 → 注入 system prompt → 引导 LLM</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">行业趋势</div>
+          <div class="kv-val">Anthropic 2025-10 → OpenAI 2025-12，两月内收敛</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">Skills vs MCP</div>
+          <div class="kv-val">互补：MCP 连接工具，Skills 编码知识，同时需要</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">案例 9.1</div>
+          <div class="kv-val">ironman-config：learn.sh 跨机器 Skills 同步</div>
+        </div>
+        <div class="kv-row">
+          <div class="kv-key">案例 9.2</div>
+          <div class="kv-val">Lena：Voyager 式 skill-usage.jsonl 自进化</div>
+        </div>
+        <div class="kv-row" style="border-color:var(--blue-dark);">
+          <div class="kv-key" style="color:var(--green);">lena-v0.9</div>
+          <div class="kv-val">动态加载 skills/，支持 /weather 和 /pdf-report</div>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="preview-card" style="flex:1;">
+        <div style="font-family:var(--font-mono);font-size:13px;color:var(--text-dim2);margin-bottom:16px;letter-spacing:.15em;">PREVIEW · CHAPTER 10</div>
+        <h3>安全专章：Prompt Injection 与失控</h3>
+        <p style="margin-bottom:24px;">Lena 现在有了工具、记忆、Skills、拆任务能力……谁来控制她？</p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div class="tag tag-red" style="font-size:14px;">威胁</div>
+            <span style="font-size:19px;">Prompt Injection：恶意数据控制 agent</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div class="tag tag-orange" style="font-size:14px;">机制</div>
+            <span style="font-size:19px;">settings.json deny 列表的工程逻辑</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div class="tag tag-blue" style="font-size:14px;">案例</div>
+            <span style="font-size:19px;">DyePack 公网端口暴露安全工单</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <div class="tag tag-green" style="font-size:14px;">代码</div>
+            <span style="font-size:19px;">lena-v0.10 防御体系</span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(56,139,253,.08),rgba(63,185,80,.06));border-color:var(--blue-dark);">
+        <div class="label blue" style="margin-bottom:12px;">本章交付物</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-family:var(--font-mono);font-size:16px;color:var(--text-dim);">
+          <div><span class="ok">✓</span> README.md（正文 + SVG 架构图）</div>
+          <div><span class="ok">✓</span> code/lena-v0.09/（可运行代码）</div>
+          <div><span class="ok">✓</span> skills/weather.md + pdf-report.md</div>
+          <div><span class="ok">✓</span> slides/index.html（本文件）</div>
+          <div><span class="ok">✓</span> demo/index.html（可交互演示）</div>
+          <div><span class="ok">✓</span> infographic/main.svg（A3 信息图）</div>
+          <div><span class="ok">✓</span> podcast.md（TTS 脚本）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+    <span>Ch 09 · Skills：可复用的能力单元 · lena-v0.9 动态加载 Skills</span>
+    <span>下一章 → Ch 10 · 安全专章：Prompt Injection 与失控</span>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<div id="counter">1 / 12</div>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  let current = 0;
+
+  const show = (n) => {
+    slides[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    localStorage.setItem('ch09-slide', current);
+  };
+
+  // Restore position
+  const saved = parseInt(localStorage.getItem('ch09-slide') || '0', 10);
+  if (saved > 0 && saved < slides.length) show(saved);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); show(current - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End')  show(slides.length - 1);
+    const n = parseInt(e.key, 10);
+    if (!isNaN(n) && n >= 1 && n <= slides.length) show(n - 1);
+  });
+
+  // Click to advance (except on interactive elements)
+  document.getElementById('deck').addEventListener('click', (e) => {
+    if (['A','BUTTON','INPUT'].includes(e.target.tagName)) return;
+    show(current + 1);
+  });
+})();
+</script>
+</body>
+</html>

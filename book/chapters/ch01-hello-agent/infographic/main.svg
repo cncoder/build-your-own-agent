@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1587 1123" width="1587" height="1123">
+  <!-- A3 landscape: 420mm × 297mm @ 96dpi ~ 1587×1123px -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#030712"/>
+      <stop offset="50%" style="stop-color:#0a0e1a"/>
+      <stop offset="100%" style="stop-color:#050210"/>
+    </linearGradient>
+    <linearGradient id="llmPanel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1b33"/>
+      <stop offset="100%" style="stop-color:#061228"/>
+    </linearGradient>
+    <linearGradient id="agentPanel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0820"/>
+      <stop offset="100%" style="stop-color:#160534"/>
+    </linearGradient>
+    <linearGradient id="upgradeArrow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4a9eff"/>
+      <stop offset="50%" style="stop-color:#a855f7"/>
+      <stop offset="100%" style="stop-color:#34d399"/>
+    </linearGradient>
+    <linearGradient id="apiAnthropicGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#111827"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#4a9eff"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#a855f7"/>
+    </marker>
+    <marker id="arrow-grad" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L0,8 L10,4 z" fill="#a855f7"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1587" height="1123" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="#0f172a" stroke-width="0.5" opacity="0.6">
+    <line x1="0" y1="100" x2="1587" y2="100"/>
+    <line x1="0" y1="700" x2="1587" y2="700"/>
+    <line x1="793" y1="0" x2="793" y2="1123"/>
+  </g>
+
+  <!-- ===== HEADER ===== -->
+  <rect x="0" y="0" width="1587" height="90" fill="#030712" opacity="0.9"/>
+  <text x="793" y="38" text-anchor="middle" font-family="'SF Mono', Monaco, 'Cascadia Code', monospace" font-size="30" font-weight="bold" fill="#e2e8f0">LLM vs Agent ── 知识图谱</text>
+  <text x="793" y="68" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#475569">《从零构建你的 AI Agent》Ch 1 · 从一次 API 调用开始</text>
+  <!-- Header accent lines -->
+  <line x1="0" y1="90" x2="1587" y2="90" stroke="#1e293b" stroke-width="1"/>
+  <rect x="350" y="84" width="887" height="3" fill="url(#upgradeArrow)" rx="1.5"/>
+
+  <!-- ===== LEFT PANEL: LLM ===== -->
+  <rect x="16" y="106" width="740" height="548" rx="20" fill="url(#llmPanel)" stroke="#1e3a5f" stroke-width="1.5" filter="url(#shadow)"/>
+
+  <!-- LLM Title -->
+  <text x="386" y="148" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="26" font-weight="bold" fill="#4a9eff" filter="url(#glow-blue)">LLM（大语言模型）</text>
+  <text x="386" y="172" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#3b82f6">stateless · single-call · language I/O only</text>
+
+  <!-- LLM Diagram -->
+  <!-- Input -->
+  <rect x="40" y="195" width="170" height="80" rx="10" fill="#0a1a30" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="125" y="224" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#93c5fd">用户 Prompt</text>
+  <text x="125" y="246" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#60a5fa">"明天天气怎样？"</text>
+  <text x="125" y="264" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#3b82f6">（一次性输入）</text>
+
+  <!-- Arrow in -->
+  <line x1="212" y1="235" x2="268" y2="235" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- LLM Black box -->
+  <rect x="270" y="186" width="200" height="98" rx="12" fill="#060c1a" stroke="#4a9eff" stroke-width="2" filter="url(#glow-blue)"/>
+  <text x="370" y="226" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="17" fill="#93c5fd">黑盒</text>
+  <text x="370" y="248" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#4a6fa5">参数量 ~ 7B-405B</text>
+  <text x="370" y="265" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#1e3a5f">训练截止：2025-04</text>
+
+  <!-- Arrow out -->
+  <line x1="472" y1="235" x2="528" y2="235" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- Output -->
+  <rect x="530" y="195" width="190" height="80" rx="10" fill="#0a1a30" stroke="#1d4ed8" stroke-width="1.2"/>
+  <text x="625" y="224" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#93c5fd">模型回复</text>
+  <text x="625" y="244" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#60a5fa">"我无法查询实时</text>
+  <text x="625" y="260" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#60a5fa">天气信息"</text>
+
+  <!-- LLM traits -->
+  <rect x="40" y="306" width="680" height="170" rx="12" fill="#050e1c" stroke="#0f2d4d" stroke-width="1"/>
+  <text x="60" y="330" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#475569">局限性</text>
+  <line x1="40" y1="338" x2="720" y2="338" stroke="#0f2d4d" stroke-width="1"/>
+
+  <text x="70" y="362" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#64748b">❌  无状态 — 每次调用独立，彼此不认识</text>
+  <text x="70" y="387" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#64748b">❌  无工具 — 不能主动调 API、查数据库</text>
+  <text x="70" y="412" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#64748b">❌  无循环 — 只做一问一答，不能多步规划</text>
+  <text x="70" y="437" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#64748b">❌  知识截止 — 无法获取训练后的新信息</text>
+  <text x="70" y="462" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#3b82f6">✅  极速 — 单次调用毫秒级，成本低</text>
+
+  <!-- Code snippet -->
+  <rect x="40" y="496" width="680" height="130" rx="12" fill="#020810" stroke="#0f2d4d" stroke-width="1"/>
+  <text x="60" y="520" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#1e40af"># Python 调用模式</text>
+  <text x="60" y="540" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#93c5fd">response = client.messages.create(</text>
+  <text x="80" y="558" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#93c5fd">    model=<tspan fill="#86efac">"claude-opus-4-5-20251101"</tspan>,</text>
+  <text x="80" y="576" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#93c5fd">    messages=[{<tspan fill="#86efac">"role"</tspan>: <tspan fill="#86efac">"user"</tspan>, <tspan fill="#86efac">"content"</tspan>: prompt}],</text>
+  <text x="60" y="594" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#93c5fd">)</text>
+  <text x="60" y="614" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#475569"># 一次调用结束，没有循环，没有工具</text>
+
+  <!-- ===== UPGRADE ARROW (middle) ===== -->
+  <rect x="760" y="300" width="66" height="320" rx="0" fill="none"/>
+  <!-- Arrow body -->
+  <rect x="768" y="350" width="50" height="210" rx="4" fill="url(#upgradeArrow)" opacity="0.15"/>
+  <!-- Arrow text vertical -->
+  <text x="793" y="396" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#a855f7" transform="rotate(-90, 793, 450)">升 级 路 径</text>
+  <!-- Three upgrade items -->
+  <g transform="translate(770, 370)">
+    <circle cx="10" cy="0" r="6" fill="#4a9eff"/>
+    <text x="25" y="5" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#4a9eff">+Loop</text>
+    <circle cx="10" cy="35" r="6" fill="#a855f7"/>
+    <text x="25" y="40" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#a855f7">+Tools</text>
+    <circle cx="10" cy="70" r="6" fill="#34d399"/>
+    <text x="25" y="75" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#34d399">+Mem</text>
+    <!-- Arrow down -->
+    <line x1="10" y1="90" x2="10" y2="160" stroke="url(#upgradeArrow)" stroke-width="2.5"/>
+    <polygon points="0,158 10,172 20,158" fill="#34d399"/>
+  </g>
+
+  <!-- ===== RIGHT PANEL: Agent ===== -->
+  <rect x="830" y="106" width="740" height="548" rx="20" fill="url(#agentPanel)" stroke="#4a1570" stroke-width="1.5" filter="url(#shadow)"/>
+
+  <!-- Agent Title -->
+  <text x="1200" y="148" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="26" font-weight="bold" fill="#a855f7" filter="url(#glow-purple)">Agent（智能体）</text>
+  <text x="1200" y="172" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#9333ea">loop + tools + memory · autonomous</text>
+
+  <!-- Agent Loop Visualization -->
+  <!-- While loop box -->
+  <rect x="850" y="186" width="700" height="295" rx="14" fill="#070213" stroke="#7e22ce" stroke-width="1.5" stroke-dasharray="7,3"/>
+  <text x="870" y="208" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#581c87">while task.pending:  # ← agent 的核心</text>
+
+  <!-- Step 1: LLM Think -->
+  <rect x="870" y="218" width="200" height="65" rx="10" fill="#120630" stroke="#a855f7" stroke-width="1.3"/>
+  <text x="970" y="247" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#c084fc">① LLM 思考</text>
+  <text x="970" y="268" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#7e22ce">"需要调工具 get_time"</text>
+
+  <!-- Step 2: Tool Execute -->
+  <rect x="1120" y="218" width="200" height="65" rx="10" fill="#0a1505" stroke="#34d399" stroke-width="1.3"/>
+  <text x="1220" y="247" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#34d399">② 工具执行</text>
+  <text x="1220" y="268" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#059669">get_time() → "2026-05-05"</text>
+
+  <!-- Step 3: Memory Update -->
+  <rect x="870" y="340" width="200" height="65" rx="10" fill="#0a1510" stroke="#22d3ee" stroke-width="1.3"/>
+  <text x="970" y="369" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="14" fill="#22d3ee">③ 记忆更新</text>
+  <text x="970" y="390" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#0891b2">messages.append(tool_result)</text>
+
+  <!-- Step 4: Decision -->
+  <polygon points="1220,330 1265,362 1220,394 1175,362" fill="#150826" stroke="#a855f7" stroke-width="1.3"/>
+  <text x="1220" y="359" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#c084fc">完成?</text>
+  <text x="1220" y="375" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="9" fill="#7e22ce">tool_use / end</text>
+
+  <!-- Arrows between steps -->
+  <line x1="1072" y1="250" x2="1116" y2="250" stroke="#a855f7" stroke-width="1.8" marker-end="url(#arrow-purple)"/>
+  <line x1="1220" y1="285" x2="1220" y2="328" stroke="#34d399" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+  <!-- No loop back -->
+  <line x1="1175" y1="362" x2="1075" y2="362" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <!-- memory back to LLM -->
+  <line x1="970" y1="340" x2="970" y2="285" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <!-- Yes = return answer -->
+  <line x1="1265" y1="362" x2="1420" y2="362" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <rect x="1425" y="342" width="110" height="42" rx="8" fill="#0a1525" stroke="#60a5fa" stroke-width="1"/>
+  <text x="1480" y="360" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#60a5fa">返回</text>
+  <text x="1480" y="376" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#60a5fa">答复</text>
+  <text x="1240" y="320" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#22d3ee">继续</text>
+  <text x="1340" y="354" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#60a5fa">完成</text>
+
+  <!-- Agent traits -->
+  <rect x="850" y="502" width="680" height="125" rx="12" fill="#050112" stroke="#4a1570" stroke-width="1"/>
+  <text x="870" y="526" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#7e22ce">能力</text>
+  <line x1="850" y1="534" x2="1530" y2="534" stroke="#4a1570" stroke-width="1"/>
+
+  <text x="880" y="558" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#a855f7">✅  有循环 — 多步决策，不止一次调用</text>
+  <text x="880" y="578" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#34d399">✅  有工具 — 查时间/搜网页/读文件/执行代码</text>
+  <text x="880" y="598" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#22d3ee">✅  有记忆 — 每步结果都加进上下文</text>
+  <text x="880" y="618" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#fbbf24">✅  有主动性 — 不等你问，定时推送晨报</text>
+
+  <!-- ===== BOTTOM SECTION: Three API Comparison ===== -->
+  <rect x="16" y="668" width="1554" height="435" rx="20" fill="#030a14" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="793" y="704" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="22" font-weight="bold" fill="#e2e8f0">三家 API 请求格式对比矩阵</text>
+  <text x="793" y="726" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#475569">同样调一次"你好"，三家结构差异一目了然</text>
+
+  <!-- Column headers -->
+  <rect x="36" y="740" width="490" height="44" rx="10" fill="#0d1b33" stroke="#1d4ed8" stroke-width="1.5"/>
+  <text x="281" y="768" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="16" font-weight="bold" fill="#4a9eff">Anthropic</text>
+
+  <rect x="548" y="740" width="490" height="44" rx="10" fill="#0d1b0d" stroke="#166534" stroke-width="1.5"/>
+  <text x="793" y="768" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="16" font-weight="bold" fill="#34d399">OpenAI</text>
+
+  <rect x="1060" y="740" width="490" height="44" rx="10" fill="#1a0820" stroke="#7e22ce" stroke-width="1.5"/>
+  <text x="1305" y="768" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="16" font-weight="bold" fill="#a855f7">AWS Bedrock</text>
+
+  <!-- Code block: Anthropic -->
+  <rect x="36" y="796" width="490" height="280" rx="10" fill="#020810" stroke="#0f2d4d" stroke-width="1"/>
+  <text x="56" y="820" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#475569"># Anthropic Messages API</text>
+  <text x="56" y="840" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">client.messages.create(</text>
+  <text x="72" y="858" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">  model=<tspan fill="#86efac">"claude-opus-4-5-20251101"</tspan>,</text>
+  <text x="72" y="876" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">  max_tokens=<tspan fill="#fbbf24">1024</tspan>,</text>
+  <text x="72" y="894" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#22d3ee">  system=<tspan fill="#86efac">"你是 Lena"</tspan>,  <tspan fill="#475569">← 顶层字段</tspan></text>
+  <text x="72" y="912" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">  messages=[{</text>
+  <text x="88" y="930" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">    <tspan fill="#86efac">"role"</tspan>: <tspan fill="#86efac">"user"</tspan>,</text>
+  <text x="88" y="948" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">    <tspan fill="#86efac">"content"</tspan>: <tspan fill="#86efac">"你好"</tspan>  <tspan fill="#475569">← 字符串</tspan></text>
+  <text x="72" y="966" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">  }]</text>
+  <text x="56" y="984" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">)</text>
+  <text x="56" y="1010" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#475569"># 回复路径：</text>
+  <text x="56" y="1026" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#22d3ee">response.content[0].text</text>
+  <text x="56" y="1048" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#1d4ed8">stop_reason: "end_turn"</text>
+  <text x="56" y="1064" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#1d4ed8">usage.input_tokens / output_tokens</text>
+
+  <!-- Code block: OpenAI -->
+  <rect x="548" y="796" width="490" height="280" rx="10" fill="#020810" stroke="#064e3b" stroke-width="1"/>
+  <text x="568" y="820" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#475569"># OpenAI Chat Completions</text>
+  <text x="568" y="840" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">client.chat.completions.create(</text>
+  <text x="584" y="858" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">  model=<tspan fill="#86efac">"gpt-4o"</tspan>,</text>
+  <text x="584" y="876" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">  messages=[</text>
+  <text x="600" y="894" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#fbbf24">    {<tspan fill="#86efac">"role"</tspan>:<tspan fill="#86efac">"system"</tspan>,  <tspan fill="#475569">← messages 里</tspan></text>
+  <text x="600" y="912" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#fbbf24">     <tspan fill="#86efac">"content"</tspan>:<tspan fill="#86efac">"你是 Lena"</tspan>},</text>
+  <text x="600" y="930" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">    {<tspan fill="#86efac">"role"</tspan>:<tspan fill="#86efac">"user"</tspan>,</text>
+  <text x="600" y="948" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">     <tspan fill="#86efac">"content"</tspan>:<tspan fill="#86efac">"你好"</tspan>}  <tspan fill="#475569">← 字符串</tspan></text>
+  <text x="584" y="966" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">  ]</text>
+  <text x="568" y="984" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">)</text>
+  <text x="568" y="1010" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#475569"># 回复路径：</text>
+  <text x="568" y="1026" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#22d3ee">response.choices[0].message.content</text>
+  <text x="568" y="1048" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#166534">finish_reason: "stop"</text>
+  <text x="568" y="1064" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#166534">usage.prompt_tokens / completion_tokens</text>
+
+  <!-- Code block: Bedrock -->
+  <rect x="1060" y="796" width="490" height="280" rx="10" fill="#020810" stroke="#4a1570" stroke-width="1"/>
+  <text x="1080" y="820" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#475569"># AWS Bedrock Converse API</text>
+  <text x="1080" y="840" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">bedrock.converse(</text>
+  <text x="1096" y="858" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#f87171">  modelId=<tspan fill="#86efac">"us.anthropic.claude-sonnet-4-6"</tspan>,</text>
+  <text x="1096" y="876" font-family="'SF Mono', Monaco, monospace" font-size="10.5" fill="#f87171">  <tspan fill="#475569"># ← inference profile ID（非 model ID）</tspan></text>
+  <text x="1096" y="894" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#22d3ee">  system=[{<tspan fill="#86efac">"text"</tspan>:<tspan fill="#86efac">"你是 Lena"</tspan>}],  <tspan fill="#475569">← 列表</tspan></text>
+  <text x="1096" y="912" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">  messages=[{</text>
+  <text x="1112" y="930" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">    <tspan fill="#86efac">"role"</tspan>:<tspan fill="#86efac">"user"</tspan>,</text>
+  <text x="1112" y="948" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#fbbf24">    <tspan fill="#93c5fd">"content"</tspan>:[{<tspan fill="#86efac">"text"</tspan>:<tspan fill="#86efac">"你好"</tspan>}]  <tspan fill="#475569">← 列表</tspan></text>
+  <text x="1096" y="966" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">  }],</text>
+  <text x="1096" y="984" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#93c5fd">  inferenceConfig={<tspan fill="#86efac">"maxTokens"</tspan>:<tspan fill="#fbbf24">1024</tspan>},</text>
+  <text x="1080" y="1002" font-family="'SF Mono', Monaco, monospace" font-size="11.5" fill="#93c5fd">)</text>
+  <text x="1080" y="1024" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#475569"># 回复路径（多层嵌套）：</text>
+  <text x="1080" y="1042" font-family="'SF Mono', Monaco, monospace" font-size="10.5" fill="#22d3ee">resp["output"]["message"]["content"][0]["text"]</text>
+  <text x="1080" y="1064" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#7e22ce">stopReason: "end_turn" · usage.inputTokens</text>
+
+  <!-- Footer -->
+  <line x1="0" y1="1095" x2="1587" y2="1095" stroke="#0f172a" stroke-width="1"/>
+  <text x="793" y="1112" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#334155">血泪教训：Bedrock 用 inference profile ID（us.anthropic.claude-sonnet-4-6），不是基础 model ID — R5 案例 1.1  ·  lena-v0.1 真实跑通：2026-05-05  ·  SDK: anthropic==0.84.0 · openai==2.30.0 · boto3==1.38.0</text>
+</svg>

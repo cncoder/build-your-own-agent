@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1587 1123" width="1587" height="1123"
+     font-family="PingFang SC, Microsoft YaHei, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#070714"/>
+      <stop offset="100%" style="stop-color:#0d0d24"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#a855f7"/>
+      <stop offset="50%" style="stop-color:#22d3ee"/>
+      <stop offset="100%" style="stop-color:#4ade80"/>
+    </linearGradient>
+    <linearGradient id="loopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:0.03"/>
+    </linearGradient>
+    <filter id="glow-purple">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glow-cyan">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#a855f7"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4ade80"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#fb923c"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1587" height="1123" fill="url(#bgGrad)"/>
+
+  <!-- Subtle radial glows -->
+  <radialGradient id="rg1" cx="20%" cy="20%" r="50%">
+    <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.06"/>
+    <stop offset="100%" style="stop-color:transparent;stop-opacity:0"/>
+  </radialGradient>
+  <radialGradient id="rg2" cx="80%" cy="80%" r="45%">
+    <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:0.04"/>
+    <stop offset="100%" style="stop-color:transparent;stop-opacity:0"/>
+  </radialGradient>
+  <rect width="1587" height="1123" fill="url(#rg1)"/>
+  <rect width="1587" height="1123" fill="url(#rg2)"/>
+
+  <!-- ── TITLE AREA ── -->
+  <text x="794" y="64" text-anchor="middle" font-size="13" fill="#22d3ee" letter-spacing="3" font-weight="600">第 3 章  ·  从零构建你的 AI Agent</text>
+
+  <!-- Gradient title text (using filter trick) -->
+  <text x="794" y="118" text-anchor="middle" font-size="52" font-weight="800" fill="url(#titleGrad)">MVA 6 模块 · Agent Loop 完整时序</text>
+  <text x="794" y="155" text-anchor="middle" font-size="18" fill="#64748b">最小可行 Agent（Minimum Viable Agent）架构全景 · lena-v0.3</text>
+
+  <!-- Divider line -->
+  <line x1="80" y1="172" x2="1507" y2="172" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- ── LEFT SIDE: MVA 6 MODULES ── -->
+  <!-- Section header -->
+  <text x="100" y="210" font-size="14" fill="#a855f7" font-weight="700" letter-spacing="2">MVA 6 模块共识</text>
+  <rect x="100" y="218" width="40" height="2" fill="#a855f7" rx="1"/>
+
+  <!-- Module cards (2 columns, 3 rows) -->
+  <!-- Card positions: left col x=80, right col x=440, rows y=240,400,560 -->
+
+  <!-- Config -->
+  <rect x="80" y="235" width="340" height="140" rx="14" fill="rgba(168,85,247,0.07)" stroke="rgba(168,85,247,0.25)" stroke-width="1.5"/>
+  <text x="110" y="273" font-size="26" fill="#a855f7">⚙️</text>
+  <text x="148" y="270" font-size="22" font-weight="700" fill="#f1f5f9">Config</text>
+  <text x="148" y="294" font-size="14" fill="#64748b">读取配置 / API Key</text>
+  <text x="98" y="320" font-size="13" fill="rgba(241,245,249,0.7)" xml:space="preserve">argparse + python-dotenv</text>
+  <text x="98" y="340" font-size="13" fill="rgba(241,245,249,0.5)" xml:space="preserve">nano-claw: src/config/</text>
+  <text x="98" y="358" font-size="13" fill="rgba(241,245,249,0.5)" xml:space="preserve">nanoClaw: core/config.py</text>
+
+  <!-- Provider -->
+  <rect x="440" y="235" width="340" height="140" rx="14" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.2)" stroke-width="1.5"/>
+  <text x="470" y="273" font-size="26">🔌</text>
+  <text x="508" y="270" font-size="22" font-weight="700" fill="#f1f5f9">Provider</text>
+  <text x="508" y="294" font-size="14" fill="#64748b">统一多家 LLM API 差异</text>
+  <text x="458" y="320" font-size="13" fill="rgba(241,245,249,0.7)">Anthropic / OpenAI / Bedrock</text>
+  <text x="458" y="340" font-size="13" fill="rgba(241,245,249,0.5)">nano-claw: src/providers/base.ts</text>
+  <text x="458" y="358" font-size="13" fill="rgba(241,245,249,0.5)">nanoClaw: core/llm.py</text>
+
+  <!-- Memory -->
+  <rect x="80" y="395" width="340" height="140" rx="14" fill="rgba(74,222,128,0.06)" stroke="rgba(74,222,128,0.2)" stroke-width="1.5"/>
+  <text x="110" y="433" font-size="26">💾</text>
+  <text x="148" y="430" font-size="22" font-weight="700" fill="#f1f5f9">Memory</text>
+  <text x="148" y="454" font-size="14" fill="#64748b">管理 messages[] 对话历史</text>
+  <text x="98" y="480" font-size="13" fill="rgba(241,245,249,0.7)">本章: Python list  Ch6: SQLite</text>
+  <text x="98" y="500" font-size="13" fill="rgba(241,245,249,0.5)">nano-claw: src/agent/memory.ts</text>
+  <text x="98" y="518" font-size="13" fill="rgba(241,245,249,0.5)">nanoClaw: memory/store.py</text>
+
+  <!-- ToolRegistry -->
+  <rect x="440" y="395" width="340" height="140" rx="14" fill="rgba(251,146,60,0.06)" stroke="rgba(251,146,60,0.2)" stroke-width="1.5"/>
+  <text x="470" y="433" font-size="26">🔧</text>
+  <text x="508" y="430" font-size="22" font-weight="700" fill="#f1f5f9">ToolRegistry</text>
+  <text x="508" y="454" font-size="14" fill="#64748b">注册 + 执行工具</text>
+  <text x="458" y="480" font-size="13" fill="rgba(241,245,249,0.7)">schema 给 LLM / handler 给 Python</text>
+  <text x="458" y="500" font-size="13" fill="rgba(241,245,249,0.5)">nano-claw: src/agent/tools/</text>
+  <text x="458" y="518" font-size="13" fill="rgba(241,245,249,0.5)">nanoClaw: tools/registry.py</text>
+
+  <!-- AgentLoop -->
+  <rect x="80" y="555" width="340" height="140" rx="14" fill="rgba(244,114,182,0.06)" stroke="rgba(244,114,182,0.2)" stroke-width="1.5"/>
+  <text x="110" y="593" font-size="26">🔁</text>
+  <text x="148" y="590" font-size="22" font-weight="700" fill="#f1f5f9">AgentLoop</text>
+  <text x="148" y="614" font-size="14" fill="#64748b">while 循环核心逻辑</text>
+  <text x="98" y="640" font-size="13" fill="rgba(241,245,249,0.7)">决策 → 工具 → 回填 → 再决策</text>
+  <text x="98" y="660" font-size="13" fill="rgba(241,245,249,0.5)">nano-claw: loop.ts (247行)</text>
+  <text x="98" y="678" font-size="13" fill="rgba(241,245,249,0.5)">nanoClaw: core/agent.py:155</text>
+
+  <!-- Skills -->
+  <rect x="440" y="555" width="340" height="140" rx="14" fill="rgba(148,163,184,0.05)" stroke="rgba(148,163,184,0.15)" stroke-width="1.5"/>
+  <text x="470" y="593" font-size="26">📚</text>
+  <text x="508" y="590" font-size="22" font-weight="700" fill="rgba(241,245,249,0.6)">Skills</text>
+  <text x="508" y="614" font-size="14" fill="#64748b">可复用能力包（SOP）</text>
+  <text x="458" y="640" font-size="13" fill="rgba(241,245,249,0.5)">本章暂不使用，Ch 9 展开</text>
+  <text x="458" y="660" font-size="13" fill="rgba(241,245,249,0.4)">nano-claw: src/agent/skills.ts</text>
+  <text x="458" y="678" font-size="13" fill="rgba(241,245,249,0.4)">nanoClaw: skills/</text>
+
+  <!-- 6-module circle connection lines -->
+  <line x1="420" y1="305" x2="440" y2="305" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="420" y1="465" x2="440" y2="465" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="420" y1="625" x2="440" y2="625" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Vertical connector left -->
+  <line x1="250" y1="375" x2="250" y2="395" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="250" y1="535" x2="250" y2="555" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Right vertical connector -->
+  <line x1="610" y1="375" x2="610" y2="395" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="610" y1="535" x2="610" y2="555" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Center label: "三个实现都有对应" -->
+  <rect x="80" y="715" width="700" height="44" rx="10" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.2)" stroke-width="1"/>
+  <text x="430" y="743" text-anchor="middle" font-size="14" fill="#a855f7" font-weight="600">引用：R2 对比报告  ·  nano-claw (TS) / nanoClaw (Py) / Tian-NanoClaw 三实现均有此 6 模块</text>
+
+  <!-- ── VERTICAL DIVIDER ── -->
+  <line x1="810" y1="185" x2="810" y2="1090" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- ── RIGHT SIDE: AGENT LOOP SEQUENCE ── -->
+  <text x="840" y="210" font-size="14" fill="#22d3ee" font-weight="700" letter-spacing="2">Agent Loop 完整时序</text>
+  <rect x="840" y="218" width="40" height="2" fill="#22d3ee" rx="1"/>
+
+  <!-- Column headers -->
+  <rect x="840" y="232" width="140" height="36" rx="8" fill="rgba(168,85,247,0.15)" stroke="rgba(168,85,247,0.3)" stroke-width="1.5"/>
+  <text x="910" y="256" text-anchor="middle" font-size="14" fill="#a855f7" font-weight="700">👤 用户</text>
+
+  <rect x="1000" y="232" width="150" height="36" rx="8" fill="rgba(34,211,238,0.12)" stroke="rgba(34,211,238,0.3)" stroke-width="1.5"/>
+  <text x="1075" y="256" text-anchor="middle" font-size="14" fill="#22d3ee" font-weight="700">🔁 AgentLoop</text>
+
+  <rect x="1170" y="232" width="160" height="36" rx="8" fill="rgba(251,146,60,0.12)" stroke="rgba(251,146,60,0.3)" stroke-width="1.5"/>
+  <text x="1250" y="256" text-anchor="middle" font-size="14" fill="#fb923c" font-weight="700">🧠 LLM API</text>
+
+  <rect x="1350" y="232" width="160" height="36" rx="8" fill="rgba(74,222,128,0.12)" stroke="rgba(74,222,128,0.3)" stroke-width="1.5"/>
+  <text x="1430" y="256" text-anchor="middle" font-size="14" fill="#4ade80" font-weight="700">⚡ get_time()</text>
+
+  <!-- Vertical lifelines -->
+  <line x1="910" y1="268" x2="910" y2="1070" stroke="rgba(168,85,247,0.2)" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="1075" y1="268" x2="1075" y2="1070" stroke="rgba(34,211,238,0.2)" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="1250" y1="268" x2="1250" y2="1070" stroke="rgba(251,146,60,0.2)" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="1430" y1="268" x2="1430" y2="1070" stroke="rgba(74,222,128,0.2)" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+  <!-- Step 1: User → AgentLoop -->
+  <rect x="840" y="285" width="700" height="28" rx="6" fill="rgba(168,85,247,0.05)"/>
+  <text x="855" y="304" font-size="12" fill="rgba(168,85,247,0.6)" font-weight="600">STEP 1</text>
+  <line x1="910" y1="299" x2="1065" y2="299" stroke="#a855f7" stroke-width="2" marker-end="url(#arrow-purple)"/>
+  <text x="970" y="293" text-anchor="middle" font-size="12" fill="#a855f7">"现在几点了？"</text>
+  <!-- messages.append(user) -->
+  <rect x="1080" y="288" width="185" height="22" rx="4" fill="rgba(168,85,247,0.08)"/>
+  <text x="1172" y="303" text-anchor="middle" font-size="11" fill="#a855f7" font-style="italic">messages.append({"role":"user"})</text>
+
+  <!-- Step 2: AgentLoop → LLM -->
+  <rect x="840" y="328" width="700" height="28" rx="6" fill="rgba(34,211,238,0.04)"/>
+  <text x="855" y="347" font-size="12" fill="rgba(34,211,238,0.6)" font-weight="600">STEP 2</text>
+  <line x1="1075" y1="342" x2="1240" y2="342" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+  <text x="1157" y="336" text-anchor="middle" font-size="12" fill="#22d3ee">chat(messages, tools)</text>
+
+  <!-- Step 3: LLM → AgentLoop (tool_use) -->
+  <rect x="840" y="371" width="700" height="44" rx="6" fill="rgba(251,146,60,0.04)"/>
+  <text x="855" y="390" font-size="12" fill="rgba(251,146,60,0.6)" font-weight="600">STEP 3</text>
+  <line x1="1240" y1="393" x2="1085" y2="393" stroke="#fb923c" stroke-width="2" marker-end="url(#arrow-orange)"/>
+  <rect x="1100" y="375" width="128" height="20" rx="4" fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="1164" y="389" text-anchor="middle" font-size="11" fill="#fb923c">stop_reason="tool_use"</text>
+  <text x="1157" y="408" text-anchor="middle" font-size="11" fill="rgba(251,146,60,0.8)">content=[{type:"tool_use", name:"get_time", id:"toolu_xxx"}]</text>
+
+  <!-- Step 4: make_assistant_with_tool_use -->
+  <rect x="840" y="428" width="700" height="24" rx="6" fill="rgba(168,85,247,0.04)"/>
+  <text x="855" y="445" font-size="12" fill="rgba(168,85,247,0.6)" font-weight="600">STEP 4</text>
+  <rect x="1080" y="430" width="228" height="20" rx="4" fill="rgba(168,85,247,0.08)"/>
+  <text x="1194" y="444" text-anchor="middle" font-size="11" fill="#a855f7" font-style="italic">messages.append(assistant + tool_use)</text>
+
+  <!-- Step 5: AgentLoop → get_time -->
+  <rect x="840" y="465" width="700" height="28" rx="6" fill="rgba(74,222,128,0.04)"/>
+  <text x="855" y="484" font-size="12" fill="rgba(74,222,128,0.6)" font-weight="600">STEP 5</text>
+  <line x1="1075" y1="479" x2="1420" y2="479" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow-green)"/>
+  <text x="1247" y="473" text-anchor="middle" font-size="12" fill="#4ade80">execute_tool("get_time", {})</text>
+
+  <!-- Step 6: get_time → AgentLoop -->
+  <rect x="840" y="506" width="700" height="28" rx="6" fill="rgba(74,222,128,0.04)"/>
+  <text x="855" y="525" font-size="12" fill="rgba(74,222,128,0.6)" font-weight="600">STEP 6</text>
+  <line x1="1420" y1="520" x2="1085" y2="520" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow-green)"/>
+  <text x="1247" y="514" text-anchor="middle" font-size="12" fill="#4ade80">"当前时间是 2026年05月06日 00:24"</text>
+
+  <!-- Step 7: tool_result → messages -->
+  <rect x="840" y="547" width="700" height="24" rx="6" fill="rgba(168,85,247,0.04)"/>
+  <text x="855" y="564" font-size="12" fill="rgba(168,85,247,0.6)" font-weight="600">STEP 7</text>
+  <rect x="1080" y="549" width="228" height="20" rx="4" fill="rgba(74,222,128,0.08)"/>
+  <text x="1194" y="563" text-anchor="middle" font-size="11" fill="#4ade80" font-style="italic">messages.append(user/tool_result)</text>
+
+  <!-- Step 8: AgentLoop → LLM (2nd call) -->
+  <rect x="840" y="584" width="700" height="28" rx="6" fill="rgba(34,211,238,0.04)"/>
+  <text x="855" y="603" font-size="12" fill="rgba(34,211,238,0.6)" font-weight="600">STEP 8</text>
+  <line x1="1075" y1="598" x2="1240" y2="598" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+  <text x="1157" y="592" text-anchor="middle" font-size="12" fill="#22d3ee">chat(messages) ← 第二次调用</text>
+
+  <!-- Step 9: LLM → AgentLoop (end_turn) -->
+  <rect x="840" y="625" width="700" height="44" rx="6" fill="rgba(251,146,60,0.04)"/>
+  <text x="855" y="644" font-size="12" fill="rgba(251,146,60,0.6)" font-weight="600">STEP 9</text>
+  <line x1="1240" y1="647" x2="1085" y2="647" stroke="#fb923c" stroke-width="2" marker-end="url(#arrow-orange)"/>
+  <rect x="1100" y="629" width="120" height="20" rx="4" fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="1160" y="643" text-anchor="middle" font-size="11" fill="#fb923c">stop_reason="end_turn"</text>
+  <text x="1157" y="662" text-anchor="middle" font-size="11" fill="rgba(251,146,60,0.8)">content=[{type:"text", text:"现在是 00:24…"}]</text>
+
+  <!-- Step 10: AgentLoop → User (final) -->
+  <rect x="840" y="682" width="700" height="28" rx="6" fill="rgba(168,85,247,0.06)"/>
+  <text x="855" y="701" font-size="12" fill="rgba(168,85,247,0.6)" font-weight="600">STEP 10</text>
+  <line x1="1065" y1="696" x2="920" y2="696" stroke="#a855f7" stroke-width="2.5" marker-end="url(#arrow-purple)"/>
+  <rect x="925" y="681" width="130" height="22" rx="4" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="990" y="696" text-anchor="middle" font-size="12" fill="#a855f7" font-weight="600">"现在是 00:24…" ✓</text>
+
+  <!-- KEY ANNOTATIONS -->
+  <!-- Anthropic vs OpenAI note -->
+  <rect x="840" y="726" width="700" height="56" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="860" y="745" font-size="13" fill="#22d3ee" font-weight="700">⚠ Anthropic vs OpenAI 格式差异（STEP 7）</text>
+  <text x="860" y="765" font-size="13" fill="rgba(241,245,249,0.7)">Anthropic: role="user" + type="tool_result" + tool_use_id    OpenAI: role="tool" + tool_call_id</text>
+
+  <!-- LLM call count note -->
+  <rect x="840" y="797" width="700" height="40" rx="10" fill="rgba(251,146,60,0.06)" stroke="rgba(251,146,60,0.2)" stroke-width="1"/>
+  <text x="860" y="822" font-size="13" fill="#fb923c" font-weight="600">💡 LLM 总调用次数 = 工具调用轮数 + 1    本例：1 次工具调用 → LLM 调用 2 次</text>
+
+  <!-- messages[] final state -->
+  <rect x="840" y="853" width="700" height="86" rx="10" fill="rgba(74,222,128,0.04)" stroke="rgba(74,222,128,0.2)" stroke-width="1"/>
+  <text x="860" y="876" font-size="13" fill="#4ade80" font-weight="700">📋 最终 messages[] 共 4 条</text>
+  <text x="860" y="897" font-size="12" fill="rgba(241,245,249,0.7)" font-family="Fira Code, monospace">[{"role":"user","content":"现在几点了？"},  {"role":"assistant","content":[tool_use]},</text>
+  <text x="860" y="915" font-size="12" fill="rgba(241,245,249,0.7)" font-family="Fira Code, monospace"> {"role":"user","content":[tool_result]},   {"role":"assistant","content":"现在是 00:24"}]</text>
+  <text x="860" y="933" font-size="12" fill="rgba(241,245,249,0.5)">messages[] 是 Agent 的唯一状态。所有信息——用户输入 / LLM 决策 / 工具结果——都在这个列表里。</text>
+
+  <!-- ── BOTTOM FOOTER ── -->
+  <line x1="80" y1="965" x2="1507" y2="965" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- Left footer: book info -->
+  <text x="100" y="1000" font-size="14" fill="#64748b">《从零构建你的 AI Agent：Claude Code &amp; OpenClaw 深度实战》Ch 03 · lena-v0.3</text>
+  <text x="100" y="1022" font-size="13" fill="rgba(100,116,139,0.6)">引用：R2 nanoClaw core/agent.py:155 · nano-claw loop.ts:91 · Tian-NanoClaw agent_app.py · SPEC.md §2</text>
+  <text x="100" y="1044" font-size="13" fill="rgba(100,116,139,0.6)">Bedrock 实测：2026-05-06  · AWS region us-west-2 · model us.anthropic.claude-sonnet-4-6</text>
+
+  <!-- Right footer: design credit -->
+  <text x="1507" y="1000" text-anchor="end" font-size="14" fill="#64748b">huashu-design · Liquid Glass Deep Space</text>
+  <text x="1507" y="1022" text-anchor="end" font-size="13" fill="rgba(100,116,139,0.6)">A3 297×420mm · 印刷级 · 2026-05-06</text>
+
+  <!-- Small border decoration -->
+  <rect x="40" y="40" width="1507" height="1043" rx="20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Corner accents -->
+  <path d="M40,80 L40,40 L80,40" fill="none" stroke="rgba(168,85,247,0.3)" stroke-width="2"/>
+  <path d="M1547,80 L1547,40 L1507,40" fill="none" stroke="rgba(168,85,247,0.3)" stroke-width="2"/>
+  <path d="M40,1003 L40,1083 L80,1083" fill="none" stroke="rgba(34,211,238,0.3)" stroke-width="2"/>
+  <path d="M1547,1003 L1547,1083 L1507,1083" fill="none" stroke="rgba(34,211,238,0.3)" stroke-width="2"/>
+</svg>

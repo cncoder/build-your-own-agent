@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" width="800" height="360">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 11px; }
+      .ver { font-size: 10px; fill: #00d4ff; font-weight: bold; }
+      .cap { font-size: 9px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .phase { font-size: 10px; fill: #ffb347; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="360" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">Lena 演进路径：v0.1 → v0.24（通用 Agent 构建路线）</text>
+
+  <!-- Phase labels -->
+  <text x="60" y="52" class="phase">基础</text>
+  <text x="220" y="52" class="phase">工具化</text>
+  <text x="390" y="52" class="phase">记忆与规划</text>
+  <text x="565" y="52" class="phase">安全与通道</text>
+  <text x="715" y="52" class="phase">专精</text>
+
+  <!-- Horizontal timeline line -->
+  <line x1="40" y1="130" x2="760" y2="130" stroke="#1a3050" stroke-width="2"/>
+
+  <!-- Version nodes: positions spread across 800px -->
+  <!-- v0.1 at x=55 -->
+  <circle cx="55" cy="130" r="16" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="55" y="134" text-anchor="middle" class="ver">v0.1</text>
+  <line x1="55" y1="146" x2="55" y2="170" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="10" y="170" width="90" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="55" y="185" text-anchor="middle" class="label">Hello Agent</text>
+  <text x="55" y="198" text-anchor="middle" class="cap">首次 API 调用</text>
+  <text x="55" y="209" text-anchor="middle" class="cap">基础对话</text>
+
+  <!-- v0.2 at x=140 -->
+  <circle cx="140" cy="130" r="16" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="140" y="134" text-anchor="middle" class="ver">v0.2</text>
+  <line x1="140" y1="114" x2="140" y2="90" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="96" y="58" width="88" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="140" y="73" text-anchor="middle" class="label">ReAct 循环</text>
+  <text x="140" y="86" text-anchor="middle" class="cap">Thought/Act/Obs</text>
+  <text x="140" y="97" text-anchor="middle" class="cap">while 推理</text>
+
+  <!-- v0.3 at x=220 -->
+  <circle cx="220" cy="130" r="16" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="220" y="134" text-anchor="middle" class="ver">v0.3</text>
+  <line x1="220" y1="146" x2="220" y2="170" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="175" y="170" width="90" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="220" y="185" text-anchor="middle" class="label">Provider 抽象</text>
+  <text x="220" y="198" text-anchor="middle" class="cap">多模型支持</text>
+  <text x="220" y="209" text-anchor="middle" class="cap">流式输出</text>
+
+  <!-- v0.4 at x=300 -->
+  <circle cx="300" cy="130" r="16" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="300" y="134" text-anchor="middle" class="ver">v0.4</text>
+  <line x1="300" y1="114" x2="300" y2="90" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="256" y="58" width="88" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="300" y="73" text-anchor="middle" class="label">工具系统</text>
+  <text x="300" y="86" text-anchor="middle" class="cap">Tool Registry</text>
+  <text x="300" y="97" text-anchor="middle" class="cap">Shell/File/Web</text>
+
+  <!-- v0.8 at x=390 -->
+  <circle cx="390" cy="130" r="16" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="390" y="134" text-anchor="middle" class="ver">v0.8</text>
+  <line x1="390" y1="146" x2="390" y2="170" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="345" y="170" width="90" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="390" y="185" text-anchor="middle" class="label">记忆系统</text>
+  <text x="390" y="198" text-anchor="middle" class="cap">向量搜索</text>
+  <text x="390" y="209" text-anchor="middle" class="cap">跨 Session</text>
+
+  <!-- v0.11 at x=480 -->
+  <circle cx="480" cy="130" r="17" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="480" y="134" text-anchor="middle" class="ver">v0.11</text>
+  <line x1="480" y1="114" x2="480" y2="90" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="435" y="58" width="90" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="480" y="73" text-anchor="middle" class="label">规划 + 子 Agent</text>
+  <text x="480" y="86" text-anchor="middle" class="cap">长链任务拆解</text>
+  <text x="480" y="97" text-anchor="middle" class="cap">并行执行</text>
+
+  <!-- v0.15 at x=565 -->
+  <circle cx="565" cy="130" r="17" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="565" y="134" text-anchor="middle" class="ver">v0.15</text>
+  <line x1="565" y1="146" x2="565" y2="170" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="518" y="170" width="94" height="42" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="565" y="185" text-anchor="middle" class="label">Gateway + 通道</text>
+  <text x="565" y="198" text-anchor="middle" class="cap">Discord/CLI/Web</text>
+  <text x="565" y="209" text-anchor="middle" class="cap">消息路由</text>
+
+  <!-- v0.20 at x="655" -->
+  <circle cx="655" cy="130" r="17" fill="#0c1220" stroke="#ffb347" stroke-width="2"/>
+  <text x="655" y="134" text-anchor="middle" class="ver" fill="#ffb347">v0.20</text>
+  <line x1="655" y1="114" x2="655" y2="90" stroke="#1a3050" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="608" y="58" width="94" height="42" rx="5" fill="#1a2010" stroke="#3a5020" stroke-width="1"/>
+  <text x="655" y="73" text-anchor="middle" class="label">Docker 沙箱</text>
+  <text x="655" y="86" text-anchor="middle" class="cap">安全隔离</text>
+  <text x="655" y="97" text-anchor="middle" class="cap">生产级防护</text>
+
+  <!-- v0.24 at x=745 -->
+  <circle cx="745" cy="130" r="17" fill="#0a2a14" stroke="#00ff88" stroke-width="2"/>
+  <text x="745" y="134" text-anchor="middle" class="ver" fill="#00ff88">v0.24</text>
+  <line x1="745" y1="146" x2="745" y2="170" stroke="#00ff88" stroke-width="1" stroke-dasharray="3,2"/>
+  <rect x="698" y="170" width="94" height="42" rx="5" fill="#0a2a14" stroke="#00ff88" stroke-width="1"/>
+  <text x="745" y="185" text-anchor="middle" class="label" fill="#00ff88">通用 Agent</text>
+  <text x="745" y="198" text-anchor="middle" class="cap">可派生专用</text>
+  <text x="745" y="209" text-anchor="middle" class="cap">完整六大支柱</text>
+
+  <!-- Capability summary bar -->
+  <rect x="40" y="240" width="720" height="28" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="400" y="259" text-anchor="middle" class="cap">核心能力积累：工具调用 → 多 Provider → 流式 → 记忆 → 规划 → 子 Agent → 安全 → 通道 → 评测 → 专精</text>
+
+  <!-- Phase brackets -->
+  <line x1="40" y1="280" x2="180" y2="280" stroke="#1a3050" stroke-width="1"/>
+  <text x="110" y="295" text-anchor="middle" class="cap">Ch01-02 基础</text>
+  <line x1="200" y1="280" x2="340" y2="280" stroke="#1a3050" stroke-width="1"/>
+  <text x="270" y="295" text-anchor="middle" class="cap">Ch03-07 工具化</text>
+  <line x1="360" y1="280" x2="520" y2="280" stroke="#1a3050" stroke-width="1"/>
+  <text x="440" y="295" text-anchor="middle" class="cap">Ch08-11 认知</text>
+  <line x1="540" y1="280" x2="680" y2="280" stroke="#1a3050" stroke-width="1"/>
+  <text x="610" y="295" text-anchor="middle" class="cap">Ch13-20 安全</text>
+  <line x1="700" y1="280" x2="760" y2="280" stroke="#1a3050" stroke-width="1"/>
+  <text x="730" y="295" text-anchor="middle" class="cap">Ch23-25</text>
+
+  <!-- Arrows between nodes -->
+  <line x1="72" y1="130" x2="122" y2="130" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="157" y1="130" x2="202" y2="130" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="237" y1="130" x2="282" y2="130" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="317" y1="130" x2="372" y2="130" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="407" y1="130" x2="461" y2="130" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="498" y1="130" x2="546" y2="130" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="583" y1="130" x2="636" y2="130" stroke="#ffb347" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="673" y1="130" x2="726" y2="130" stroke="#00ff88" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

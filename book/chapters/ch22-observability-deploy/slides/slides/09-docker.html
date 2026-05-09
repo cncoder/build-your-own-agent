@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 09 Docker Compose</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .header {
+    grid-column: 1 / -1; padding: 46px 100px 28px;
+    border-bottom: 1px solid rgba(48,54,61,0.6);
+  }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #bc8cff; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #bc8cff; }
+  .subtitle { font-size: 17px; color: #8b949e; margin-top: 6px; }
+
+  .panel { padding: 32px 60px 32px 100px; display: flex; flex-direction: column; gap: 16px; }
+  .panel.right { padding: 32px 100px 32px 60px; border-left: 1px solid rgba(48,54,61,0.6); }
+
+  .code {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+    padding: 18px 22px; font-family: 'SF Mono', monospace;
+    font-size: 13px; line-height: 1.75; flex: 1; overflow: hidden;
+  }
+  .ki { color: #79c0ff; }
+  .st { color: #a5d6ff; }
+  .nu { color: #f2cc60; }
+  .cm { color: #6e7681; font-style: italic; }
+  .tag2 { color: #7ee787; }
+
+  /* 架构图 */
+  .arch {
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 1;
+  }
+  .svc {
+    background: rgba(22,27,34,0.8); border-radius: 10px; border: 1px solid #21262d;
+    padding: 14px 20px;
+    display: grid; grid-template-columns: 160px 1fr auto;
+    align-items: center; gap: 16px;
+  }
+  .svc-name { font-weight: 600; font-family: 'SF Mono', monospace; font-size: 14px; }
+  .svc.lena .svc-name { color: #bc8cff; }
+  .svc.redis .svc-name { color: #f85149; }
+  .svc.jaeger .svc-name { color: #3fb950; }
+  .svc-desc { font-size: 13px; color: #8b949e; line-height: 1.5; }
+  .svc-port {
+    font-family: 'SF Mono', monospace; font-size: 12px; color: #6e7681;
+    background: rgba(0,0,0,0.4); border-radius: 4px; padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  .net-label {
+    font-size: 11px; color: #6e7681; text-align: center;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+    justify-content: center;
+  }
+  .net-line { flex: 1; height: 1px; background: rgba(48,54,61,0.8); }
+
+  .cmd-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .cmd {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+    padding: 10px 16px; font-family: 'SF Mono', monospace; font-size: 13px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cmd-prompt { color: #bc8cff; }
+  .cmd-text { color: #c9d1d9; flex: 1; }
+  .cmd-comment { color: #6e7681; font-size: 12px; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">Docker Compose · 多服务部署</div>
+    <h1>Lena + Redis + Jaeger<span> — 一键启停整套服务</span></h1>
+    <p class="subtitle">服务间网络隔离（lena-net）· healthcheck 依赖 · restart: unless-stopped</p>
+  </div>
+
+  <div class="panel">
+    <div class="code">
+<span class="cm"># docker-compose.yml</span>
+<span class="ki">services</span>:
+  <span class="ki">lena</span>:
+    <span class="ki">build</span>: .
+    <span class="ki">restart</span>: <span class="st">unless-stopped</span>
+    <span class="ki">env_file</span>: .env
+    <span class="ki">environment</span>:
+      - <span class="st">OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317</span>
+      - <span class="st">REDIS_URL=redis://redis:6379</span>
+    <span class="ki">depends_on</span>:
+      <span class="ki">redis</span>:
+        <span class="ki">condition</span>: <span class="st">service_healthy</span>
+    <span class="ki">deploy.resources.limits</span>:
+      <span class="ki">memory</span>: <span class="st">2G</span>
+      <span class="ki">cpus</span>: <span class="st">"1.5"</span>
+
+  <span class="ki">redis</span>:
+    <span class="ki">image</span>: <span class="st">redis:7-alpine</span>
+    <span class="ki">healthcheck</span>:
+      <span class="ki">test</span>: [<span class="st">"CMD"</span>, <span class="st">"redis-cli"</span>, <span class="st">"ping"</span>]
+
+  <span class="ki">jaeger</span>:
+    <span class="ki">image</span>: <span class="st">jaegertracing/all-in-one:1.55</span>
+    <span class="ki">ports</span>:
+      - <span class="st">"16686:16686"</span>  <span class="cm"># Jaeger UI</span>
+      - <span class="st">"4317:4317"</span>   <span class="cm"># OTLP gRPC</span>
+    </div>
+  </div>
+
+  <div class="panel right">
+    <div class="arch">
+      <div class="net-label">
+        <div class="net-line"></div>
+        lena-net · bridge 隔离网络
+        <div class="net-line"></div>
+      </div>
+      <div class="svc lena">
+        <span class="svc-name">lena</span>
+        <span class="svc-desc">Agent 主进程<br>structlog + OTel + Budget 熔断</span>
+        <span class="svc-port">:8080 /health</span>
+      </div>
+      <div class="svc redis">
+        <span class="svc-name">redis</span>
+        <span class="svc-desc">会话状态 / Budget 跨实例共享<br>appendonly yes 持久化</span>
+        <span class="svc-port">:6379</span>
+      </div>
+      <div class="svc jaeger">
+        <span class="svc-name">jaeger</span>
+        <span class="svc-desc">OTel 追踪收集 + 可视化 UI<br>生产替换为 AWS X-Ray</span>
+        <span class="svc-port">:16686 UI · :4317 OTLP</span>
+      </div>
+    </div>
+    <div class="cmd-list">
+      <div class="cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text">docker compose up -d</span>
+        <span class="cmd-comment">启动所有服务</span>
+      </div>
+      <div class="cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text">docker compose logs -f lena</span>
+        <span class="cmd-comment">实时日志</span>
+      </div>
+      <div class="cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text">docker compose restart lena</span>
+        <span class="cmd-comment">重启单个服务</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · Docker Compose</div>
+</body>
+</html>

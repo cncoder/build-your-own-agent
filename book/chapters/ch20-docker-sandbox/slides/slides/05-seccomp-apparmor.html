@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 56px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+.content { position: absolute; top: 230px; left: 80px; right: 80px; bottom: 60px; display: flex; gap: 60px; align-items: flex-start; }
+
+.card {
+  flex: 1; background: #0f1418;
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 32px;
+}
+.card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.card-badge { font-size: 28px; font-weight: 900; width: 56px; height: 56px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Arial Black', sans-serif; }
+.badge-sec { background: rgba(255,102,0,0.15); color: #ff8844; border: 1px solid rgba(255,102,0,0.3); }
+.badge-app { background: rgba(51,170,255,0.12); color: #33aaff; border: 1px solid rgba(51,170,255,0.25); }
+.card-title { font-size: 24px; font-weight: 700; color: #fff; }
+.card-subtitle { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 3px; }
+
+.one-liner {
+  font-size: 16px; color: rgba(255,255,255,0.65); line-height: 1.7;
+  border-left: 2px solid rgba(255,255,255,0.1); padding-left: 16px; margin-bottom: 20px;
+  font-style: italic;
+}
+.feature-list { display: flex; flex-direction: column; gap: 10px; }
+.feature { display: flex; gap: 12px; align-items: flex-start; }
+.f-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+.dot-sec { background: #ff8844; }
+.dot-app { background: #33aaff; }
+.f-text { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+.f-text strong { color: #fff; }
+
+.danger-box {
+  flex: 1; display: flex; flex-direction: column; gap: 16px; justify-content: center;
+}
+.danger-title { font-size: 13px; letter-spacing: 0.25em; color: #ff6666; text-transform: uppercase; margin-bottom: 8px; }
+.danger-cmd {
+  background: rgba(255,50,50,0.07); border: 1px solid rgba(255,50,50,0.2);
+  padding: 14px 18px; border-radius: 4px;
+}
+.danger-cmd .cmd { font-size: 14px; color: #ff9966; }
+.danger-cmd .why { font-size: 12px; color: rgba(255,100,100,0.6); margin-top: 6px; }
+
+.bottom-note {
+  background: rgba(0,204,85,0.05); border: 1px solid rgba(0,204,85,0.15);
+  padding: 16px 20px; border-radius: 4px; margin-top: 16px;
+}
+.bottom-note-title { font-size: 12px; color: #00cc55; letter-spacing: 0.15em; margin-bottom: 6px; }
+.bottom-note-text { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">seccomp + AppArmor</div>
+<div class="page-num">05 / 11</div>
+
+<div class="title-area">
+  <h2>seccomp + AppArmor</h2>
+  <div class="sub">系统调用级别的沙箱——一句话说清原理</div>
+</div>
+
+<div class="content">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-badge badge-sec">SC</div>
+      <div>
+        <div class="card-title">seccomp</div>
+        <div class="card-subtitle">Secure Computing Mode · Linux 内核功能</div>
+      </div>
+    </div>
+    <div class="one-liner">程序做任何事最终都要调系统调用。seccomp 在这一层设白名单——超出白名单直接被内核杀掉。</div>
+    <div class="feature-list">
+      <div class="feature"><div class="f-dot dot-sec"></div><div class="f-text">Docker 默认启用 seccomp profile，阻断 <strong>44 个危险系统调用</strong></div></div>
+      <div class="feature"><div class="f-dot dot-sec"></div><div class="f-text">包括 <strong>ptrace</strong>（进程注入）、<strong>keyctl</strong>（密钥操作）、<strong>mount</strong>（挂载文件系统）</div></div>
+      <div class="feature"><div class="f-dot dot-sec"></div><div class="f-text">白名单之外的调用：<strong>SIGSYS 终止进程</strong></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-badge badge-app">AA</div>
+      <div>
+        <div class="card-title">AppArmor</div>
+        <div class="card-subtitle">Mandatory Access Control · MAC 框架</div>
+      </div>
+    </div>
+    <div class="one-liner">seccomp 是"能不能发起这种调用"，AppArmor 是"这个程序能不能访问这个资源"。两者互补。</div>
+    <div class="feature-list">
+      <div class="feature"><div class="f-dot dot-app"></div><div class="f-text">为每个进程定义允许访问的<strong>文件路径</strong></div></div>
+      <div class="feature"><div class="f-dot dot-app"></div><div class="f-text">限制<strong>网络操作</strong>和 Linux capability</div></div>
+      <div class="feature"><div class="f-dot dot-app"></div><div class="f-text">违反 profile 的访问：<strong>内核层面直接拒绝</strong></div></div>
+    </div>
+  </div>
+
+  <div class="danger-box">
+    <div class="danger-title">这些配置必须被阻断</div>
+    <div class="danger-cmd">
+      <div class="cmd">--security-opt seccomp=unconfined</div>
+      <div class="why">允许所有系统调用 → 可能提权/逃逸</div>
+    </div>
+    <div class="danger-cmd">
+      <div class="cmd">--security-opt apparmor=unconfined</div>
+      <div class="why">解除 MAC 约束 → 任意资源访问</div>
+    </div>
+    <div class="danger-cmd">
+      <div class="cmd">--privileged</div>
+      <div class="why">超级权限 = 无沙箱</div>
+    </div>
+    <div class="bottom-note">
+      <div class="bottom-note-title">validate-sandbox-security.ts:311-322</div>
+      <div class="bottom-note-text">容器启动前校验以上三项，发现即拒绝启动。这是 OpenClaw 安全的最后一道门。</div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 05 · 模型选型雷达图</title>
+<style>
+/* ── 深空霓虹 · neon-amber accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #fbbf24;        /* neon-amber */
+  --cyan: #22d3ee;
+  --green: #34d399;
+  --violet: #a78bfa;
+  --rose: #fb7185;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 64px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(251,191,36,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(34,211,238,0.04) 0%, transparent 50%);
+}
+header { text-align: center; margin-bottom: 32px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 14px; color: var(--dim); max-width: 580px; margin: 0 auto; line-height: 1.65; }
+
+/* ── 模型选择器 ── */
+.model-bar {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap; margin-bottom: 28px;
+}
+.model-btn {
+  padding: 7px 16px; border-radius: 9px; cursor: pointer; font-size: 13px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim); transition: all 0.2s; font-family: var(--sans);
+}
+.model-btn:hover { border-color: rgba(251,191,36,0.35); color: var(--accent); }
+.model-btn.active { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.5); color: var(--accent); }
+
+/* ── 主布局 ── */
+.main { display: grid; grid-template-columns: 1fr 340px; gap: 24px; max-width: 980px; margin: 0 auto; }
+@media (max-width: 720px) { .main { grid-template-columns: 1fr; } }
+
+/* ── 雷达图容器 ── */
+.radar-wrap {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(251,191,36,0.12);
+  border-radius: 16px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.radar-wrap h3 { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 18px; align-self: flex-start; }
+canvas#radar { display: block; max-width: 100%; }
+
+/* ── 右侧信息面板 ── */
+.info-panel {
+  display: flex; flex-direction: column; gap: 16px;
+}
+.model-card {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(251,191,36,0.12);
+  border-radius: 14px; padding: 20px;
+}
+.model-name { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.model-maker { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.score-item { background: rgba(0,0,0,0.25); border-radius: 8px; padding: 9px 12px; }
+.score-dim { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
+.score-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+
+.use-cases { margin-top: 2px; }
+.use-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+.use-list { display: flex; flex-direction: column; gap: 5px; }
+.use-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13px; color: var(--dim); line-height: 1.45;
+}
+.use-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 5px; }
+.use-item.warn .use-dot { background: var(--rose); }
+.use-item.warn { color: rgba(251,113,133,0.75); }
+
+/* ── 比较表 ── */
+.compare-card {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(251,191,36,0.12);
+  border-radius: 14px; padding: 20px;
+}
+.compare-card h3 { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.compare-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.cmp-name { font-size: 12px; color: var(--dim); width: 130px; flex-shrink: 0; }
+.cmp-bar-wrap { flex: 1; background: rgba(255,255,255,0.04); border-radius: 3px; height: 14px; }
+.cmp-bar { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+.cmp-val { font-family: var(--mono); font-size: 11px; color: var(--muted); width: 28px; text-align: right; }
+
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+footer { text-align: center; margin-top: 48px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Ch 05 · 技术选型</div>
+  <h1>模型选型五维雷达图</h1>
+  <p>选择合适的模型是 agent 工程中最关键的决策之一。点击不同模型查看其在五个维度上的能力对比与推荐使用场景。</p>
+</header>
+
+<!-- 模型选择器 -->
+<div class="model-bar">
+  <button class="model-btn active" data-model="0" onclick="selectModel(0)">Claude Sonnet 4.6</button>
+  <button class="model-btn" data-model="1" onclick="selectModel(1)">GPT-5</button>
+  <button class="model-btn" data-model="2" onclick="selectModel(2)">Gemini 2.5 Pro</button>
+  <button class="model-btn" data-model="3" onclick="selectModel(3)">DeepSeek-V3</button>
+  <button class="model-btn" data-model="4" onclick="selectModel(4)">Qwen3-235B</button>
+</div>
+
+<div class="main">
+  <!-- 雷达图 -->
+  <div class="radar-wrap">
+    <h3>五维能力雷达</h3>
+    <canvas id="radar" width="400" height="400"></canvas>
+  </div>
+
+  <!-- 右侧信息 -->
+  <div class="info-panel">
+    <div class="model-card" id="model-info"><!-- 动态填充 --></div>
+    <div class="compare-card">
+      <h3>综合评分对比</h3>
+      <div id="compare-rows"><!-- 动态填充 --></div>
+    </div>
+  </div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 05 章 · 技术选型 · 交互式 Demo</footer>
+
+<script>
+// ── 模型数据 ──
+// 维度顺序：推理能力 / 工具调用 / 长 Context / 中文能力 / 成本效益
+const MODELS = [
+  {
+    name: 'Claude Sonnet 4.6',
+    maker: 'Anthropic · 2025',
+    color: '#22d3ee',
+    scores: [92, 96, 95, 88, 82],
+    priceNote: '$3 / $15 MTok',
+    useCases: [
+      '✅ 适用：agent 工具调用、多步推理任务',
+      '✅ 适用：代码生成与调试',
+      '✅ 适用：200k context 长文档处理',
+      '⚠️ 注意：成本高于 Haiku，批处理场景用 Batch API'
+    ],
+    useTypes: ['ok','ok','ok','warn']
+  },
+  {
+    name: 'GPT-5',
+    maker: 'OpenAI · 2025',
+    color: '#34d399',
+    scores: [95, 93, 90, 82, 70],
+    priceNote: '$15 / $60 MTok（估）',
+    useCases: [
+      '✅ 适用：复杂推理与数学证明',
+      '✅ 适用：多模态（图像+文字）任务',
+      '⚠️ 注意：API 限速，高并发场景需排队',
+      '⚠️ 注意：成本最高，非 agent 日常首选'
+    ],
+    useTypes: ['ok','ok','warn','warn']
+  },
+  {
+    name: 'Gemini 2.5 Pro',
+    maker: 'Google · 2025',
+    color: '#a78bfa',
+    scores: [90, 88, 99, 85, 78],
+    priceNote: '$1.25 / $10 MTok',
+    useCases: [
+      '✅ 适用：超长 context（1M token）文档分析',
+      '✅ 适用：多模态视频理解',
+      '✅ 适用：Google 生态集成（Search / Drive）',
+      '⚠️ 注意：中文指令跟随稍弱于 Claude'
+    ],
+    useTypes: ['ok','ok','ok','warn']
+  },
+  {
+    name: 'DeepSeek-V3',
+    maker: 'DeepSeek · 2025',
+    color: '#fbbf24',
+    scores: [87, 82, 88, 95, 96],
+    priceNote: '$0.27 / $1.1 MTok',
+    useCases: [
+      '✅ 适用：中文创作与代码补全',
+      '✅ 适用：成本敏感的高并发场景',
+      '✅ 适用：可私有化部署（开源权重）',
+      '⚠️ 注意：工具调用稳定性低于 Claude'
+    ],
+    useTypes: ['ok','ok','ok','warn']
+  },
+  {
+    name: 'Qwen3-235B',
+    maker: 'Alibaba · 2025',
+    color: '#fb7185',
+    scores: [88, 85, 86, 97, 94],
+    priceNote: '$0.6 / $2.4 MTok',
+    useCases: [
+      '✅ 适用：中文垂直领域（法律/医疗/教育）',
+      '✅ 适用：工具调用 + MCP 集成',
+      '✅ 适用：国内合规部署首选',
+      '⚠️ 注意：英文推理能力弱于 GPT-5/Claude'
+    ],
+    useTypes: ['ok','ok','ok','warn']
+  }
+];
+const DIMS = ['推理能力', '工具调用', '长 Context', '中文能力', '成本效益'];
+
+let currentModel = 0;
+let animFrame = null;
+
+function selectModel(idx) {
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.toggle('active', +b.dataset.model === idx));
+  currentModel = idx;
+  renderInfo(idx);
+  animateRadar(idx);
+  renderCompare(idx);
+}
+
+// ── 雷达图绘制 ──
+const canvas = document.getElementById('radar');
+const ctx = canvas.getContext('2d');
+const CX = 200, CY = 200, R = 150;
+const N = 5;
+const angles = Array.from({length: N}, (_, i) => (i * 2 * Math.PI / N) - Math.PI / 2);
+
+let animStart = null;
+let animFrom = [0,0,0,0,0];
+let animTo = [0,0,0,0,0];
+
+function drawRadar(scores, color) {
+  ctx.clearRect(0, 0, 400, 400);
+
+  // 网格层
+  for (let ring = 1; ring <= 5; ring++) {
+    const r = R * ring / 5;
+    ctx.beginPath();
+    angles.forEach((a, i) => {
+      const x = CX + r * Math.cos(a), y = CY + r * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // 轴线
+  angles.forEach(a => {
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + R * Math.cos(a), CY + R * Math.sin(a));
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // 分数区
+  ctx.beginPath();
+  scores.forEach((s, i) => {
+    const r = R * s / 100;
+    const x = CX + r * Math.cos(angles[i]);
+    const y = CY + r * Math.sin(angles[i]);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = color + '22';
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 数据点
+  scores.forEach((s, i) => {
+    const r = R * s / 100;
+    const x = CX + r * Math.cos(angles[i]);
+    const y = CY + r * Math.sin(angles[i]);
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  });
+
+  // 维度标签
+  ctx.font = '13px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  angles.forEach((a, i) => {
+    const labelR = R + 26;
+    const x = CX + labelR * Math.cos(a);
+    const y = CY + labelR * Math.sin(a);
+    ctx.fillText(DIMS[i], x, y);
+  });
+
+  // 刻度值 100
+  ctx.font = '10px monospace';
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.fillText('100', CX + 6, CY - R - 4);
+}
+
+function animateRadar(idx) {
+  const target = MODELS[idx].scores;
+  const color = MODELS[idx].color;
+  // 当前显示值作为起点
+  animFrom = [...animTo];
+  animTo = [...target];
+  animStart = null;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  function step(ts) {
+    if (!animStart) animStart = ts;
+    const t = Math.min((ts - animStart) / 500, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const cur = animFrom.map((f, i) => f + (animTo[i] - f) * ease);
+    drawRadar(cur, color);
+    if (t < 1) animFrame = requestAnimationFrame(step);
+  }
+  animFrame = requestAnimationFrame(step);
+}
+
+// ── 信息面板 ──
+function renderInfo(idx) {
+  const m = MODELS[idx];
+  const dimNames = ['推理', '工具', '长ctx', '中文', '成本'];
+  const scoreHTML = m.scores.map((s, i) => `
+    <div class="score-item">
+      <div class="score-dim">${dimNames[i]}</div>
+      <div class="score-val" style="color:${m.color}">${s}</div>
+    </div>`).join('');
+  const usesHTML = m.useCases.map((u, i) =>
+    `<div class="use-item ${m.useTypes[i] === 'warn' ? 'warn' : ''}">
+      <span class="use-dot"></span><span>${u}</span></div>`
+  ).join('');
+  document.getElementById('model-info').innerHTML = `
+    <div class="model-name" style="color:${m.color}">${m.name}</div>
+    <div class="model-maker">${m.maker} · ${m.priceNote}</div>
+    <div class="score-grid">${scoreHTML}</div>
+    <div class="use-cases">
+      <div class="use-label">推荐场景</div>
+      <div class="use-list">${usesHTML}</div>
+    </div>`;
+}
+
+// ── 对比条 ──
+function renderCompare(activeIdx) {
+  const dimIdx = 0; // 综合：取平均
+  const rows = MODELS.map((m, i) => {
+    const avg = Math.round(m.scores.reduce((a, b) => a + b, 0) / m.scores.length);
+    return { name: m.name.replace('Claude ', '').replace(' Pro', ''), avg, color: m.color, active: i === activeIdx };
+  }).sort((a, b) => b.avg - a.avg);
+
+  document.getElementById('compare-rows').innerHTML = rows.map(r => `
+    <div class="compare-row">
+      <div class="cmp-name" style="${r.active ? 'color:var(--text);font-weight:600' : ''}">${r.name}</div>
+      <div class="cmp-bar-wrap">
+        <div class="cmp-bar" style="width:${r.avg}%;background:${r.color}44;border-right:2px solid ${r.color}"></div>
+      </div>
+      <div class="cmp-val">${r.avg}</div>
+    </div>`).join('');
+}
+
+// 初始化
+animTo = [0,0,0,0,0];
+selectModel(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" width="800" height="320">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00ff88"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 10px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .small { font-size: 10px; }
+    </style>
+  </defs>
+
+  <rect width="800" height="320" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">Memory 读写循环（Ch08）</text>
+
+  <!-- Agent Loop (center left) -->
+  <rect x="120" y="110" width="170" height="100" rx="10" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="205" y="145" text-anchor="middle" class="label">Agent Loop</text>
+  <text x="205" y="163" text-anchor="middle" class="sublabel">接收输入</text>
+  <text x="205" y="177" text-anchor="middle" class="sublabel">思考 + 行动</text>
+  <text x="205" y="191" text-anchor="middle" class="sublabel">产出结果 / 更新记忆</text>
+
+  <!-- Memory Store (center right) -->
+  <rect x="510" y="80" width="180" height="160" rx="10" fill="#0c1220" stroke="#4a80a0" stroke-width="2"/>
+  <text x="600" y="108" text-anchor="middle" class="label">Memory Store</text>
+  <!-- Three sub-zones -->
+  <rect x="522" y="118" width="156" height="28" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="600" y="133" text-anchor="middle" class="small">Working Memory（短期）</text>
+  <rect x="522" y="152" width="156" height="28" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="600" y="167" text-anchor="middle" class="small">Episodic Memory（对话历史）</text>
+  <rect x="522" y="186" width="156" height="28" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="600" y="201" text-anchor="middle" class="small">Semantic Memory（向量 DB）</text>
+
+  <!-- Write arrow: Agent → Memory (top arc) -->
+  <path d="M 290 140 Q 400 60 508 120" fill="none" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="395" y="68" text-anchor="middle" class="small" fill="#00d4ff">write（记录行动 / 对话摘要）</text>
+
+  <!-- Read arrow: Memory → Agent (bottom arc) -->
+  <path d="M 508 200 Q 400 270 290 185" fill="none" stroke="#00ff88" stroke-width="2" marker-end="url(#arrow-green)"/>
+  <text x="395" y="278" text-anchor="middle" class="small" fill="#00ff88">read（向量相似度召回）</text>
+
+  <!-- Session boundary annotation -->
+  <rect x="150" y="235" width="440" height="36" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="370" y="252" text-anchor="middle" class="sublabel">Session 结束时：Working Memory → 摘要压缩 → Episodic Memory 持久化</text>
+  <text x="370" y="267" text-anchor="middle" class="sublabel">Session 启动时：加载摘要 + 向量检索相关长期记忆 → 注入 System Prompt</text>
+
+  <!-- Memory type legend -->
+  <rect x="20" y="60" width="86" height="86" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="63" y="80" text-anchor="middle" class="small" fill="#ffb347">记忆类型</text>
+  <text x="63" y="97" text-anchor="middle" class="sublabel">短期：上下文</text>
+  <text x="63" y="111" text-anchor="middle" class="sublabel">情节：历史对话</text>
+  <text x="63" y="125" text-anchor="middle" class="sublabel">语义：向量 DB</text>
+  <text x="63" y="139" text-anchor="middle" class="sublabel">程序：规则/技能</text>
+
+  <!-- Output box -->
+  <rect x="30" y="175" width="86" height="42" rx="6" fill="#0a2a14" stroke="#00ff88" stroke-width="1.5"/>
+  <text x="73" y="193" text-anchor="middle" class="small" fill="#00ff88">跨 Session</text>
+  <text x="73" y="208" text-anchor="middle" class="small" fill="#00ff88">记忆持久化</text>
+
+  <!-- Right side benefit -->
+  <rect x="700" y="90" width="90" height="72" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="745" y="110" text-anchor="middle" class="small" fill="#ffb347">效果</text>
+  <text x="745" y="126" text-anchor="middle" class="sublabel">避免重复</text>
+  <text x="745" y="140" text-anchor="middle" class="sublabel">个性化</text>
+  <text x="745" y="154" text-anchor="middle" class="sublabel">长任务恢复</text>
+</svg>

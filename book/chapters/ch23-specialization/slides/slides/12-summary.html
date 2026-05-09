@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 80%, rgba(120,80,255,0.06) 0%, transparent 60%); }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+.subheading { position: absolute; top: 200px; left: 100px; font-size: 22px; color: rgba(255,255,255,0.4); }
+
+.pillars { position: absolute; top: 270px; left: 100px; right: 100px; display: flex; gap: 16px; }
+.pillar-item {
+  flex: 1; border-radius: 8px; padding: 20px 18px;
+  display: flex; align-items: center; gap: 14px;
+}
+.pillar-item.done { background: rgba(153,102,255,0.04); border: 1px solid rgba(153,102,255,0.15); }
+.pillar-item.now  { background: rgba(153,102,255,0.12); border: 1px solid rgba(153,102,255,0.4); box-shadow: 0 0 20px rgba(153,102,255,0.15); }
+.pillar-ch { font-size: 11px; color: rgba(153,102,255,0.6); letter-spacing: 0.2em; }
+.pillar-name { font-size: 14px; font-weight: 600; }
+.pillar-item.done .pillar-name { color: rgba(255,255,255,0.5); }
+.pillar-item.now  .pillar-name { color: #cc88ff; }
+.check { font-size: 18px; }
+
+.takeaways { position: absolute; top: 460px; left: 100px; right: 100px; display: flex; gap: 24px; }
+.takeaway {
+  flex: 1; padding: 24px 22px;
+  border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+}
+.takeaway-num { font-size: 36px; font-weight: 900; color: #9966ff; font-family: monospace; margin-bottom: 8px; }
+.takeaway-title { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
+.takeaway-desc { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.7; }
+
+.next-chapter {
+  position: absolute; bottom: 70px; left: 100px; right: 100px;
+  display: flex; align-items: center; gap: 20px;
+  padding: 20px 32px;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;
+}
+.next-label { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.2em; text-transform: uppercase; }
+.next-text { font-size: 18px; color: rgba(255,255,255,0.6); }
+.next-text strong { color: #cc88ff; }
+.next-arrow { margin-left: auto; font-size: 24px; color: rgba(153,102,255,0.5); }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="title">本章小结</div>
+<div class="heading">六大支柱，第 6 支完整落地</div>
+<div class="subheading">你现在掌握的不只是一个 Lena，而是一套可复制的方法论</div>
+
+<div class="pillars">
+  <div class="pillar-item done"><span class="check">✓</span><div><div class="pillar-ch">Ch4</div><div class="pillar-name">Tool Universality</div></div></div>
+  <div class="pillar-item done"><span class="check">✓</span><div><div class="pillar-ch">Ch6</div><div class="pillar-name">Memory Persistence</div></div></div>
+  <div class="pillar-item done"><span class="check">✓</span><div><div class="pillar-ch">Ch7</div><div class="pillar-name">Context Engineering</div></div></div>
+  <div class="pillar-item done"><span class="check">✓</span><div><div class="pillar-ch">Ch10</div><div class="pillar-name">Safety by Design</div></div></div>
+  <div class="pillar-item done"><span class="check">✓</span><div><div class="pillar-ch">Ch18</div><div class="pillar-name">Production Readiness</div></div></div>
+  <div class="pillar-item now"><span class="check">🔱</span><div><div class="pillar-ch">Ch19</div><div class="pillar-name">Specialization Pattern</div></div></div>
+</div>
+
+<div class="takeaways">
+  <div class="takeaway">
+    <div class="takeaway-num">01</div>
+    <div class="takeaway-title">三种派生姿势</div>
+    <div class="takeaway-desc">Prompt 特化（5min）→ 工具裁剪（30min）→ Skills 注入（2h）。由轻到重，按需选择。</div>
+  </div>
+  <div class="takeaway">
+    <div class="takeaway-num">02</div>
+    <div class="takeaway-title">CrewAI 双范式</div>
+    <div class="takeaway-desc">Crew = 项目制（一次性协作）；Flow = 产品制（持续运行状态机）。选型一句话够。</div>
+  </div>
+  <div class="takeaway">
+    <div class="takeaway-num">03</div>
+    <div class="takeaway-title">SupervisorAgent</div>
+    <div class="takeaway-desc">agent-as-tools 模式，用户零认知负担，LLM 推理路由，可跨 agent 组合任务。</div>
+  </div>
+  <div class="takeaway">
+    <div class="takeaway-num">04</div>
+    <div class="takeaway-title">Lena-SpecKit</div>
+    <div class="takeaway-desc">一行命令 <code>lena-spec create trader</code>，三种姿势全部应用，3 步以内跑起来。</div>
+  </div>
+</div>
+
+<div class="next-chapter">
+  <div class="next-label">下一章</div>
+  <div class="next-text"><strong>Ch 20 · Browser Agent</strong>——让 Lena 控制浏览器，成为真正的"通用自动化 agent"</div>
+  <div class="next-arrow">→</div>
+</div>
+</body>
+</html>

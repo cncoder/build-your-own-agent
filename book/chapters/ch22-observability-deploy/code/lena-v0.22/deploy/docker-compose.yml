@@ -1,0 +1,58 @@
+# Lena Agent - Docker Compose 多服务部署
+#
+# 启动：docker compose up -d
+# 日志：docker compose logs -f lena
+# 停止：docker compose stop（保留数据）
+# 清理：docker compose down -v（删除 volume，慎用）
+#
+# Jaeger UI：http://localhost:16686
+# OTel endpoint（内网）：http://jaeger:4317
+
+services:
+  lena:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: lena-agent
+    restart: unless-stopped
+    env_file:
+      - ../.env  # 敏感配置，不进 git
+    environment:
+      - AWS_REGION=us-west-2
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    volumes:
+      - lena-data:/app/data
+      - lena-logs:/app/logs
+    depends_on:
+      jaeger:
+        condition: service_started
+    networks:
+      - lena-net
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: lena-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC（lena 容器内用服务名 jaeger 访问）
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - lena-net
+
+volumes:
+  lena-data:
+  lena-logs:
+
+networks:
+  lena-net:
+    driver: bridge

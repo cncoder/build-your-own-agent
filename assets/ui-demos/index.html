@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《从零构建你的 AI Agent》— UI Demo 导航</title>
+<style>
+  :root {
+    --bg: #060810;
+    --panel: #0d1117;
+    --panel-hover: #131920;
+    --border: #1e2a38;
+    --border-hover: #2d4a6e;
+    --neon-blue: #38bdf8;
+    --neon-purple: #a78bfa;
+    --neon-green: #34d399;
+    --neon-amber: #fbbf24;
+    --neon-pink: #f472b6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glass: rgba(255,255,255,0.03);
+    --glow-blue: 0 0 20px rgba(56,189,248,0.15);
+    --glow-purple: 0 0 20px rgba(167,139,250,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'PingFang SC', 'SF Pro Display', sans-serif;
+    min-height: 100vh;
+    padding: 48px 40px;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56,189,248,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.04) 0%, transparent 50%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--neon-blue);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+  header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .part-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 40px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .part-label::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background: var(--part-color, var(--neon-blue));
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 20px 18px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent, var(--neon-blue)), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .card:hover {
+    border-color: var(--border-hover);
+    background: var(--panel-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-blue);
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card .ch-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--accent, var(--neon-blue));
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    background: rgba(56,189,248,0.08);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(56,189,248,0.2);
+  }
+  .card h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.45;
+    color: #c8d8e8;
+  }
+  .card .tagline {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .card .links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .card .link-btn {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent, var(--neon-blue));
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 6px;
+    padding: 4px 10px;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .card .link-btn:hover {
+    background: rgba(56,189,248,0.1);
+    border-color: rgba(56,189,248,0.5);
+  }
+  .card .link-btn.disabled {
+    color: var(--muted);
+    border-color: var(--border);
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .version-tag {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  footer {
+    margin-top: 64px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  footer code {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--neon-blue);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">UI Demo 导航 · 24 章</div>
+  <h1>《从零构建你的 AI Agent》</h1>
+  <p>Claude Code & OpenClaw 深度实战 · Lena v0.1 → v2.0</p>
+</header>
+
+<!-- Part 0 -->
+<div class="part-label" style="--part-color: #38bdf8">Part 0 · 心智模型 (Ch 1–3)</div>
+<div class="grid">
+
+  <a class="card" href="../../book/chapters/ch01-hello-agent/demo/index.html" target="_blank">
+    <span class="version-tag">v0.1</span>
+    <div class="ch-badge">Ch 01</div>
+    <h2>你好，Agent——从一次 API 调用开始</h2>
+    <div class="tagline">LLM 是函数，Agent 是程序，工具调用是两者的桥梁</div>
+    <div class="links">
+      <a class="link-btn" href="../../book/chapters/ch01-hello-agent/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" href="../../book/chapters/ch01-hello-agent/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" href="../../book/chapters/ch01-hello-agent/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch02-react-loop/demo/index.html" target="_blank">
+    <span class="version-tag">v0.2</span>
+    <div class="ch-badge">Ch 02</div>
+    <h2>从 Chat 到 Agent：ReAct 循环的秘密</h2>
+    <div class="tagline">把推理和行动交织在同一个调用流程里，这就是 agent 的本质</div>
+    <div class="links">
+      <a class="link-btn" href="../../book/chapters/ch02-react-loop/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" href="../../book/chapters/ch02-react-loop/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" href="../../book/chapters/ch02-react-loop/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch03-lena-is-born/demo/index.html" target="_blank">
+    <span class="version-tag">v0.3</span>
+    <div class="ch-badge">Ch 03</div>
+    <h2>Lena 诞生——50 行 Python 写出可跑的 Agent</h2>
+    <div class="tagline">从空骨架到第一个真实工具，每步都能运行</div>
+    <div class="links">
+      <a class="link-btn" href="../../book/chapters/ch03-lena-is-born/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" href="../../book/chapters/ch03-lena-is-born/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" href="../../book/chapters/ch03-lena-is-born/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+</div>
+
+<!-- Part 1 -->
+<div class="part-label" style="--part-color: #a78bfa">Part 1 · 六大支柱 (Ch 4–10)</div>
+<div class="grid">
+
+  <a class="card" href="../../book/chapters/ch04-tool-system/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v0.4</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 04</div>
+    <h2>Tool 系统——任何能力都是工具</h2>
+    <div class="tagline">工具注册表统一管理所有能力，加工具不改核心循环</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch04-tool-system/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch04-tool-system/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch04-tool-system/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch05-streaming-concurrent/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v0.5</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 05</div>
+    <h2>流式与并发——让 Agent 不卡顿</h2>
+    <div class="tagline">SSE 流式输出，并发执行，让 Agent 边想边说</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch05-streaming-concurrent/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch05-streaming-concurrent/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch05-streaming-concurrent/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch06-memory/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v0.6</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 06</div>
+    <h2>记忆与上下文——让 Agent 有昨天</h2>
+    <div class="tagline">SQLite 会话历史，跨会话记住你的一切</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch06-memory/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch06-memory/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch06-memory/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch07-context-engineering/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v0.7</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 07</div>
+    <h2>Context Engineering——Token 经济学</h2>
+    <div class="tagline">Context 压缩与 Prompt Caching，50 轮不炸 token</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch07-context-engineering/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch07-context-engineering/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch07-context-engineering/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch08-planning-subagent/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v0.8</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 08</div>
+    <h2>Planning 与 Subagent——让 Agent 拆任务</h2>
+    <div class="tagline">Orchestrator-Worker 并发，时间减半，质量更好</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch08-planning-subagent/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch08-planning-subagent/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch08-planning-subagent/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch09-skills/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v0.9</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 09</div>
+    <h2>Skills——可复用的能力单元</h2>
+    <div class="tagline">Markdown 驱动的能力系统，工具解决"能不能"，Skills 解决"怎么做好"</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch09-skills/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch09-skills/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch09-skills/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch10-safety/demo/index.html" target="_blank" style="--accent: #a78bfa">
+    <span class="version-tag">v1.0</span>
+    <div class="ch-badge" style="color:#a78bfa;background:rgba(167,139,250,0.08);border-color:rgba(167,139,250,0.2)">Ch 10</div>
+    <h2>安全专章——Prompt Injection 与失控</h2>
+    <div class="tagline">常驻 agent 随时可能被劫持，安全是信任的基础</div>
+    <div class="links">
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch10-safety/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch10-safety/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#a78bfa;border-color:rgba(167,139,250,0.25)" href="../../book/chapters/ch10-safety/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+</div>
+
+<!-- Part 2 -->
+<div class="part-label" style="--part-color: #34d399">Part 2 · Always-on 助理 (Ch 11–16)</div>
+<div class="grid">
+
+  <a class="card" href="../../book/chapters/ch11-gateway-channel/demo/index.html" target="_blank" style="--accent: #34d399">
+    <span class="version-tag">v1.1</span>
+    <div class="ch-badge" style="color:#34d399;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2)">Ch 11</div>
+    <h2>Gateway 与 Channel——让 Agent 住进你的 Telegram</h2>
+    <div class="tagline">CLI agent 关掉就消失，真正有用的 agent 住在后台</div>
+    <div class="links">
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch11-gateway-channel/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch11-gateway-channel/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch11-gateway-channel/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch12-messagebus/demo/index.html" target="_blank" style="--accent: #34d399">
+    <span class="version-tag">v1.2</span>
+    <div class="ch-badge" style="color:#34d399;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2)">Ch 12</div>
+    <h2>MessageBus 与事件驱动——解耦 Channel 与 Agent</h2>
+    <div class="tagline">任何 channel 崩溃，Lena 照样跑</div>
+    <div class="links">
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch12-messagebus/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch12-messagebus/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch12-messagebus/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch13-heartbeat/demo/index.html" target="_blank" style="--accent: #34d399">
+    <span class="version-tag">v1.3</span>
+    <div class="ch-badge" style="color:#34d399;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2)">Ch 13</div>
+    <h2>Heartbeat——让 Agent 主动找你</h2>
+    <div class="tagline">被动等待命令的是工具，主动告知状态的才是助理</div>
+    <div class="links">
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch13-heartbeat/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch13-heartbeat/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch13-heartbeat/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch14-cron-longtask/demo/index.html" target="_blank" style="--accent: #34d399">
+    <span class="version-tag">v1.4</span>
+    <div class="ch-badge" style="color:#34d399;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2)">Ch 14</div>
+    <h2>Cron 与 Long-running Task——跨天任务不丢失</h2>
+    <div class="tagline">定时任务加崩溃恢复，才是真正的生产级 Lena</div>
+    <div class="links">
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch14-cron-longtask/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch14-cron-longtask/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch14-cron-longtask/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch15-mcp-protocol/demo/index.html" target="_blank" style="--accent: #34d399">
+    <span class="version-tag">v1.5</span>
+    <div class="ch-badge" style="color:#34d399;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2)">Ch 15</div>
+    <h2>MCP 协议——万物皆可连接</h2>
+    <div class="tagline">任何服务只要实现 MCP 就能被 Lena 调用</div>
+    <div class="links">
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch15-mcp-protocol/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch15-mcp-protocol/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch15-mcp-protocol/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch16-docker-sandbox/demo/index.html" target="_blank" style="--accent: #34d399">
+    <span class="version-tag">v1.6</span>
+    <div class="ch-badge" style="color:#34d399;background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.2)">Ch 16</div>
+    <h2>Docker Sandbox——给 Agent 真沙箱</h2>
+    <div class="tagline">正则过滤是一道门，Docker 是一堵墙</div>
+    <div class="links">
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch16-docker-sandbox/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch16-docker-sandbox/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#34d399;border-color:rgba(52,211,153,0.25)" href="../../book/chapters/ch16-docker-sandbox/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+</div>
+
+<!-- Part 3 -->
+<div class="part-label" style="--part-color: #fbbf24">Part 3 · 生产化 (Ch 17–20)</div>
+<div class="grid">
+
+  <a class="card" href="../../book/chapters/ch17-evals/demo/index.html" target="_blank" style="--accent: #fbbf24">
+    <span class="version-tag">v1.7</span>
+    <div class="ch-badge" style="color:#fbbf24;background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.2)">Ch 17</div>
+    <h2>Evals——如何知道 Agent 变好了还是变坏了</h2>
+    <div class="tagline">跑完没报错不等于质量合格，建立可测量的 Eval pipeline</div>
+    <div class="links">
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch17-evals/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch17-evals/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch17-evals/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch18-deploy-observability/demo/index.html" target="_blank" style="--accent: #fbbf24">
+    <span class="version-tag">v1.8</span>
+    <div class="ch-badge" style="color:#fbbf24;background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.2)">Ch 18</div>
+    <h2>可观测性与部署——让 Lena 上线 7×24</h2>
+    <div class="tagline">部署不是终点，可观测才是起点，不能看见的系统不算上线</div>
+    <div class="links">
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch18-deploy-observability/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch18-deploy-observability/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch18-deploy-observability/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch19-specialization/demo/index.html" target="_blank" style="--accent: #fbbf24">
+    <span class="version-tag">v1.9</span>
+    <div class="ch-badge" style="color:#fbbf24;background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.2)">Ch 19</div>
+    <h2>Specialization Pattern——一个 Runtime 派生 N 个 Agent</h2>
+    <div class="tagline">通用 agent 是地基，专用 agent 是楼层，打好一次地基就够了</div>
+    <div class="links">
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch19-specialization/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch19-specialization/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch19-specialization/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch20-browser-agent/demo/index.html" target="_blank" style="--accent: #fbbf24">
+    <span class="version-tag">v2.0</span>
+    <div class="ch-badge" style="color:#fbbf24;background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.2)">Ch 20</div>
+    <h2>实战大结局（20章版）— Browser Agent</h2>
+    <div class="tagline">Browser Agent 是通用 agent 的极限考场，每一个能力都被逼到边界</div>
+    <div class="links">
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch20-browser-agent/demo/index.html" target="_blank">Demo →</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch20-browser-agent/slides/index.html" target="_blank">Slides</a>
+      <a class="link-btn" style="color:#fbbf24;border-color:rgba(251,191,36,0.25)" href="../../book/chapters/ch20-browser-agent/README.md" target="_blank">章节</a>
+    </div>
+  </a>
+
+</div>
+
+<!-- Part 4 -->
+<div class="part-label" style="--part-color: #f472b6">Part 4 · 深化专题 (Ch 21–24)</div>
+<div class="grid">
+
+  <a class="card" href="../../book/chapters/ch21-evals/README.md" target="_blank" style="--accent: #f472b6">
+    <span class="version-tag">v0.21</span>
+    <div class="ch-badge" style="color:#f472b6;background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.2)">Ch 21</div>
+    <h2>Evals 深化——pass@k、LLM-judge、CI 门控</h2>
+    <div class="tagline">75% 单次成功率在 3 步 pipeline 后变成 42%，必须真正测量</div>
+    <div class="links">
+      <a class="link-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.25)" href="../../book/chapters/ch21-evals/README.md" target="_blank">章节 →</a>
+      <span class="link-btn disabled">Demo 无</span>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch22-observability-deploy/README.md" target="_blank" style="--accent: #f472b6">
+    <span class="version-tag">v0.22</span>
+    <div class="ch-badge" style="color:#f472b6;background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.2)">Ch 22</div>
+    <h2>可观测性深化——OTel、预算熔断、生产部署</h2>
+    <div class="tagline">没有可观测性的 agent 上线，是把盲人派去驾驶飞机</div>
+    <div class="links">
+      <a class="link-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.25)" href="../../book/chapters/ch22-observability-deploy/README.md" target="_blank">章节 →</a>
+      <span class="link-btn disabled">Demo 无</span>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch23-specialization/README.md" target="_blank" style="--accent: #f472b6">
+    <span class="version-tag">v0.23</span>
+    <div class="ch-badge" style="color:#f472b6;background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.2)">Ch 23</div>
+    <h2>Specialization 深化——Agent Squad、CrewAI 对比</h2>
+    <div class="tagline">一套 runtime，一个命令，N 个专用 agent（Lena-SpecKit）</div>
+    <div class="links">
+      <a class="link-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.25)" href="../../book/chapters/ch23-specialization/README.md" target="_blank">章节 →</a>
+      <span class="link-btn disabled">Demo 无</span>
+    </div>
+  </a>
+
+  <a class="card" href="../../book/chapters/ch24-browser-agent/README.md" target="_blank" style="--accent: #f472b6">
+    <span class="version-tag">v2.0</span>
+    <div class="ch-badge" style="color:#f472b6;background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.2)">Ch 24</div>
+    <h2>实战大结局（终章）— Browser Agent</h2>
+    <div class="tagline">前 23 章全部能力在 Browser Agent 里的终极压力测试</div>
+    <div class="links">
+      <a class="link-btn" style="color:#f472b6;border-color:rgba(244,114,182,0.25)" href="../../book/chapters/ch24-browser-agent/README.md" target="_blank">章节 →</a>
+      <span class="link-btn disabled">Demo 无</span>
+    </div>
+  </a>
+
+</div>
+
+<footer>
+  本地预览：<code>python3 -m http.server 7531 --directory .</code> → <code>http://localhost:7531/assets/ui-demos/</code>
+  <br>全书目录：<code>book/README.md</code> · Lena 演进图：<code>book/lena-journey.md</code>
+</footer>
+
+</body>
+</html>

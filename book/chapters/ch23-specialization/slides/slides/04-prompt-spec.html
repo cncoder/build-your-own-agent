@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+.tag { display: inline-block; background: rgba(153,102,255,0.15); border: 1px solid rgba(153,102,255,0.4); border-radius: 4px; padding: 4px 14px; font-size: 14px; color: #cc88ff; letter-spacing: 0.1em; vertical-align: middle; margin-right: 16px; }
+
+.layout { position: absolute; top: 230px; left: 100px; right: 100px; display: flex; gap: 40px; }
+.col { flex: 1; }
+.col-title { font-size: 13px; letter-spacing: 0.25em; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 16px; }
+
+.code-box {
+  background: #0c0e18; border: 1px solid rgba(153,102,255,0.15);
+  border-radius: 6px; padding: 24px; font-family: 'SF Mono','Fira Code',monospace;
+  font-size: 13px; line-height: 1.9; color: #b0b8d0;
+  height: 380px; overflow: hidden;
+}
+.code-comment { color: #555577; }
+.code-key { color: #cc88ff; }
+.code-val { color: #88ddaa; }
+.code-str { color: #ffcc66; }
+
+.fork-box {
+  background: #0c0e18; border: 1px solid rgba(0,200,100,0.15);
+  border-radius: 6px; padding: 20px; font-size: 13px; line-height: 1.8;
+  color: rgba(255,255,255,0.6); font-family: monospace;
+  height: 380px; overflow: hidden;
+}
+.fork-box .highlight { color: #00cc88; }
+
+.warning {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(255,100,80,0.06); border: 1px solid rgba(255,100,80,0.2);
+  border-radius: 6px; font-size: 14px; color: rgba(255,180,160,0.8);
+  line-height: 1.7;
+}
+.warning strong { color: #ff8866; }
+
+.tip {
+  margin-top: 16px;
+  padding: 14px 20px;
+  background: rgba(153,102,255,0.05); border: 1px solid rgba(153,102,255,0.15);
+  border-radius: 6px; font-size: 14px; color: rgba(200,180,255,0.7); line-height: 1.7;
+}
+</style>
+</head>
+<body>
+<div class="title">派生姿势 ① · 最轻量</div>
+<div class="heading"><span class="tag">① System Prompt 特化</span>改一个文件，5 分钟完成</div>
+
+<div class="layout">
+  <div class="col">
+    <div class="col-title">system_prompt.md（TradingBot 示例）</div>
+    <div class="code-box">
+<span class="code-comment"># TradingBot system_prompt.md</span>
+
+<span class="code-key">你是</span> <span class="code-val">TradingBot</span>，一个量化交易专用 agent。
+
+<span class="code-key">## 职责</span>
+- 市场分析：RSI / MACD / BB 指标扫描
+- 仓位决策：≥2/3 指标共振才开仓
+- <span class="code-val">风控优先</span>：每笔交易前必须通过 _validate_risk_limits()
+- 执行记录：每次决策记录理由到日志
+
+<span class="code-key">## 性格</span>
+- 决策果断，不犹豫
+- 数字说话，不讲故事
+- <span class="code-val">宏观决策，不做微操</span>
+
+<span class="code-key">## 约束</span>
+- 只能操作白名单交易对
+- <span class="code-str">不可绕过</span> _validate_risk_limits()
+    </div>
+    <div class="tip">
+      技术基础：<code>forkSubagent.ts:60</code> 继承父 agent 的 <code>renderedSystemPrompt</code>，专用 prompt 叠加在上面。安全规则自动继承，不需要重写。
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="col-title">fork 命令（继承 + 叠加）</div>
+    <div class="fork-box">
+<span class="highlight"># lena-spec fork 的继承逻辑</span>
+<span class="highlight"># 对应 forkSubagent.ts:60</span>
+
+<span style="color:#888">父 agent system prompt（自动继承）</span>
+↓
+<span style="color:#cc88ff">铁律：删除 → mv ~/Documents/trashllm/</span>
+<span style="color:#cc88ff">铁律：改代码前先 Read</span>
+<span style="color:#cc88ff">铁律：3 次失败停下讨论</span>
+<span style="color:#cc88ff">...（全部安全规则自动继承）</span>
+↓
+<span style="color:#88ddaa">叠加：TradingBot 专用 prompt</span>
+<span style="color:#88ddaa">→ 量化交易职责</span>
+<span style="color:#88ddaa">→ 果断性格</span>
+<span style="color:#88ddaa">→ 交易对白名单</span>
+
+<span style="color:#555577">------</span>
+<span style="color:#00cc88">结果：完整继承安全规则 + 专用角色</span>
+    </div>
+    <div class="warning">
+      <strong>血泪教训 [案例 19.1]：</strong>system prompt 写了风控规则，但 AI 在 symbol 为空字符串时直接跳过——AI 会忽略 prompt 里的规则。<br>
+      <strong>结论：</strong>性格/重点 → system prompt；安全护栏 → 代码级硬编码。
+    </div>
+  </div>
+</div>
+</body>
+</html>

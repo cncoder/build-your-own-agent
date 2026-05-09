@@ -1,0 +1,232 @@
+<svg viewBox="0 0 2400 3200" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono', 'Fira Code', 'Courier New', monospace">
+  <!-- Background -->
+  <rect width="2400" height="3200" fill="#0a0d10"/>
+
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,255,100,0.04)" stroke-width="1"/>
+    </pattern>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="2400" height="3200" fill="url(#grid)"/>
+
+  <!-- Header -->
+  <text x="120" y="100" fill="rgba(0,204,85,0.6)" font-size="20" letter-spacing="6">CH 16 · DOCKER SANDBOX</text>
+  <text x="120" y="180" fill="#ffffff" font-size="72" font-weight="900" letter-spacing="-2">Docker Sandbox</text>
+  <text x="120" y="240" fill="#00cc55" font-size="32">生产级代码执行环境 · 给 Agent 真沙箱</text>
+
+  <!-- Divider -->
+  <line x1="120" y1="280" x2="2280" y2="280" stroke="rgba(0,204,85,0.2)" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Section 1: Docker Sandbox Architecture -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <text x="120" y="360" fill="rgba(255,255,255,0.35)" font-size="18" letter-spacing="5">01 · DOCKER SANDBOX 分层架构</text>
+
+  <!-- Host Machine box -->
+  <rect x="120" y="390" width="1400" height="900" rx="8" fill="rgba(0,80,30,0.08)" stroke="rgba(0,204,85,0.2)" stroke-width="1.5"/>
+  <text x="150" y="435" fill="rgba(0,204,85,0.7)" font-size="18" letter-spacing="3">宿主机 (Host OS)</text>
+
+  <!-- Docker Engine box -->
+  <rect x="160" y="450" width="1320" height="810" rx="6" fill="rgba(0,60,100,0.12)" stroke="rgba(51,170,255,0.3)" stroke-width="1.5"/>
+  <text x="190" y="490" fill="#4499ff" font-size="16" letter-spacing="2">Docker Engine</text>
+
+  <!-- seccomp/AppArmor box -->
+  <rect x="200" y="510" width="1240" height="720" rx="5" fill="rgba(80,40,0,0.1)" stroke="rgba(255,102,0,0.35)" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="230" y="550" fill="#ff8844" font-size="15" letter-spacing="2">seccomp profile + AppArmor — 系统调用级约束</text>
+
+  <!-- Container box -->
+  <rect x="240" y="575" width="1160" height="625" rx="4" fill="rgba(0,30,60,0.4)" stroke="rgba(51,170,255,0.5)" stroke-width="2"/>
+  <text x="270" y="618" fill="#33aaff" font-size="16" font-weight="700" letter-spacing="2">容器 (Ephemeral Container) — 每次独立，执行后立即销毁</text>
+
+  <!-- Code execution area -->
+  <rect x="280" y="640" width="1080" height="520" rx="3" fill="rgba(0,10,20,0.6)" stroke="rgba(51,170,255,0.2)" stroke-width="1"/>
+  <text x="310" y="680" fill="#55ccff" font-size="14">代码执行区</text>
+
+  <!-- Properties inside container -->
+  <text x="330" y="730" fill="rgba(255,255,255,0.5)" font-size="15">● CPU: ≤ 0.5 core</text>
+  <text x="330" y="770" fill="rgba(255,255,255,0.5)" font-size="15">● 内存: ≤ 256 MB</text>
+  <text x="330" y="810" fill="rgba(255,255,255,0.5)" font-size="15">● 文件系统: tmpfs，与宿主机完全隔离</text>
+  <text x="330" y="850" fill="rgba(255,255,255,0.5)" font-size="15">● 网络: none（完全断网）</text>
+  <text x="330" y="890" fill="rgba(255,255,255,0.5)" font-size="15">● 进程: 独立 PID 命名空间</text>
+  <text x="330" y="930" fill="rgba(255,255,255,0.5)" font-size="15">● 用户: nobody（非 root）</text>
+  <text x="330" y="980" fill="#00cc55" font-size="15" font-weight="700">--rm 标志: 执行完毕 → 容器立即销毁</text>
+
+  <!-- Blocked socket callout -->
+  <rect x="900" y="695" width="360" height="120" rx="4" fill="rgba(40,10,10,0.8)" stroke="rgba(255,50,50,0.4)" stroke-width="1.5"/>
+  <text x="920" y="728" fill="#ff5555" font-size="14" font-weight="700">docker socket 被阻断</text>
+  <text x="920" y="753" fill="#ff9966" font-size="13">/var/run/docker.sock</text>
+  <text x="920" y="778" fill="#ff3333" font-size="13">❌ 不挂载，不可访问</text>
+  <text x="920" y="803" fill="rgba(255,100,100,0.6)" font-size="11">docker.ts:30-32</text>
+  <!-- Arrow from socket box to layer -->
+  <path d="M 880 755 L 820 680" stroke="rgba(255,50,50,0.3)" stroke-width="1.5" fill="none" stroke-dasharray="4,3"/>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Section 2: exec-approvals flow -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <text x="120" y="1380" fill="rgba(255,255,255,0.35)" font-size="18" letter-spacing="5">02 · EXEC-APPROVALS SESSION 流程</text>
+
+  <!-- Flow boxes -->
+  <rect x="120" y="1410" width="280" height="90" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="230" y="1460" fill="rgba(255,255,255,0.7)" font-size="15" text-anchor="middle">首次执行请求</text>
+  <text x="230" y="1482" fill="rgba(255,255,255,0.35)" font-size="12" text-anchor="middle">用户提交代码</text>
+
+  <path d="M 400 1455 L 480 1455" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+  <text x="440" y="1445" fill="rgba(255,255,255,0.3)" font-size="12" text-anchor="middle">审批?</text>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="rgba(255,255,255,0.3)"/>
+    </marker>
+    <marker id="arrGreen" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#00cc55"/>
+    </marker>
+  </defs>
+
+  <!-- Already approved path -->
+  <rect x="480" y="1390" width="280" height="60" rx="4" fill="rgba(0,204,85,0.06)" stroke="rgba(0,204,85,0.2)" stroke-width="1"/>
+  <text x="620" y="1425" fill="#00cc55" font-size="14" text-anchor="middle">session 记忆命中</text>
+  <text x="620" y="1443" fill="rgba(0,204,85,0.5)" font-size="11" text-anchor="middle">→ 自动通过</text>
+
+  <!-- Not approved path -->
+  <rect x="480" y="1470" width="280" height="80" rx="4" fill="rgba(255,200,0,0.04)" stroke="rgba(255,200,0,0.2)" stroke-width="1"/>
+  <text x="620" y="1508" fill="#ffcc44" font-size="14" text-anchor="middle">首次 → 弹审批框</text>
+  <text x="620" y="1528" fill="rgba(255,200,0,0.5)" font-size="11" text-anchor="middle">用户确认</text>
+
+  <!-- After approval -->
+  <path d="M 760 1440 L 840 1440" stroke="#00cc55" stroke-width="1.5" fill="none" marker-end="url(#arrGreen)"/>
+  <path d="M 760 1510 L 800 1510 L 800 1440 L 840 1440" stroke="rgba(255,200,0,0.5)" stroke-width="1.5" fill="none"/>
+
+  <rect x="840" y="1410" width="280" height="90" rx="4" fill="rgba(0,204,85,0.08)" stroke="rgba(0,204,85,0.3)" stroke-width="1.5"/>
+  <text x="980" y="1455" fill="#00cc55" font-size="15" text-anchor="middle">进入 Docker</text>
+  <text x="980" y="1475" fill="rgba(0,204,85,0.7)" font-size="12" text-anchor="middle">沙箱执行</text>
+
+  <!-- Session end -->
+  <rect x="400" y="1580" width="760" height="60" rx="4" fill="rgba(255,80,80,0.04)" stroke="rgba(255,80,80,0.15)" stroke-width="1"/>
+  <text x="780" y="1615" fill="rgba(255,100,100,0.7)" font-size="14" text-anchor="middle">session 结束 → 所有批准记录清除 → 下次对话重新审批</text>
+
+  <text x="1200" y="1455" fill="rgba(255,255,255,0.2)" font-size="13">infra/exec-approvals.ts</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Section 3: Regex vs Docker Decision Tree -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <text x="120" y="1740" fill="rgba(255,255,255,0.35)" font-size="18" letter-spacing="5">03 · 正则过滤 vs DOCKER — 决策树</text>
+
+  <!-- Decision root -->
+  <rect x="960" y="1770" width="480" height="80" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <text x="1200" y="1810" fill="#fff" font-size="18" font-weight="700" text-anchor="middle">我的场景是？</text>
+  <text x="1200" y="1835" fill="rgba(255,255,255,0.4)" font-size="13" text-anchor="middle">执行什么代码 / 有多少用户 / 安全级别</text>
+
+  <!-- Left branch: regex -->
+  <path d="M 960 1810 L 600 1910" stroke="rgba(51,170,255,0.4)" stroke-width="1.5" fill="none"/>
+  <text x="740" y="1875" fill="rgba(51,170,255,0.6)" font-size="13" text-anchor="middle">本地 / 可信代码 / 单用户</text>
+  <rect x="280" y="1910" width="640" height="180" rx="6" fill="rgba(51,170,255,0.08)" stroke="rgba(51,170,255,0.3)" stroke-width="2"/>
+  <text x="600" y="1952" fill="#55aaff" font-size="22" font-weight="900" text-anchor="middle">ShellSandbox</text>
+  <text x="600" y="1982" fill="#55aaff" font-size="16" text-anchor="middle">正则过滤</text>
+  <text x="600" y="2012" fill="rgba(255,255,255,0.45)" font-size="13" text-anchor="middle">nanoClaw ShellSandbox</text>
+  <text x="600" y="2032" fill="rgba(255,255,255,0.45)" font-size="13" text-anchor="middle">sandbox.py:179-393</text>
+  <text x="600" y="2060" fill="rgba(51,170,255,0.6)" font-size="13" text-anchor="middle">Ch10 已实现 · 开箱即用</text>
+
+  <!-- Right branch: docker -->
+  <path d="M 1440 1810 L 1800 1910" stroke="rgba(0,204,85,0.4)" stroke-width="1.5" fill="none"/>
+  <text x="1660" y="1875" fill="rgba(0,204,85,0.6)" font-size="13" text-anchor="middle">生产 / 外部代码 / 多用户</text>
+  <rect x="1480" y="1910" width="640" height="180" rx="6" fill="rgba(0,204,85,0.08)" stroke="rgba(0,204,85,0.35)" stroke-width="2"/>
+  <text x="1800" y="1952" fill="#00cc55" font-size="22" font-weight="900" text-anchor="middle">Docker Sandbox</text>
+  <text x="1800" y="1982" fill="#00cc55" font-size="16" text-anchor="middle">容器隔离</text>
+  <text x="1800" y="2012" fill="rgba(255,255,255,0.45)" font-size="13" text-anchor="middle">OpenClaw docker.ts</text>
+  <text x="1800" y="2032" fill="rgba(255,255,255,0.45)" font-size="13" text-anchor="middle">41 个文件 · 生产级</text>
+  <text x="1800" y="2060" fill="rgba(0,204,85,0.6)" font-size="13" text-anchor="middle">lena-v1.6 · 本章产物</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Section 4: Container Lifecycle -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <text x="120" y="2210" fill="rgba(255,255,255,0.35)" font-size="18" letter-spacing="5">04 · 容器生命周期</text>
+
+  <!-- Steps -->
+  <rect x="120" y="2240" width="240" height="100" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="240" y="2285" fill="rgba(255,255,255,0.7)" font-size="15" text-anchor="middle">用户请求</text>
+  <text x="240" y="2308" fill="rgba(255,255,255,0.35)" font-size="12" text-anchor="middle">代码 + 语言</text>
+
+  <path d="M 360 2290 L 440 2290" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+  <rect x="440" y="2240" width="280" height="100" rx="4" fill="rgba(255,200,0,0.04)" stroke="rgba(255,200,0,0.15)" stroke-width="1"/>
+  <text x="580" y="2285" fill="#ffcc44" font-size="15" text-anchor="middle">安全校验</text>
+  <text x="580" y="2308" fill="rgba(255,200,0,0.4)" font-size="12" text-anchor="middle">+ exec-approvals</text>
+
+  <path d="M 720 2290 L 800 2290" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+  <rect x="800" y="2240" width="280" height="100" rx="4" fill="rgba(51,170,255,0.06)" stroke="rgba(51,170,255,0.2)" stroke-width="1"/>
+  <text x="940" y="2285" fill="#55aaff" font-size="15" text-anchor="middle">创建容器</text>
+  <text x="940" y="2308" fill="rgba(51,170,255,0.4)" font-size="12" text-anchor="middle">docker run --rm</text>
+
+  <path d="M 1080 2290 L 1160 2290" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+  <rect x="1160" y="2240" width="280" height="100" rx="4" fill="rgba(0,204,85,0.08)" stroke="rgba(0,204,85,0.3)" stroke-width="1.5"/>
+  <text x="1300" y="2285" fill="#00cc55" font-size="15" text-anchor="middle">代码执行</text>
+  <text x="1300" y="2308" fill="rgba(0,204,85,0.5)" font-size="12" text-anchor="middle">隔离环境内</text>
+
+  <path d="M 1440 2290 L 1520 2290" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+  <rect x="1520" y="2240" width="280" height="100" rx="4" fill="rgba(0,204,85,0.04)" stroke="rgba(0,204,85,0.15)" stroke-width="1"/>
+  <text x="1660" y="2285" fill="rgba(0,204,85,0.8)" font-size="15" text-anchor="middle">结果回传</text>
+  <text x="1660" y="2308" fill="rgba(0,204,85,0.4)" font-size="12" text-anchor="middle">stdout / stderr</text>
+
+  <path d="M 1800 2290 L 1880 2290" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+
+  <rect x="1880" y="2240" width="280" height="100" rx="4" fill="rgba(255,50,50,0.06)" stroke="rgba(255,50,50,0.2)" stroke-width="1"/>
+  <text x="2020" y="2285" fill="#ff6666" font-size="15" text-anchor="middle">容器销毁</text>
+  <text x="2020" y="2308" fill="rgba(255,100,100,0.4)" font-size="12" text-anchor="middle">--rm 自动清理</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Section 5: Key Concepts Summary -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <text x="120" y="2480" fill="rgba(255,255,255,0.35)" font-size="18" letter-spacing="5">05 · 核心概念速查</text>
+
+  <!-- Concept cards -->
+  <rect x="120" y="2510" width="520" height="180" rx="6" fill="rgba(0,204,85,0.05)" stroke="rgba(0,204,85,0.15)" stroke-width="1"/>
+  <text x="360" y="2558" fill="#00cc55" font-size="18" font-weight="700" text-anchor="middle">Docker Sandbox</text>
+  <text x="360" y="2590" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">把代码扔进容器</text>
+  <text x="360" y="2612" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">出不来就安全了</text>
+
+  <rect x="680" y="2510" width="520" height="180" rx="6" fill="rgba(255,50,50,0.05)" stroke="rgba(255,50,50,0.15)" stroke-width="1"/>
+  <text x="940" y="2558" fill="#ff6666" font-size="18" font-weight="700" text-anchor="middle">阻挂 docker socket</text>
+  <text x="940" y="2590" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">容器不能访问 Docker daemon</text>
+  <text x="940" y="2612" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">否则可逃逸到宿主机</text>
+  <text x="940" y="2634" fill="rgba(255,100,100,0.4)" font-size="12" text-anchor="middle">docker.ts:30-32</text>
+
+  <rect x="1240" y="2510" width="520" height="180" rx="6" fill="rgba(255,102,0,0.05)" stroke="rgba(255,102,0,0.15)" stroke-width="1"/>
+  <text x="1500" y="2558" fill="#ff8844" font-size="18" font-weight="700" text-anchor="middle">seccomp + AppArmor</text>
+  <text x="1500" y="2590" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">内核/MAC 级约束</text>
+  <text x="1500" y="2612" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">正则过不了的在这挡</text>
+  <text x="1500" y="2634" fill="rgba(255,102,0,0.4)" font-size="12" text-anchor="middle">validate-sandbox-security.ts:311-322</text>
+
+  <rect x="1800" y="2510" width="480" height="180" rx="6" fill="rgba(51,170,255,0.05)" stroke="rgba(51,170,255,0.15)" stroke-width="1"/>
+  <text x="2040" y="2558" fill="#55aaff" font-size="18" font-weight="700" text-anchor="middle">exec-approvals</text>
+  <text x="2040" y="2590" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">批准一次，session 内自动通过</text>
+  <text x="2040" y="2612" fill="rgba(255,255,255,0.55)" font-size="14" text-anchor="middle">session 结束重置</text>
+  <text x="2040" y="2634" fill="rgba(51,170,255,0.4)" font-size="12" text-anchor="middle">infra/exec-approvals.ts</text>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Footer -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <line x1="120" y1="2760" x2="2280" y2="2760" stroke="rgba(0,204,85,0.15)" stroke-width="1"/>
+  <text x="120" y="2820" fill="rgba(255,255,255,0.35)" font-size="18" font-style="italic">「正则过滤是一道门，Docker 是一堵墙。」</text>
+  <text x="120" y="2860" fill="rgba(255,255,255,0.2)" font-size="14">任何向外部用户开放「执行代码」能力的 agent，必须用容器隔离，不能只靠黑名单过滤。</text>
+  <text x="2280" y="2860" fill="rgba(0,204,85,0.4)" font-size="13" text-anchor="end">lena-v1.6 · 从零构建你的 AI Agent · Ch 16</text>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="3190" width="2400" height="10" fill="rgba(0,204,85,0.1)"/>
+  <rect x="0" y="3193" width="2400" height="4">
+    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="transparent"/>
+      <stop offset="0.3" stop-color="#00cc55"/>
+      <stop offset="0.7" stop-color="#00ff88"/>
+      <stop offset="1" stop-color="transparent"/>
+    </linearGradient>
+    <rect x="0" y="0" width="2400" height="4" fill="url(#lineGrad)"/>
+  </rect>
+</svg>

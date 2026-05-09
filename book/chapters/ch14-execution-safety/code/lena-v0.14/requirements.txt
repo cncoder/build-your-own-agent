@@ -1,0 +1,7 @@
+# lena-v0.14 依赖列表
+# 本模块只使用 Python stdlib，无需额外安装
+# Python >= 3.11 required
+
+# 以下为可选增强（生产环境推荐）：
+# boto3>=1.34.0          # 防线 2：AWS STS 短时凭证（需要 AWS 账号）
+# python-dotenv>=1.0.0   # 从 .env 文件加载环境变量

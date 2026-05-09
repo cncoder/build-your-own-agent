@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <defs>
+    <marker id="arrow-r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrow-l" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto">
+      <polygon points="8 0, 0 3, 8 6" fill="#4a80a0"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 11px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .msg { font-size: 11px; fill: #00d4ff; }
+      .resp { font-size: 11px; fill: #4a80a0; }
+      .note { font-size: 10px; fill: #6a8090; }
+      .phase { font-size: 10px; fill: #ffb347; }
+    </style>
+  </defs>
+
+  <rect width="800" height="400" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">MCP 协议握手时序（Ch19）</text>
+
+  <!-- Participant boxes -->
+  <rect x="120" y="45" width="140" height="42" rx="8" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="190" y="65" text-anchor="middle" class="label">MCP Client</text>
+  <text x="190" y="80" text-anchor="middle" class="sublabel">Agent / LLM 端</text>
+
+  <rect x="540" y="45" width="140" height="42" rx="8" fill="#0c1220" stroke="#4a80a0" stroke-width="2"/>
+  <text x="610" y="65" text-anchor="middle" class="label">MCP Server</text>
+  <text x="610" y="80" text-anchor="middle" class="sublabel">工具提供方</text>
+
+  <!-- Lifelines -->
+  <line x1="190" y1="87" x2="190" y2="380" stroke="#1a3050" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="610" y1="87" x2="610" y2="380" stroke="#1a3050" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+  <!-- Phase brackets (left side) -->
+  <rect x="20" y="100" width="84" height="52" rx="4" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="62" y="118" text-anchor="middle" class="phase">Phase 1</text>
+  <text x="62" y="132" text-anchor="middle" class="note">握手协商</text>
+  <text x="62" y="144" text-anchor="middle" class="note">Handshake</text>
+
+  <rect x="20" y="168" width="84" height="52" rx="4" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="62" y="186" text-anchor="middle" class="phase">Phase 2</text>
+  <text x="62" y="200" text-anchor="middle" class="note">工具发现</text>
+  <text x="62" y="212" text-anchor="middle" class="note">Discovery</text>
+
+  <rect x="20" y="234" width="84" height="52" rx="4" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="62" y="252" text-anchor="middle" class="phase">Phase 3</text>
+  <text x="62" y="266" text-anchor="middle" class="note">工具调用</text>
+  <text x="62" y="278" text-anchor="middle" class="note">Invocation</text>
+
+  <rect x="20" y="300" width="84" height="52" rx="4" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="62" y="318" text-anchor="middle" class="phase">Phase 4</text>
+  <text x="62" y="332" text-anchor="middle" class="note">通知 / 事件</text>
+  <text x="62" y="344" text-anchor="middle" class="note">Notification</text>
+
+  <!-- Message 1: initialize → -->
+  <line x1="195" y1="112" x2="605" y2="112" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow-r)"/>
+  <text x="398" y="108" text-anchor="middle" class="msg">initialize</text>
+  <text x="398" y="124" text-anchor="middle" class="note">{ protocolVersion, capabilities, clientInfo }</text>
+
+  <!-- Message 2: ← initialized -->
+  <line x1="605" y1="150" x2="195" y2="150" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-l)"/>
+  <text x="398" y="146" text-anchor="middle" class="resp">initialized</text>
+  <text x="398" y="162" text-anchor="middle" class="note">{ serverInfo, capabilities: { tools, resources, prompts } }</text>
+
+  <!-- Message 3: tools/list → -->
+  <line x1="195" y1="182" x2="605" y2="182" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow-r)"/>
+  <text x="398" y="178" text-anchor="middle" class="msg">tools/list</text>
+
+  <!-- Message 4: ← tools[] -->
+  <line x1="605" y1="220" x2="195" y2="220" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-l)"/>
+  <text x="398" y="216" text-anchor="middle" class="resp">[{ name, description, inputSchema }, ...]</text>
+  <text x="398" y="232" text-anchor="middle" class="note">LLM 将 Schema 注入 system prompt，工具可用</text>
+
+  <!-- Message 5: tools/call → -->
+  <line x1="195" y1="248" x2="605" y2="248" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow-r)"/>
+  <text x="398" y="244" text-anchor="middle" class="msg">tools/call</text>
+  <text x="398" y="260" text-anchor="middle" class="note">{ name: "bash", arguments: { command: "ls" } }</text>
+
+  <!-- Message 6: ← result -->
+  <line x1="605" y1="284" x2="195" y2="284" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-l)"/>
+  <text x="398" y="280" text-anchor="middle" class="resp">{ content: [{ type: "text", text: "..." }] }</text>
+  <text x="398" y="296" text-anchor="middle" class="note">tool_result 回填到对话上下文，LLM 继续推理</text>
+
+  <!-- Message 7: notification (optional) -->
+  <line x1="605" y1="320" x2="195" y2="320" stroke="#4a6080" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-l)"/>
+  <text x="398" y="316" text-anchor="middle" class="note" fill="#6a8090">notifications/tools/list_changed（工具变更推送）</text>
+
+  <!-- Transport note -->
+  <rect x="690" y="130" width="100" height="70" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="740" y="150" text-anchor="middle" class="note">传输层</text>
+  <text x="740" y="164" text-anchor="middle" class="note">stdio</text>
+  <text x="740" y="176" text-anchor="middle" class="note">SSE / HTTP</text>
+  <text x="740" y="188" text-anchor="middle" class="note">WebSocket</text>
+
+  <!-- Summary -->
+  <rect x="110" y="355" width="580" height="26" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="400" y="373" text-anchor="middle" class="sublabel">MCP = 标准化工具接口协议；Server 可用任意语言实现，Client 统一接入</text>
+</svg>

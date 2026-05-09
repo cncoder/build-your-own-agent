@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 11 · Gateway 与 Channel — 让 Agent 住进你的 Telegram</title>
+<style>
+:root{
+  --bg:#060612;--surface:#0c0c1f;
+  --glass:rgba(255,255,255,0.05);--glass-border:rgba(255,255,255,0.1);
+  --purple:#a855f7;--cyan:#22d3ee;--green:#4ade80;
+  --orange:#fb923c;--pink:#f472b6;--yellow:#fbbf24;
+  --text:#f1f5f9;--dim:#64748b;--accent:#7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;
+  font-family:-apple-system,'SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif}
+.deck{width:1920px;height:1080px;transform-origin:top left;position:absolute;top:0;left:0}
+.slide{
+  width:1920px;height:1080px;position:absolute;top:0;left:0;
+  background:var(--bg);overflow:hidden;display:flex;flex-direction:column;
+  transition:opacity .4s;opacity:0;pointer-events:none;
+}
+.slide.active{opacity:1;pointer-events:all}
+.slide::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 100% 60% at 15% 15%,rgba(168,85,247,.08) 0%,transparent 55%),
+    radial-gradient(ellipse 80% 50% at 85% 85%,rgba(34,211,238,.06) 0%,transparent 55%);
+  pointer-events:none;z-index:0;
+}
+.slide-inner{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;padding:80px 100px}
+.ch-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:999px;padding:8px 22px;font-size:14px;
+  color:var(--cyan);backdrop-filter:blur(10px);letter-spacing:.05em;
+  width:fit-content;margin-bottom:28px;
+}
+.ch-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.main-title{
+  font-size:86px;font-weight:800;line-height:1.05;
+  background:linear-gradient(135deg,#a855f7 0%,#22d3ee 50%,#4ade80 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:24px;
+}
+.main-sub{font-size:28px;color:rgba(241,245,249,.6);font-weight:300;margin-bottom:40px}
+.sec-title{font-size:52px;font-weight:700;color:var(--text);margin-bottom:16px}
+.sec-sub{font-size:22px;color:var(--dim);margin-bottom:40px}
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 18px;border-radius:999px;font-size:14px;font-weight:600;
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);
+  color:var(--purple);margin-bottom:40px;
+}
+.glass-card{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:20px;padding:32px 36px;backdrop-filter:blur(12px);
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:24px}
+.code-block{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:24px 28px;
+  font-family:'SF Mono','Fira Code',monospace;font-size:18px;
+  color:#e2e8f0;line-height:1.7;white-space:pre;overflow:hidden;
+}
+.hl{color:var(--cyan)} .hl-g{color:var(--green)} .hl-y{color:var(--yellow)} .hl-p{color:var(--purple)} .hl-o{color:var(--orange)}
+.nav{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:16px;z-index:100;
+  background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;padding:10px 24px;backdrop-filter:blur(20px);
+}
+.nav button{
+  background:none;border:none;color:rgba(255,255,255,.4);
+  font-size:22px;cursor:pointer;padding:0 4px;transition:color .2s;
+}
+.nav button:hover{color:#fff}
+#slide-num{font-size:14px;color:var(--dim);min-width:60px;text-align:center}
+.progress{
+  position:fixed;top:0;left:0;height:3px;background:var(--purple);
+  transition:width .3s;z-index:200;
+}
+/* flow box */
+.flow-box{
+  border-radius:14px;padding:20px 24px;
+  background:var(--glass);border:1px solid var(--glass-border);
+}
+.flow-arrow{
+  text-align:center;font-size:28px;color:var(--dim);padding:4px 0;
+}
+.stat-big{font-size:72px;font-weight:800;line-height:1}
+</style>
+</head>
+<body>
+<div id="progress" class="progress" style="width:0%"></div>
+<div class="deck" id="deck">
+
+<!-- SLIDE 1: 封面 -->
+<div class="slide active" id="s1">
+<div class="slide-inner" style="justify-content:center">
+  <div class="ch-badge"><span class="ch-dot"></span>Part 2 开始 · 架构跃迁</div>
+  <div class="main-title">Gateway 与 Channel</div>
+  <div class="main-sub">让 Agent 住进你的 Telegram</div>
+  <div class="tag">🧱 常驻进程  🎨 插件化 Channel  🕹️ 指数退避</div>
+  <div style="display:flex;gap:40px;margin-top:20px">
+    <div class="glass-card" style="flex:1">
+      <div style="font-size:14px;color:var(--dim);margin-bottom:8px">上一章结尾</div>
+      <div style="font-size:22px;color:var(--text);font-weight:600">lena-v1.0</div>
+      <div style="font-size:14px;color:var(--dim);margin-top:4px">审批门控 + 沙箱</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:40px;color:var(--purple)">→</div>
+    <div class="glass-card" style="flex:1;border-color:rgba(168,85,247,.3)">
+      <div style="font-size:14px;color:var(--purple);margin-bottom:8px">本章结尾</div>
+      <div style="font-size:22px;color:var(--text);font-weight:600">lena-v1.1</div>
+      <div style="font-size:14px;color:var(--dim);margin-top:4px">后台常驻 · Telegram 收发消息</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 2: 问题引入 -->
+<div class="slide" id="s2">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>问题：CLI 的根本局限</div>
+  <div class="sec-title">关掉 terminal，Lena 就消失了</div>
+  <div class="sec-sub">CLI Agent 是工具；Always-on Agent 是助理</div>
+  <div class="grid2" style="flex:1">
+    <div>
+      <div style="font-size:16px;color:var(--orange);font-weight:600;margin-bottom:20px">CLI Agent 的问题</div>
+      <div class="flow-box" style="border-color:rgba(251,146,60,.3);margin-bottom:16px">
+        <div style="font-size:18px;color:var(--orange)">🔴  进程生命 = 终端生命</div>
+        <div style="font-size:15px;color:var(--dim);margin-top:8px">Ctrl+C 或执行完毕，Lena 消失</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(251,146,60,.3);margin-bottom:16px">
+        <div style="font-size:18px;color:var(--orange)">🔴  无法从手机接收消息</div>
+        <div style="font-size:15px;color:var(--dim);margin-top:8px">你在外面，Lena 没有监听任何 channel</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(251,146,60,.3)">
+        <div style="font-size:18px;color:var(--orange)">🔴  无法处理后台定时任务</div>
+        <div style="font-size:15px;color:var(--dim);margin-top:8px">每次都要手动 python3 main.py</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:16px;color:var(--green);font-weight:600;margin-bottom:20px">Always-on 解决了什么</div>
+      <div class="flow-box" style="border-color:rgba(74,222,128,.3);margin-bottom:16px">
+        <div style="font-size:18px;color:var(--green)">✅  launchd 守护，7×24 不死</div>
+        <div style="font-size:15px;color:var(--dim);margin-top:8px">崩溃自动重启，重启节流防风暴</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(74,222,128,.3);margin-bottom:16px">
+        <div style="font-size:18px;color:var(--green)">✅  多 Channel 同时监听</div>
+        <div style="font-size:15px;color:var(--dim);margin-top:8px">Telegram / Discord / 飞书 / HTTP</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(74,222,128,.3)">
+        <div style="font-size:18px;color:var(--green)">✅  Channel 随时热插拔</div>
+        <div style="font-size:15px;color:var(--dim);margin-top:8px">换渠道只改一个配置参数</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 3: Gateway 架构全图 -->
+<div class="slide" id="s3">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>Gateway 架构</div>
+  <div class="sec-title">WebSocket + HTTP 双入口</div>
+  <div class="sec-sub">所有消息经 Channel Router 统一路由到 AgentLoop</div>
+  <div style="display:flex;gap:40px;flex:1;align-items:center">
+    <!-- Left: clients -->
+    <div style="display:flex;flex-direction:column;gap:16px;width:260px">
+      <div class="flow-box" style="border-color:rgba(34,211,238,.3);text-align:center">
+        <div style="color:var(--cyan);font-weight:600">Telegram</div>
+        <div style="font-size:13px;color:var(--dim)">polling / webhook</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(251,146,60,.3);text-align:center">
+        <div style="color:var(--orange);font-weight:600">HTTP Client</div>
+        <div style="font-size:13px;color:var(--dim)">curl / webhook POST</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(74,222,128,.3);text-align:center">
+        <div style="color:var(--green);font-weight:600">Console CLI</div>
+        <div style="font-size:13px;color:var(--dim)">stdin/stdout</div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(168,85,247,.3);text-align:center">
+        <div style="color:var(--purple);font-weight:600">Discord</div>
+        <div style="font-size:13px;color:var(--dim)">bot token</div>
+      </div>
+    </div>
+    <!-- Arrows -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--dim);font-size:24px">
+      <span>→</span><span>→</span><span>→</span><span>→</span>
+    </div>
+    <!-- Center: Gateway -->
+    <div style="flex:1;border:1.5px dashed rgba(168,85,247,.4);border-radius:20px;padding:28px;background:rgba(168,85,247,.04)">
+      <div style="text-align:center;color:var(--purple);font-size:18px;font-weight:700;margin-bottom:20px">
+        Gateway Server
+      </div>
+      <div class="grid2" style="margin-bottom:20px">
+        <div class="flow-box" style="border-color:rgba(168,85,247,.3);text-align:center">
+          <div style="font-size:15px;color:var(--purple);font-weight:600">WebSocket</div>
+          <div style="font-size:13px;color:var(--dim)">:8765</div>
+        </div>
+        <div class="flow-box" style="border-color:rgba(251,146,60,.3);text-align:center">
+          <div style="font-size:15px;color:var(--orange);font-weight:600">HTTP</div>
+          <div style="font-size:13px;color:var(--dim)">:3000  POST /message</div>
+        </div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(255,255,255,.1);text-align:center;margin-bottom:20px">
+        <div style="font-size:15px;color:var(--text);font-weight:600">Channel Router</div>
+        <div style="font-size:13px;color:var(--dim)">allowFrom 过滤 · channelId 路由</div>
+      </div>
+      <div class="grid4">
+        <div class="flow-box" style="border-color:rgba(34,211,238,.2);text-align:center;padding:14px">
+          <div style="font-size:13px;color:var(--cyan)">Telegram</div>
+        </div>
+        <div class="flow-box" style="border-color:rgba(251,146,60,.2);text-align:center;padding:14px">
+          <div style="font-size:13px;color:var(--orange)">HTTP</div>
+        </div>
+        <div class="flow-box" style="border-color:rgba(74,222,128,.2);text-align:center;padding:14px">
+          <div style="font-size:13px;color:var(--green)">Console</div>
+        </div>
+        <div class="flow-box" style="border-color:rgba(168,85,247,.2);text-align:center;padding:14px">
+          <div style="font-size:13px;color:var(--purple)">…</div>
+        </div>
+      </div>
+    </div>
+    <!-- Arrow to agent -->
+    <div style="font-size:32px;color:var(--purple)">→</div>
+    <!-- Right: AgentLoop -->
+    <div style="width:280px;border:1.5px solid rgba(34,211,238,.3);border-radius:20px;padding:28px;background:rgba(34,211,238,.04)">
+      <div style="text-align:center;color:var(--cyan);font-size:18px;font-weight:700;margin-bottom:20px">
+        AgentLoop
+      </div>
+      <div class="flow-box" style="margin-bottom:14px;text-align:center">
+        <div style="font-size:14px;color:var(--text)">claude-sonnet-4-5</div>
+      </div>
+      <div class="flow-box" style="text-align:center">
+        <div style="font-size:14px;color:var(--text)">per-channel 对话历史</div>
+        <div style="font-size:12px;color:var(--dim)">不改核心</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 4: nano-claw 219 行代码导读 -->
+<div class="slide" id="s4">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>nano-claw 甜点级实现</div>
+  <div class="sec-title">219 行 = 完整 Gateway</div>
+  <div class="sec-sub">学会这 219 行，再去看 OpenClaw 230 文件就不会迷失</div>
+  <div class="grid2" style="flex:1">
+    <div class="code-block" style="font-size:16px">
+<span class="hl-p">// nano-claw/gateway/server.ts</span>
+
+<span class="hl">// ① WebSocket 服务器</span>
+const wss = new WebSocketServer({ port: <span class="hl-y">8765</span> });
+
+<span class="hl">// ② HTTP 服务器</span>
+const httpServer = http.createServer(handleHttp);
+httpServer.listen(<span class="hl-y">3000</span>);
+
+<span class="hl">// ③ Channel Router</span>
+const router = new ChannelRouter(agentLoop);
+
+<span class="hl">// ④ 连接管理</span>
+const conns = new Map&lt;string, WebSocket&gt;();
+
+<span class="hl-p">// WS 消息处理</span>
+wss.on(<span class="hl-g">"connection"</span>, (ws, req) =&gt; {
+  const channelId = extractChannelId(req);
+  conns.set(channelId, ws);
+
+  ws.on(<span class="hl-g">"message"</span>, async (data) =&gt; {
+    const msg = JSON.parse(data.toString());
+    const reply = await router.dispatch({ channelId, ...msg });
+    ws.send(JSON.stringify({ type: <span class="hl-g">"response"</span>, content: reply }));
+  });
+});</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="glass-card">
+        <div style="font-size:14px;color:var(--dim);margin-bottom:8px">规模量化</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <div class="stat-big" style="color:var(--orange)">219</div>
+            <div style="font-size:14px;color:var(--dim)">nano-claw 行数</div>
+          </div>
+          <div style="font-size:32px;color:var(--dim);align-self:center">vs</div>
+          <div>
+            <div class="stat-big" style="color:var(--purple)">230+</div>
+            <div style="font-size:14px;color:var(--dim)">OpenClaw 文件数</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--dim)">教学版：读懂原理 → 生产版：全部特性</div>
+      </div>
+      <div class="glass-card">
+        <div style="font-size:14px;color:var(--dim);margin-bottom:12px">4 个核心组件</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:12px;align-items:center">
+            <span style="color:var(--cyan);font-size:16px">①</span>
+            <span style="font-size:15px;color:var(--text)">WebSocketServer</span>
+            <span style="font-size:13px;color:var(--dim)">:8765</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span style="color:var(--orange);font-size:16px">②</span>
+            <span style="font-size:15px;color:var(--text)">HTTP Server</span>
+            <span style="font-size:13px;color:var(--dim)">:3000</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span style="color:var(--purple);font-size:16px">③</span>
+            <span style="font-size:15px;color:var(--text)">Channel Router</span>
+            <span style="font-size:13px;color:var(--dim)">dispatch</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span style="color:var(--green);font-size:16px">④</span>
+            <span style="font-size:15px;color:var(--text)">Connection Map</span>
+            <span style="font-size:13px;color:var(--dim)">channelId → WS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 5: BaseChannel 抽象 -->
+<div class="slide" id="s5">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>Channel as Plugin</div>
+  <div class="sec-title">BaseChannel：让 Channel 成为插件</div>
+  <div class="sec-sub">allowFrom 在 channel 层过滤，AgentLoop 只处理通过安全检查的消息</div>
+  <div class="grid2" style="flex:1">
+    <div class="code-block" style="font-size:15px">
+<span class="hl-p">// channels/base.ts</span>
+interface <span class="hl">BaseChannel</span> {
+  id:              <span class="hl-g">ChannelId</span>;
+  name:            string;
+
+  <span class="hl-p">// 安全配置</span>
+  allowFrom:       string[];     <span class="hl-p">// 白名单 userId</span>
+  requireMention:  boolean;      <span class="hl-p">// 是否需 @mention</span>
+
+  <span class="hl-p">// 生命周期</span>
+  connect():    Promise&lt;void&gt;;
+  disconnect(): Promise&lt;void&gt;;
+
+  <span class="hl-p">// 消息收发</span>
+  send(msg: OutboundMessage):  Promise&lt;void&gt;;
+  onMessage(h: MessageHandler): void;
+
+  <span class="hl-p">// 多账号 runtime snapshot</span>
+  snapshot(): <span class="hl-y">ChannelSnapshot</span>;
+}
+
+<span class="hl-p">// 插件注册表（catalog.ts）</span>
+const catalog = {
+  [ChannelId.TELEGRAM]: () =&gt; new TelegramChannel(cfg),
+  [ChannelId.DISCORD]:  () =&gt; new DiscordChannel(cfg),
+  [ChannelId.FEISHU]:   () =&gt; new FeishuChannel(cfg),
+  [ChannelId.CONSOLE]:  () =&gt; new ConsoleChannel(),
+};
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="glass-card" style="border-color:rgba(34,211,238,.2)">
+        <div style="font-size:16px;color:var(--cyan);font-weight:600;margin-bottom:12px">
+          案例 11.2：梦芊日报切渠道
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px">
+          2026-03-11 日报从 Discord 切飞书
+        </div>
+        <div class="code-block" style="font-size:14px;padding:16px">
+<span class="hl-p">// 改前</span>
+{ "channel": <span class="hl-g">"discord"</span>, "target": "#daily" }
+
+<span class="hl-p">// 改后</span>
+{ "channel": <span class="hl-y">"feishu"</span>,  "target": "chat_xx" }
+        </div>
+        <div style="font-size:14px;color:var(--green);margin-top:10px">
+          ✅  Agent 核心逻辑：一行没改
+        </div>
+      </div>
+      <div class="glass-card">
+        <div style="font-size:16px;color:var(--purple);font-weight:600;margin-bottom:12px">
+          allowFrom 安全设计
+        </div>
+        <div style="font-size:14px;color:var(--dim)">
+          陌生人发消息 → channel 层静默丢弃<br>
+          AgentLoop 永远不处理未授权消息<br>
+          <span style="color:var(--text)">"*"</span> = 允许所有（本地 Console 调试用）
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 6: 断线指数退避 -->
+<div class="slide" id="s6">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>工程稳定性</div>
+  <div class="sec-title">断线指数退避：为什么要 BackoffPolicy</div>
+  <div class="sec-sub">对应 OpenClaw server-channels.ts:12-17，上限 5 分钟 / 10 次</div>
+  <div class="grid2" style="flex:1">
+    <div>
+      <div class="glass-card" style="margin-bottom:20px;border-color:rgba(239,68,68,.3)">
+        <div style="font-size:16px;color:#f87171;font-weight:600;margin-bottom:10px">
+          ❌ 立即重连（错误示范）
+        </div>
+        <div class="code-block" style="font-size:15px">
+ws.on(<span class="hl-g">"close"</span>, () =&gt; {
+  ws = new WebSocket(url); <span class="hl-p">// 立即！</span>
+});
+<span class="hl-p">// 结果：毫秒级狂打服务器
+// → 重启风暴 → 服务器 ban IP</span>
+        </div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(74,222,128,.3)">
+        <div style="font-size:16px;color:var(--green);font-weight:600;margin-bottom:10px">
+          ✅ 指数退避
+        </div>
+        <div class="code-block" style="font-size:15px">
+nextDelay(): number {
+  return Math.min(
+    <span class="hl-y">1000</span> * <span class="hl-y">2</span> ** this.attempt,
+    <span class="hl-p">300_000</span>  <span class="hl-p">// 上限 5 分钟</span>
+  );
+}
+<span class="hl-p">// 1s → 2s → 4s → … → 5min</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <!-- Backoff sequence visualization -->
+      <div class="glass-card" style="height:100%">
+        <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:24px">
+          退避序列（10 次上限）
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第1次</span>
+            <div style="height:28px;width:4%;background:rgba(74,222,128,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--green)">1s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第2次</span>
+            <div style="height:28px;width:8%;background:rgba(74,222,128,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--green)">2s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第3次</span>
+            <div style="height:28px;width:14%;background:rgba(250,204,21,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--yellow)">4s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第4次</span>
+            <div style="height:28px;width:22%;background:rgba(250,204,21,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--yellow)">8s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第5次</span>
+            <div style="height:28px;width:38%;background:rgba(251,146,60,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--orange)">16s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第7次</span>
+            <div style="height:28px;width:60%;background:rgba(251,146,60,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--orange)">64s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--dim);width:40px">第10次</span>
+            <div style="height:28px;width:100%;background:rgba(168,85,247,.4);border-radius:4px"></div>
+            <span style="font-size:14px;color:var(--purple)">300s (上限)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 7: 案例 11.1 重启风暴 -->
+<div class="slide" id="s7">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>案例 11.1 · 血泪教训</div>
+  <div class="sec-title">OpenClaw Gateway 重启风暴</div>
+  <div class="sec-sub">launchd KeepAlive + 端口冲突 = 每秒数次崩溃重启</div>
+  <div class="grid2" style="flex:1">
+    <div>
+      <div class="glass-card" style="border-color:rgba(239,68,68,.3);margin-bottom:20px">
+        <div style="font-size:16px;color:#f87171;font-weight:600;margin-bottom:12px">根因</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="flow-box" style="border-color:rgba(239,68,68,.2)">
+            <div style="font-size:14px;color:var(--text)">Gateway 启动 → 端口 8765 冲突 → 崩溃</div>
+          </div>
+          <div style="text-align:center;color:var(--dim)">↓</div>
+          <div class="flow-box" style="border-color:rgba(239,68,68,.2)">
+            <div style="font-size:14px;color:var(--text)">launchd KeepAlive → 立即重启</div>
+          </div>
+          <div style="text-align:center;color:var(--dim)">↓</div>
+          <div class="flow-box" style="border-color:rgba(239,68,68,.2)">
+            <div style="font-size:14px;color:var(--text)">端口仍被占用 → 再次崩溃</div>
+          </div>
+          <div style="text-align:center;color:#f87171;font-size:20px">↺ 死循环</div>
+        </div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(74,222,128,.3)">
+        <div style="font-size:16px;color:var(--green);font-weight:600;margin-bottom:12px">修复</div>
+        <div class="code-block" style="font-size:14px">
+<span class="hl-p">&lt;!-- plist 加 ThrottleInterval --&gt;</span>
+&lt;<span class="hl">key</span>&gt;ThrottleInterval&lt;/<span class="hl">key</span>&gt;
+&lt;<span class="hl-y">integer</span>&gt;60&lt;/<span class="hl-y">integer</span>&gt;
+
+<span class="hl-p">// 60s 兜底 + 应用层退避
+// = 双重保护</span>
+        </div>
+      </div>
+    </div>
+    <div class="glass-card" style="display:flex;flex-direction:column;justify-content:center;gap:24px">
+      <div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:8px">血泪铁律</div>
+        <div style="font-size:22px;color:var(--text);line-height:1.5">
+          launchd <span style="color:var(--orange)">KeepAlive: true</span><br>
+          不加 <span style="color:var(--green)">ThrottleInterval</span><br>
+          = 重启风暴
+        </div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(168,85,247,.3)">
+        <div style="font-size:15px;color:var(--purple);font-weight:600;margin-bottom:8px">
+          两层防护 = 健壮系统
+        </div>
+        <div style="font-size:14px;color:var(--dim)">
+          launchd ThrottleInterval: 60s<br>
+          + 应用层 BackoffPolicy: 1s→5min<br>
+          → 服务器安全，进程自愈
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 8: 案例 11.3 Token 迁移 -->
+<div class="slide" id="s8">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>案例 11.3 · 安全迁移</div>
+  <div class="sec-title">Discord Bot Token：config → env var</div>
+  <div class="sec-sub">SIGUSR1 不刷新 plist env var——必须 launchctl unload/load</div>
+  <div class="grid2" style="flex:1">
+    <div class="code-block" style="font-size:14px">
+<span class="hl-p">// 危险：明文 token 在 config</span>
+{
+  "channels": {
+    "discord": {
+      "token": <span class="hl-g">"MTxxxxxx.Gxxxxx"</span>
+    }
+  }
+}
+
+<span class="hl-p">// Step 1: 提取到 env 文件</span>
+<span class="hl-y">DISCORD_BOT_TOKEN=MTxxxxxx.Gxxxxx</span>
+<span class="hl-p">// chmod 600 ~/.openclaw/.env.discord</span>
+
+<span class="hl-p">// Step 2: 写入 plist EnvironmentVariables</span>
+/usr/libexec/PlistBuddy \
+  -c <span class="hl-g">"Add :EnvironmentVariables:DISCORD_BOT_TOKEN \
+  string MTxxxxxx"</span> ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+
+<span class="hl-p">// Step 3: 从 config 删除明文 token</span>
+jq <span class="hl-g">'del(.channels.discord.token)'</span> \
+  ~/.openclaw/openclaw.json &gt; /tmp/new.json
+mv /tmp/new.json ~/.openclaw/openclaw.json
+
+<span class="hl-p">// Step 4: 完整重启（不能只 kill/SIGUSR1！）</span>
+launchctl <span class="hl-y">unload</span>  ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+launchctl <span class="hl">load</span>    ~/Library/LaunchAgents/ai.openclaw.gateway.plist
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="glass-card" style="border-color:rgba(239,68,68,.3)">
+        <div style="font-size:16px;color:#f87171;font-weight:600;margin-bottom:12px">
+          ⚠️  血泪教训
+        </div>
+        <div style="font-size:18px;color:var(--text);line-height:1.6">
+          <span style="color:var(--orange)">SIGUSR1</span> 让 Gateway 重读 config<br>
+          但 env var 是 launchd 在启动时注入的<br>
+          SIGUSR1 <span style="color:#f87171">拿不到新值</span><br><br>
+          必须 <span style="color:var(--green)">unload → load</span>
+        </div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(74,222,128,.3)">
+        <div style="font-size:16px;color:var(--green);font-weight:600;margin-bottom:12px">
+          代码侧读取
+        </div>
+        <div class="code-block" style="font-size:14px">
+const ch = new DiscordChannel({
+  token: process.env
+    .<span class="hl-g">DISCORD_BOT_TOKEN</span>!,
+  <span class="hl-p">// 从 env 读，不从 config</span>
+});
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 9: Telegram 接入步骤 -->
+<div class="slide" id="s9">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>实操</div>
+  <div class="sec-title">Telegram Bot 接入：5 步搞定</div>
+  <div class="sec-sub">从 BotFather 申请 Token 到 Lena 在手机上回复你</div>
+  <div style="display:flex;gap:40px;flex:1">
+    <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+      <div class="flow-box" style="border-color:rgba(34,211,238,.3)">
+        <div style="display:flex;gap:16px;align-items:center">
+          <span style="font-size:32px;color:var(--cyan);font-weight:800">1</span>
+          <div>
+            <div style="font-size:16px;color:var(--text);font-weight:600">联系 @BotFather</div>
+            <div style="font-size:14px;color:var(--dim);margin-top:4px">Telegram 搜索 @BotFather，发 /newbot</div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(168,85,247,.3)">
+        <div style="display:flex;gap:16px;align-items:center">
+          <span style="font-size:32px;color:var(--purple);font-weight:800">2</span>
+          <div>
+            <div style="font-size:16px;color:var(--text);font-weight:600">设置 bot 名字和 username</div>
+            <div style="font-size:14px;color:var(--dim);margin-top:4px">username 必须以 bot 结尾（如 @lena_my_bot）</div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(251,191,36,.3)">
+        <div style="display:flex;gap:16px;align-items:center">
+          <span style="font-size:32px;color:var(--yellow);font-weight:800">3</span>
+          <div>
+            <div style="font-size:16px;color:var(--text);font-weight:600">拿到 Token</div>
+            <div class="code-block" style="font-size:13px;padding:10px;margin-top:6px">7xxxxxxxx:AAxxxxxxxxxxxxxxxxxxx</div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(74,222,128,.3)">
+        <div style="display:flex;gap:16px;align-items:center">
+          <span style="font-size:32px;color:var(--green);font-weight:800">4</span>
+          <div>
+            <div style="font-size:16px;color:var(--text);font-weight:600">获取你的 User ID</div>
+            <div style="font-size:14px;color:var(--dim);margin-top:4px">发消息给 @userinfobot → 得到数字 ID</div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-box" style="border-color:rgba(251,146,60,.3)">
+        <div style="display:flex;gap:16px;align-items:center">
+          <span style="font-size:32px;color:var(--orange);font-weight:800">5</span>
+          <div>
+            <div style="font-size:16px;color:var(--text);font-weight:600">启动 lena-v1.1</div>
+            <div class="code-block" style="font-size:13px;padding:10px;margin-top:6px">TELEGRAM_BOT_TOKEN=&lt;token&gt; \
+TELEGRAM_ALLOW_FROM=&lt;your-id&gt; \
+npm start</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="width:360px">
+      <div class="glass-card" style="height:100%;display:flex;flex-direction:column;gap:24px;justify-content:center">
+        <div>
+          <div style="font-size:16px;color:var(--dim);margin-bottom:16px">Polling vs Webhook</div>
+          <div class="flow-box" style="border-color:rgba(34,211,238,.3);margin-bottom:14px">
+            <div style="font-size:15px;color:var(--cyan);font-weight:600">Polling（本章）</div>
+            <div style="font-size:14px;color:var(--dim);margin-top:6px">本地开发首选<br>不需要公网 IP 和 HTTPS</div>
+          </div>
+          <div class="flow-box" style="border-color:rgba(168,85,247,.3)">
+            <div style="font-size:15px;color:var(--purple);font-weight:600">Webhook（生产推荐）</div>
+            <div style="font-size:14px;color:var(--dim);margin-top:6px">更低延迟，更省资源<br>需要公网 HTTPS 域名</div>
+          </div>
+        </div>
+        <div class="flow-box" style="border-color:rgba(74,222,128,.2)">
+          <div style="font-size:14px;color:var(--green);font-weight:600">效果验证</div>
+          <div style="font-size:14px;color:var(--dim);margin-top:6px">
+            手机打开 Telegram → 找到你的 bot<br>
+            发一条消息 → Lena 秒回
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 10: lena-v1.1 终端演示 + 总结 -->
+<div class="slide" id="s10">
+<div class="slide-inner">
+  <div class="ch-badge"><span class="ch-dot"></span>lena-v1.1 上线</div>
+  <div class="sec-title">终端演示：后台运行 · 手机发消息</div>
+  <div class="sec-sub">npm start → Lena 后台常驻，Console + Telegram 同时可达</div>
+  <div class="grid2" style="flex:1">
+    <div class="code-block" style="font-size:15px">
+<span class="hl-p">$ npm start</span>
+
+<span class="hl">[Gateway] WebSocket 监听 :8765</span>
+<span class="hl">[Gateway] HTTP 监听 :3000</span>
+<span class="hl-g">[Gateway] Channel [Console] 已接入</span>
+<span class="hl-y">[Telegram] 已连接，开始 polling</span>
+<span class="hl-g">[Gateway] Channel [Telegram] 已接入</span>
+
+========================================
+  Lena v1.1 已启动
+  WebSocket: ws://localhost:8765?id=client
+  HTTP POST: http://localhost:3000/message
+  状态查询: http://localhost:3000/status
+  Console:  直接在此输入消息
+========================================
+
+<span class="hl-p">> 你好 Lena，今天有什么好消息？</span>
+
+<span class="hl">[Lena] 你好！今天的好消息是：你成功让
+我住进了后台，随时都能找到我了！🎉</span>
+
+<span class="hl-p">$ curl -X POST localhost:3000/message \
+  -d '{"content":"给我一个简单的 hello world"}'</span>
+<span class="hl-g">{"reply":"console.log('Hello, World!');"}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="glass-card">
+        <div style="font-size:18px;color:var(--text);font-weight:700;margin-bottom:16px">本章三大收获</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:12px">
+            <span style="color:var(--purple);font-size:20px">①</span>
+            <div>
+              <div style="font-size:15px;color:var(--text);font-weight:600">Gateway 是枢纽，不是大脑</div>
+              <div style="font-size:13px;color:var(--dim)">AgentLoop 不改，变的是消息的来源和去向</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px">
+            <span style="color:var(--cyan);font-size:20px">②</span>
+            <div>
+              <div style="font-size:15px;color:var(--text);font-weight:600">Channel as Plugin</div>
+              <div style="font-size:13px;color:var(--dim)">日报切飞书只改一个参数，delivery 解耦于 intelligence</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px">
+            <span style="color:var(--green);font-size:20px">③</span>
+            <div>
+              <div style="font-size:15px;color:var(--text);font-weight:600">指数退避是生产级必备</div>
+              <div style="font-size:13px;color:var(--dim)">5min 上限 + launchd ThrottleInterval 双重保护</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(168,85,247,.3)">
+        <div style="font-size:14px;color:var(--dim);margin-bottom:8px">下一章预告</div>
+        <div style="font-size:18px;color:var(--purple);font-weight:600">Ch 12 · MessageBus 与事件驱动</div>
+        <div style="font-size:14px;color:var(--dim);margin-top:6px">
+          多个 agent 同时运行时，如何设计消息总线让它们协作？
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SLIDE 11: Design Note -->
+<div class="slide" id="s11">
+<div class="slide-inner" style="justify-content:center">
+  <div class="ch-badge"><span class="ch-dot"></span>Design Note</div>
+  <div class="sec-title">nano-claw 219 行 vs OpenClaw 230 文件</div>
+  <div class="sec-sub">何时用教学版？何时升级到生产版？</div>
+  <div style="display:flex;gap:32px;flex:1;align-items:center">
+    <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+      <div class="glass-card" style="border-color:rgba(251,146,60,.3)">
+        <div style="font-size:18px;color:var(--orange);font-weight:700;margin-bottom:12px">
+          用 nano-claw（教学版）当…
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:15px;color:var(--dim)">
+          <div>✓  个人助理，1-2 个 channel</div>
+          <div>✓  原型验证，快速迭代</div>
+          <div>✓  学习 Gateway 工作原理</div>
+          <div>✓  单机部署，不需要监控</div>
+        </div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(168,85,247,.3)">
+        <div style="font-size:18px;color:var(--purple);font-weight:700;margin-bottom:12px">
+          升级到 OpenClaw 当…
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:15px;color:var(--dim)">
+          <div>✓  接入 5+ channel</div>
+          <div>✓  需要完整指标 / Prometheus</div>
+          <div>✓  多 agent 协作（researcher / ops）</div>
+          <div>✓  生产部署，需要 SLA</div>
+        </div>
+      </div>
+    </div>
+    <div style="width:2px;height:400px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.1),transparent)"></div>
+    <div style="flex:1">
+      <div class="glass-card" style="height:100%;display:flex;flex-direction:column;justify-content:center;gap:24px">
+        <div>
+          <div style="font-size:14px;color:var(--dim);margin-bottom:8px">鸿沟在哪里？</div>
+          <div style="font-size:20px;color:var(--text);line-height:1.7">
+            nano-claw 给你 <span style="color:var(--orange)">原理</span><br>
+            OpenClaw 给你 <span style="color:var(--purple)">平台</span><br><br>
+            先掌握原理，<br>再选择平台。
+          </div>
+        </div>
+        <div style="font-size:14px;color:var(--dim);border-top:1px solid rgba(255,255,255,.06);padding-top:16px">
+          引用：R2-openclaw-nanoclaw-comparison.md §3<br>
+          Always-on 分级表，Level 3
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- end deck -->
+
+<nav class="nav">
+  <button onclick="prev()">◀</button>
+  <span id="slide-num">1 / 11</span>
+  <button onclick="next()">▶</button>
+</nav>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total  = slides.length;
+let cur = 0;
+
+function show(n) {
+  slides[cur].classList.remove('active');
+  cur = (n + total) % total;
+  slides[cur].classList.add('active');
+  document.getElementById('slide-num').textContent = `${cur+1} / ${total}`;
+  document.getElementById('progress').style.width = `${(cur+1)/total*100}%`;
+}
+function next() { show(cur + 1); }
+function prev() { show(cur - 1); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'Space') next();
+  if (e.key === 'ArrowLeft')  prev();
+});
+
+// Scale deck to window
+function scale() {
+  const s = Math.min(window.innerWidth/1920, window.innerHeight/1080);
+  document.getElementById('deck').style.transform = `scale(${s})`;
+  document.getElementById('deck').style.left = `${(window.innerWidth-1920*s)/2}px`;
+  document.getElementById('deck').style.top  = `${(window.innerHeight-1080*s)/2}px`;
+}
+window.addEventListener('resize', scale);
+scale();
+</script>
+</body>
+</html>

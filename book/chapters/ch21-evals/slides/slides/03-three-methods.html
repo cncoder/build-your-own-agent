@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','PingFang SC',sans-serif; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(100,180,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(100,180,255,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 12px; }
+.sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-bottom: 48px; }
+.cols { display: flex; gap: 32px; flex: 1; }
+.method { flex: 1; background: rgba(20,28,40,0.8); border: 1px solid rgba(100,180,255,0.15); border-radius: 16px; padding: 36px; display: flex; flex-direction: column; }
+.method-icon { font-size: 48px; margin-bottom: 16px; }
+.method-name { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.method-tagline { font-size: 16px; color: rgba(255,255,255,0.4); margin-bottom: 24px; }
+.row { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+.tag { font-size: 11px; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 3px; white-space: nowrap; margin-top: 3px; flex-shrink: 0; }
+.good-tag { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid rgba(0,255,136,0.2); }
+.bad-tag { background: rgba(255,68,68,0.1); color: #ff6666; border: 1px solid rgba(255,68,68,0.2); }
+.info-tag { background: rgba(100,180,255,0.1); color: #64b4ff; border: 1px solid rgba(100,180,255,0.2); }
+.row-text { font-size: 18px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+.use-case { margin-top: auto; padding: 16px; background: rgba(100,180,255,0.05); border-radius: 8px; border: 1px solid rgba(100,180,255,0.1); }
+.use-case-title { font-size: 12px; letter-spacing: 0.15em; color: #64b4ff; margin-bottom: 8px; }
+.use-case-text { font-size: 17px; color: rgba(255,255,255,0.55); }
+.m1 .method-name { color: #ff9944; }
+.m2 .method-name { color: #44ff88; }
+.m3 .method-name { color: #aa88ff; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>三种 Eval 方法</h1>
+  <p class="sub">各有优缺点，组合使用，覆盖不同场景</p>
+  <div class="cols">
+    <div class="method m1">
+      <div class="method-icon">🤖</div>
+      <div class="method-name">LLM-as-judge</div>
+      <div class="method-tagline">让另一个模型来打分</div>
+      <div class="row"><span class="tag good-tag">优点</span><span class="row-text">能评主观质量，处理开放式输出</span></div>
+      <div class="row"><span class="tag good-tag">优点</span><span class="row-text">比人工快 100x，可扩展</span></div>
+      <div class="row"><span class="tag bad-tag">缺点</span><span class="row-text">judge 也会犯错，有偏向</span></div>
+      <div class="row"><span class="tag bad-tag">缺点</span><span class="row-text">每次调用有 API 成本</span></div>
+      <div class="use-case">
+        <div class="use-case-title">适用场景</div>
+        <div class="use-case-text">开放式 QA、内容生成、多步推理</div>
+      </div>
+    </div>
+    <div class="method m2">
+      <div class="method-icon">🏆</div>
+      <div class="method-name">Golden Dataset</div>
+      <div class="method-tagline">黄金标准用例库</div>
+      <div class="row"><span class="tag good-tag">优点</span><span class="row-text">完全可重复，零 API 成本</span></div>
+      <div class="row"><span class="tag good-tag">优点</span><span class="row-text">适合精确回归检测</span></div>
+      <div class="row"><span class="tag bad-tag">缺点</span><span class="row-text">构建成本高（100条需数天）</span></div>
+      <div class="row"><span class="tag bad-tag">缺点</span><span class="row-text">格式变化时测试易失效</span></div>
+      <div class="use-case">
+        <div class="use-case-title">适用场景</div>
+        <div class="use-case-text">工具调用参数、Safety 规则、固定格式输出</div>
+      </div>
+    </div>
+    <div class="method m3">
+      <div class="method-icon">📈</div>
+      <div class="method-name">Regression Suite</div>
+      <div class="method-tagline">与历史版本对比</div>
+      <div class="row"><span class="tag good-tag">优点</span><span class="row-text">不需要期望值，检测相对退化</span></div>
+      <div class="row"><span class="tag good-tag">优点</span><span class="row-text">模型升级/重构的必备工具</span></div>
+      <div class="row"><span class="tag bad-tag">缺点</span><span class="row-text">需要维护 baseline 版本</span></div>
+      <div class="row"><span class="tag info-tag">注意</span><span class="row-text">退化阈值设定需要经验</span></div>
+      <div class="use-case">
+        <div class="use-case-title">适用场景</div>
+        <div class="use-case-text">模型升级前后对比、重构回归检测</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

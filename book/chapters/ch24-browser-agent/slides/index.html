@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 20 · 实战大结局 Browser Agent</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #06080f;
+  --panel: #0b0e1a;
+  --border: rgba(255,255,255,0.06);
+  --text: #f0f4ff;
+  --text-dim: rgba(240,244,255,0.45);
+  --accent: #00b4ff;
+  --accent2: #00ff88;
+  --accent3: #b464ff;
+  --accent4: #ff9240;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Pro Display', -apple-system, 'Helvetica Neue', sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slides-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  opacity: 0;
+  transform: translateX(40px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+.slide.prev {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+
+/* 进度条 */
+.nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  background: rgba(6,8,15,0.9);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.progress-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.progress-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.progress-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.nav-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+.nav-btn:hover {
+  border-color: rgba(255,255,255,0.2);
+  color: var(--text);
+}
+
+/* ===== 封面 ===== */
+.slide-cover {
+  background: radial-gradient(ellipse at 30% 40%, rgba(0,180,255,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 60%, rgba(0,255,136,0.06) 0%, transparent 60%);
+  text-align: center;
+}
+
+.chapter-num {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+.cover-title {
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(240,244,255,0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+
+.cover-subtitle {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 48px;
+  letter-spacing: 0.02em;
+}
+
+.cover-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,180,255,0.08);
+  border: 1px solid rgba(0,180,255,0.25);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.cover-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,180,255,0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,180,255,0); }
+}
+
+/* ===== 通用 slide 样式 ===== */
+.slide-title {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.slide-heading {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 32px;
+  color: var(--text);
+}
+
+.slide-heading span { color: var(--accent); }
+
+/* 四大挑战 */
+.challenge-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.challenge-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.challenge-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.challenge-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent), transparent); }
+.challenge-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+.challenge-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent4), transparent); }
+.challenge-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+
+.challenge-num {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  opacity: 0.15;
+}
+
+.challenge-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.challenge-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+/* 三条路径 */
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.path-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.path-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.path-tag {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.path-features {
+  list-style: none;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 2;
+}
+
+.path-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  margin-top: 12px;
+}
+
+/* 血泪教训 */
+.lessons-list {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lesson-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.lesson-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,146,64,0.15);
+  border: 1px solid rgba(255,146,64,0.4);
+  color: var(--accent4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lesson-content { flex: 1; }
+.lesson-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.lesson-fix {
+  font-size: 11px;
+  color: var(--accent2);
+  font-family: 'SF Mono', monospace;
+  background: rgba(0,255,136,0.05);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* 全书回顾 timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+}
+
+.tl-version {
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--accent);
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.tl-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.3s;
+}
+
+.tl-desc { color: var(--text-dim); flex: 1; }
+
+/* 六大支柱 */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.pillar-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.pillar-icon { font-size: 24px; margin-bottom: 8px; }
+.pillar-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.pillar-desc { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+/* 大结局彩蛋 */
+.finale-text {
+  text-align: center;
+  max-width: 700px;
+}
+
+.finale-quote {
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(240,244,255,0.7);
+  margin: 24px 0;
+}
+
+.finale-quote strong {
+  color: var(--text);
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<div class="slides-container" id="slides">
+
+  <!-- Slide 1: 封面 -->
+  <div class="slide slide-cover active" id="slide-0">
+    <div class="chapter-num">第 20 章 · 全书大结局</div>
+    <div class="cover-title">Browser Agent</div>
+    <div class="cover-subtitle">你的 agent 开始浏览互联网</div>
+    <div class="cover-badge">
+      <div class="cover-dot"></div>
+      <span>lena-v2.0 · DOM 感知 · CDP 9222 · browser-use 92k⭐</span>
+    </div>
+  </div>
+
+  <!-- Slide 2: 四大挑战 -->
+  <div class="slide" id="slide-1">
+    <div class="slide-title">Browser Agent</div>
+    <div class="slide-heading">为什么是 <span>"通用 agent 压力测试场"</span>？</div>
+    <div class="challenge-grid">
+      <div class="challenge-card">
+        <div class="challenge-num">01</div>
+        <div class="challenge-title" style="color:var(--accent)">DOM 无穷大</div>
+        <div class="challenge-desc">微博首页 ~6000 个 DOM 节点，序列化 800KB。直接塞进 LLM = context 撑满，质量暴跌。</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-num">02</div>
+        <div class="challenge-title" style="color:var(--accent3)">页面跳变</div>
+        <div class="challenge-desc">SPA 路由切换、表单提交跳转、登录重定向——每次跳转 DOM 完全失效，需要重新感知。</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-num">03</div>
+        <div class="challenge-title" style="color:var(--accent4)">反爬 / 人机验证</div>
+        <div class="challenge-desc">User-Agent 检测、headless 指纹、行为分析、CAPTCHA——大型平台的多层防御。</div>
+      </div>
+      <div class="challenge-card">
+        <div class="challenge-num">04</div>
+        <div class="challenge-title" style="color:var(--accent2)">登录态管理</div>
+        <div class="challenge-desc">Cookie 有效期、跨页面 session、多账号切换——agent 需要维护持久的身份上下文。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: 三条路径 -->
+  <div class="slide" id="slide-2">
+    <div class="slide-title">选型决策</div>
+    <div class="slide-heading" style="font-size:28px">三条路径，<span>何时用哪个</span>？</div>
+    <div class="paths-grid">
+      <div class="path-card">
+        <div class="path-name" style="color:var(--accent)">Chrome CDP</div>
+        <div class="path-tag">最底层 · 最快 · Chrome 专属</div>
+        <ul class="path-features">
+          <li>✓ WebSocket 直连</li>
+          <li>✓ abel-chrome 9222 ✓</li>
+          <li>✓ 截图采集最优</li>
+          <li>✗ 需手动 DOM 解析</li>
+          <li>✗ 无 LLM 内置</li>
+        </ul>
+        <div class="path-badge" style="background:rgba(0,180,255,0.1);border:1px solid rgba(0,180,255,0.3);color:var(--accent)">精确采集 · 截图 · 抓取</div>
+      </div>
+      <div class="path-card">
+        <div class="path-name" style="color:var(--accent3)">Playwright</div>
+        <div class="path-tag">中层 · 可靠 · 跨浏览器</div>
+        <ul class="path-features">
+          <li>✓ Chromium/Firefox/Safari</li>
+          <li>✓ 自动等待机制</li>
+          <li>✓ 网络拦截</li>
+          <li>✗ 步骤需预定义</li>
+          <li>✗ 无 LLM 感知</li>
+        </ul>
+        <div class="path-badge" style="background:rgba(180,100,255,0.1);border:1px solid rgba(180,100,255,0.3);color:var(--accent3)">E2E 测试 · 表单 · 下载</div>
+      </div>
+      <div class="path-card">
+        <div class="path-name" style="color:var(--accent2)">browser-use</div>
+        <div class="path-tag">高层 · LLM 感知 · 92k ⭐</div>
+        <ul class="path-features">
+          <li>✓ 自动 DOM 感知</li>
+          <li>✓ LLM 动态决策</li>
+          <li>✓ ChatBrowserUse 3-5x</li>
+          <li>✗ 依赖 LLM 调用</li>
+          <li>✗ 延迟高于纯 CDP</li>
+        </ul>
+        <div class="path-badge" style="background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);color:var(--accent2)">智能任务 · 动态决策</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: browser-use 架构 -->
+  <div class="slide" id="slide-3">
+    <div class="slide-title">browser-use · 92k Stars</div>
+    <div class="slide-heading">Playwright + <span>LLM 感知 DOM</span></div>
+    <div style="max-width:700px;width:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px">
+        <div style="background:rgba(0,180,255,0.1);border:1px solid rgba(0,180,255,0.3);border-radius:10px;padding:20px;text-align:center;flex:1">
+          <div style="color:var(--accent);font-weight:700;margin-bottom:6px">感知</div>
+          <div style="color:var(--text-dim)">截图 + DOM 提取<br>可交互元素列表</div>
+        </div>
+        <div style="color:var(--text-dim)">→</div>
+        <div style="background:rgba(180,100,255,0.1);border:1px solid rgba(180,100,255,0.3);border-radius:10px;padding:20px;text-align:center;flex:1">
+          <div style="color:var(--accent3);font-weight:700;margin-bottom:6px">LLM 决策</div>
+          <div style="color:var(--text-dim)">Claude / ChatBrowserUse<br>action + selector</div>
+        </div>
+        <div style="color:var(--text-dim)">→</div>
+        <div style="background:rgba(255,146,64,0.1);border:1px solid rgba(255,146,64,0.3);border-radius:10px;padding:20px;text-align:center;flex:1">
+          <div style="color:var(--accent4);font-weight:700;margin-bottom:6px">执行</div>
+          <div style="color:var(--text-dim)">Playwright<br>click / type / scroll</div>
+        </div>
+        <div style="color:var(--text-dim)">→</div>
+        <div style="background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:10px;padding:20px;text-align:center;flex:1">
+          <div style="color:var(--accent2);font-weight:700;margin-bottom:6px">验证</div>
+          <div style="color:var(--text-dim)">截图对比<br>done? 继续?</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px;font-size:11px;color:var(--text-dim)">每步循环，最多 50 步 · ActionHistory 记忆跨步骤状态</div>
+      <div style="margin-top:24px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px">
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.8">
+          <div style="color:var(--accent2);font-size:10px;letter-spacing:0.2em;margin-bottom:8px">DOM 感知核心：6000节点 → 50-200可交互元素（体积缩小 30-100x）</div>
+          <span style="color:var(--accent)">选择性提取</span>：只保留 a / button / input / [role=button] / [aria-label] 等可交互元素<br>
+          <span style="color:var(--accent3)">文本截断</span>：每个元素 text 限制 100 chars，避免 context 爆炸<br>
+          <span style="color:var(--accent4)">可见性过滤</span>：offsetWidth/Height > 0，不处理隐藏元素
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: 6 条血泪教训 -->
+  <div class="slide" id="slide-4">
+    <div class="slide-title">案例 20.1 · local-mactts CDP 采集层</div>
+    <div class="slide-heading" style="font-size:26px;margin-bottom:20px">6 条<span>血泪教训</span></div>
+    <div class="lessons-list">
+      <div class="lesson-item">
+        <div class="lesson-num">1</div>
+        <div class="lesson-content">
+          <div class="lesson-title">不能发 Origin 头 → Chrome 403</div>
+          <div class="lesson-fix">websockets.connect(ws_url)  # 无 extra_headers</div>
+        </div>
+      </div>
+      <div class="lesson-item">
+        <div class="lesson-num">2</div>
+        <div class="lesson-content">
+          <div class="lesson-title">Clash fake-ip 干扰 socket → 必须清除代理变量</div>
+          <div class="lesson-fix">os.environ.pop("http_proxy", None)  # 启动时执行</div>
+        </div>
+      </div>
+      <div class="lesson-item">
+        <div class="lesson-num">3</div>
+        <div class="lesson-content">
+          <div class="lesson-title">并发冲突 → 进程级文件锁</div>
+          <div class="lesson-fix">fcntl.flock(fd, LOCK_EX|LOCK_NB)  # /tmp/.cdp_scrape_lock</div>
+        </div>
+      </div>
+      <div class="lesson-item">
+        <div class="lesson-num">4</div>
+        <div class="lesson-content">
+          <div class="lesson-title">tab 不自动关闭 → 200+ tabs 拥堵</div>
+          <div class="lesson-fix">async with CDPSession() as cdp: ...  # 自动清理 tab</div>
+        </div>
+      </div>
+      <div class="lesson-item">
+        <div class="lesson-num">5</div>
+        <div class="lesson-content">
+          <div class="lesson-title">空白页截图 &lt;80KB → 跳过而非报错</div>
+          <div class="lesson-fix">if len(data) &lt; 80*1024: return None</div>
+        </div>
+      </div>
+      <div class="lesson-item">
+        <div class="lesson-num">6</div>
+        <div class="lesson-content">
+          <div class="lesson-title">/json/new、/json/close 用 PUT，不是 GET</div>
+          <div class="lesson-fix">session.put(f"{CDP_BASE}/json/new?{url}")</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 6: abel-chrome 接入 -->
+  <div class="slide" id="slide-5">
+    <div class="slide-title">实战接入</div>
+    <div class="slide-heading">abel-chrome + <span>CDP 9222</span></div>
+    <div style="max-width:700px;width:100%;display:flex;flex-direction:column;gap:14px">
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent4);margin-bottom:10px">铁律 1：永远用 cdp-start.sh 启动（不手动拼命令）</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text-dim)">~/.claude/scripts/<span style="color:var(--accent)">cdp-start.sh</span></div>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent4);margin-bottom:10px">铁律 2：永远在新 tab 操作（不覆盖现有 tab）</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text-dim)">existing = await cdp.<span style="color:var(--accent)">list_tabs</span>()<br>new_tab = await cdp.<span style="color:var(--accent2)">new_tab</span>()  # PUT</div>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent4);margin-bottom:10px">铁律 3：任务完成必须清理 tab</div>
+        <div style="font-family:monospace;font-size:13px;color:var(--text-dim)">async with <span style="color:var(--accent)">CDPSession()</span> as cdp:<br>&nbsp;&nbsp;<span style="color:var(--text-dim)"># 自动 __aexit__ 清理所有 tab</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 7-9: 三个任务 -->
+  <div class="slide" id="slide-6">
+    <div class="slide-title">任务 1 / 3</div>
+    <div class="slide-heading">查 <span>微博</span> 新消息</div>
+    <div style="max-width:700px;width:100%;display:flex;gap:16px">
+      <div style="flex:1;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent);margin-bottom:12px">AGENT 步骤</div>
+        <div style="font-size:12px;line-height:2.2;color:var(--text-dim)">
+          <div><span style="color:var(--accent4)">1</span> navigate(weibo.com)</div>
+          <div><span style="color:var(--accent4)">2</span> screenshot() → 检测通知图标</div>
+          <div><span style="color:var(--accent4)">3</span> click(通知铃铛)</div>
+          <div><span style="color:var(--accent4)">4</span> extract_content(消息列表)</div>
+          <div><span style="color:var(--accent4)">5</span> done(result)</div>
+        </div>
+      </div>
+      <div style="flex:1;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent2);margin-bottom:12px">三层 FALLBACK</div>
+        <div style="font-size:12px;line-height:2;color:var(--text-dim)">
+          <div><span style="color:var(--accent2)">层1</span> RSSHub → 90%</div>
+          <div><span style="color:var(--accent)">层2</span> opencli → 70%</div>
+          <div><span style="color:var(--accent3)">层3</span> CDP → 40%</div>
+          <div style="margin-top:8px;color:var(--accent2);font-weight:700">综合 → 99%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" id="slide-7">
+    <div class="slide-title">任务 2 / 3</div>
+    <div class="slide-heading">表格 <span>导出 CSV</span></div>
+    <div style="max-width:700px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px">
+      <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent3);margin-bottom:16px">AGENT 决策流 · DOM 分析</div>
+      <div style="font-size:12px;line-height:2.4;color:var(--text-dim)">
+        <div><span style="color:var(--accent3)">1</span> navigate(target_url)  →  <span style="color:var(--text)">页面加载</span></div>
+        <div><span style="color:var(--accent3)">2</span> screenshot()  →  <span style="color:var(--text)">识别 &lt;table&gt; 元素位置</span></div>
+        <div><span style="color:var(--accent3)">3</span> extract_content(table)  →  <span style="color:var(--text)">headers + rows</span></div>
+        <div><span style="color:var(--accent3)">4</span> done(json_data)  →  <span style="color:var(--text)">写入 CSV 文件</span></div>
+      </div>
+      <div style="margin-top:16px;background:rgba(0,255,136,0.05);border:1px solid rgba(0,255,136,0.15);border-radius:6px;padding:12px;font-family:monospace;font-size:11px;color:var(--text-dim)">
+        结果：4 行 × 4 列 → /tmp/export.csv<br>
+        <span style="color:var(--accent2)">{"headers": ["事件","地区","时间","影响指数"], "rows": [...]}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide" id="slide-8">
+    <div class="slide-title">任务 3 / 3</div>
+    <div class="slide-heading">订 <span>深圳→上海</span> 高铁票</div>
+    <div style="max-width:700px;width:100%;display:flex;flex-direction:column;gap:14px">
+      <div style="background:rgba(255,64,96,0.08);border:1px solid rgba(255,64,96,0.3);border-radius:10px;padding:16px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:#ff4060;margin-bottom:8px">⚠ Safety 支柱 — 审批门控</div>
+        <div style="font-size:12px;color:var(--text-dim)">购票有真实副作用。<span style="color:var(--text)">只查询，不自动执行购买操作。</span><br>需要购票时，agent 调用 ask_human 暂停，等待用户确认。</div>
+      </div>
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px">
+        <div style="font-size:10px;letter-spacing:0.2em;color:var(--accent2);margin-bottom:12px">10 步决策树</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:10px;text-align:center">
+          <div style="background:rgba(0,180,255,0.1);border-radius:6px;padding:6px;color:var(--accent)">navigate</div>
+          <div style="background:rgba(0,180,255,0.08);border-radius:6px;padding:6px;color:var(--text-dim)">wait</div>
+          <div style="background:rgba(180,100,255,0.1);border-radius:6px;padding:6px;color:var(--accent3)">click(出发)</div>
+          <div style="background:rgba(180,100,255,0.08);border-radius:6px;padding:6px;color:var(--accent3)">type(深圳北)</div>
+          <div style="background:rgba(180,100,255,0.08);border-radius:6px;padding:6px;color:var(--accent3)">type(上海虹桥)</div>
+          <div style="background:rgba(255,146,64,0.1);border-radius:6px;padding:6px;color:var(--accent4)">click(日期)</div>
+          <div style="background:rgba(255,146,64,0.08);border-radius:6px;padding:6px;color:var(--accent4)">click(明天)</div>
+          <div style="background:rgba(0,255,136,0.1);border-radius:6px;padding:6px;color:var(--accent2)">click(查询)</div>
+          <div style="background:rgba(0,255,136,0.08);border-radius:6px;padding:6px;color:var(--accent2)">wait results</div>
+          <div style="background:rgba(0,255,136,0.15);border-radius:6px;padding:6px;color:var(--accent2)">done(G4...)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 10: 六大支柱 -->
+  <div class="slide" id="slide-9">
+    <div class="slide-title">全书总结</div>
+    <div class="slide-heading">Browser Agent = <span>六大支柱</span>综合体现</div>
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon">🔧</div>
+        <div class="pillar-name" style="color:var(--accent)">Tool Universality</div>
+        <div class="pillar-desc">click/type/scroll/screenshot 都是工具。浏览器能力 = 工具集</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">🧠</div>
+        <div class="pillar-name" style="color:var(--accent3)">Planning</div>
+        <div class="pillar-desc">订票任务 10 步，目标清晰但步骤由 LLM 动态决策</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">⏳</div>
+        <div class="pillar-name" style="color:var(--accent4)">Long-horizon</div>
+        <div class="pillar-desc">跨 10+ 步骤、3 页面跳转，ActionHistory 维护状态连贯性</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">💾</div>
+        <div class="pillar-name" style="color:var(--accent2)">Memory</div>
+        <div class="pillar-desc">abel-chrome Cookie = 登录态记忆。ActionHistory = 工作记忆</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">🛡️</div>
+        <div class="pillar-name" style="color:#ff4060">Safety</div>
+        <div class="pillar-desc">tab 保护铁律 + 高风险操作审批门控（订票/提交/购买）</div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">🔀</div>
+        <div class="pillar-name" style="color:var(--accent)">Specialization</div>
+        <div class="pillar-desc">lena-v2.0 是从通用 lena base 派生的 Browser 专用 agent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 11: 全书旅程 -->
+  <div class="slide" id="slide-10">
+    <div class="slide-title">全书回顾</div>
+    <div class="slide-heading">从 <span>lena-v0.1</span> 到 <span>lena-v2.0</span></div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="tl-version">v0.1</div>
+        <div class="tl-bar" style="width:40px;background:var(--text-dim)"></div>
+        <div class="tl-desc">50 行 Python · ReAct 循环 · "Hello Agent"</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-version">v0.3-0.5</div>
+        <div class="tl-bar" style="width:80px"></div>
+        <div class="tl-desc">Tool 注册 · 文件系统记忆 · Token 经济学</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-version">v0.7-0.9</div>
+        <div class="tl-bar" style="width:140px"></div>
+        <div class="tl-desc">Planning · Sub-agent · Safety · ShellSandbox</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-version">v1.1-1.3</div>
+        <div class="tl-bar" style="width:200px"></div>
+        <div class="tl-desc">Gateway · Discord/飞书 · Heartbeat 每日日报</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-version">v1.5-1.6</div>
+        <div class="tl-bar" style="width:280px"></div>
+        <div class="tl-desc">MCP 协议 · Docker 沙箱 · AWS 集成</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-version">v1.9</div>
+        <div class="tl-bar" style="width:340px"></div>
+        <div class="tl-desc">SpecKit · 一行 fork 专用 agent · hermesbot / local-mactts</div>
+      </div>
+      <div class="timeline-item" style="opacity:1">
+        <div class="tl-version" style="color:var(--accent2)">v2.0 ★</div>
+        <div class="tl-bar" style="width:400px;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
+        <div class="tl-desc" style="color:var(--text)">Browser Agent · CDP 9222 · browser-use · 能上互联网</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 12: 大结局 -->
+  <div class="slide" id="slide-11" style="background:radial-gradient(ellipse at 50% 50%, rgba(0,255,136,0.05) 0%, transparent 70%)">
+    <div class="chapter-num">全书完结 · 大结局彩蛋</div>
+    <div class="finale-text">
+      <div class="finale-quote">
+        你已经构建了一个能<strong>思考、行动、记忆</strong>，<br>
+        能<strong>主动联系你</strong>，能<strong>浏览互联网</strong>的 agent。
+      </div>
+      <div class="finale-quote" style="font-size:16px">
+        下一步：量化交易 agent 完整实战？<br>
+        还是浏览器自动化的商业化路径？
+      </div>
+      <div style="margin-top:32px">
+        <div class="cover-badge" style="font-size:15px;padding:14px 28px">
+          <div class="cover-dot" style="background:var(--accent2);box-shadow:none"></div>
+          <span style="color:var(--accent2)">agent 的边界，就是你想象力的边界</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 导航 -->
+<div class="nav-bar">
+  <div class="progress-dots" id="progress-dots"></div>
+  <div style="font-size:11px;color:var(--text-dim)" id="slide-counter">1 / 12</div>
+  <div style="display:flex;gap:8px">
+    <button class="nav-btn" onclick="prevSlide()">← 上一页</button>
+    <button class="nav-btn" onclick="nextSlide()">下一页 →</button>
+  </div>
+</div>
+
+<script>
+const TOTAL = 12;
+let current = 0;
+
+// 初始化进度点
+const dots = document.getElementById('progress-dots');
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'progress-dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goTo(i);
+  dots.appendChild(d);
+}
+
+function goTo(idx) {
+  const slides = document.querySelectorAll('.slide');
+  slides[current].classList.remove('active');
+  slides[current].classList.add('prev');
+  current = idx;
+  slides.forEach((s, i) => {
+    s.classList.remove('active', 'prev');
+    if (i === current) s.classList.add('active');
+    else if (i < current) s.classList.add('prev');
+  });
+  document.querySelectorAll('.progress-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === current);
+  });
+  document.getElementById('slide-counter').textContent = `${current + 1} / ${TOTAL}`;
+}
+
+function nextSlide() { if (current < TOTAL - 1) goTo(current + 1); }
+function prevSlide() { if (current > 0) goTo(current - 1); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+  if (e.key === 'ArrowLeft') prevSlide();
+});
+</script>
+</body>
+</html>

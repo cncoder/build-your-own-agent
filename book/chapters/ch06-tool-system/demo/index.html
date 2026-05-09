@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 04 · Tool Registry Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: rgba(255,255,255,0.04);
+    --surface2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --cyan: #00d4ff;
+    --blue: #4169e1;
+    --pink: #ff2d78;
+    --purple: #9f7aea;
+    --green: #00ff88;
+    --yellow: #ffcb6b;
+    --text: #e8ecf4;
+    --muted: rgba(232,236,244,0.5);
+    --dim: rgba(232,236,244,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .header-chip {
+    padding: 4px 12px;
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    background: rgba(0,212,255,0.05);
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    flex: 1;
+    height: calc(100vh - 73px);
+  }
+
+  /* Left panel: Tool registry */
+  .registry-panel {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+  }
+
+  .tool-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    background: var(--surface);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .tools-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tool-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tool-card:hover {
+    border-color: rgba(255,255,255,0.15);
+  }
+
+  .tool-card.active {
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0,212,255,0.1);
+  }
+
+  .tool-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+  }
+
+  .tool-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tool-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .tool-flags {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .flag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+  }
+
+  .flag.readonly { background: rgba(0,212,255,0.1); color: var(--cyan); border: 1px solid rgba(0,212,255,0.2); }
+  .flag.destructive { background: rgba(255,45,120,0.1); color: var(--pink); border: 1px solid rgba(255,45,120,0.2); }
+  .flag.serial { background: rgba(255,45,120,0.08); color: var(--pink); border: 1px solid rgba(255,45,120,0.15); }
+  .flag.concurrent { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+  .flag.infinity { background: rgba(0,212,255,0.08); color: var(--cyan); border: 1px solid rgba(0,212,255,0.15); }
+
+  .tool-detail {
+    padding: 16px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .tool-card.active .tool-detail {
+    display: flex;
+  }
+
+  .detail-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .detail-key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    min-width: 100px;
+    padding-top: 2px;
+  }
+
+  .detail-val {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .schema-block {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #a8b5cc;
+    line-height: 1.6;
+    white-space: pre;
+  }
+
+  /* Right panel: Timeline + input */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .timeline-panel {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .timeline-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Concurrency timeline */
+  .concurrency-view {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .timeline-label {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 80px;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .tl-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .tl-bar-container {
+    height: 32px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tl-bar {
+    position: absolute;
+    top: 4px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    transition: all 0.6s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 4px;
+  }
+
+  .tl-bar.read-file { background: rgba(0,212,255,0.2); border: 1px solid rgba(0,212,255,0.4); color: var(--cyan); }
+  .tl-bar.write-file { background: rgba(255,45,120,0.15); border: 1px solid rgba(255,45,120,0.3); color: var(--pink); }
+  .tl-bar.shell { background: rgba(255,45,120,0.15); border: 1px solid rgba(255,45,120,0.3); color: var(--pink); }
+  .tl-bar.web-search { background: rgba(0,255,136,0.12); border: 1px solid rgba(0,255,136,0.25); color: var(--green); }
+
+  .tl-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .tl-status.running { color: var(--yellow); }
+  .tl-status.done { color: var(--green); }
+  .tl-status.waiting { color: var(--dim); }
+
+  /* Execution log */
+  .exec-log {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    min-height: 200px;
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 12px;
+    padding: 4px 0;
+  }
+
+  .log-time {
+    color: var(--dim);
+    min-width: 60px;
+    font-size: 11px;
+  }
+
+  .log-tool { color: var(--cyan); }
+  .log-ok { color: var(--green); }
+  .log-err { color: var(--pink); }
+  .log-info { color: var(--muted); }
+  .log-system { color: var(--dim); font-style: italic; }
+
+  /* Input panel */
+  .input-panel {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .quick-commands {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .quick-cmd {
+    padding: 6px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .quick-cmd:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0,212,255,0.05);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .cmd-input {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .cmd-input:focus {
+    border-color: rgba(0,212,255,0.4);
+  }
+
+  .run-btn {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 8px;
+    padding: 12px 24px;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .run-btn:hover {
+    background: rgba(0,212,255,0.15);
+    box-shadow: 0 0 20px rgba(0,212,255,0.2);
+  }
+
+  .run-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="header-chip">Ch 04</div>
+    <div class="header-title">Tool 系统 — 工具注册表 + 并发时序图</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span style="font-size:12px;color:var(--dim);">全 mock · 无需 API Key</span>
+    <div class="header-chip" style="border-color:rgba(0,255,136,0.3);color:var(--green);background:rgba(0,255,136,0.05);">lena-v0.4</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Left: Tool Registry -->
+  <div class="registry-panel">
+    <div class="panel-header">
+      <span class="panel-title">TOOL REGISTRY</span>
+      <span class="tool-count" id="tool-count">4 tools registered</span>
+    </div>
+    <div class="tools-list" id="tools-list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Right: Timeline + Input -->
+  <div class="right-panel">
+    <div class="timeline-panel">
+      <div class="timeline-title">CONCURRENT EXECUTION TIMELINE · isConcurrencySafe 决定并发或串行</div>
+
+      <div class="concurrency-view">
+        <div class="timeline-label" id="tl-label">点击下方按钮模拟执行，观察并发时序</div>
+        <div id="timeline">
+          <!-- Populated by JS -->
+        </div>
+        <!-- Time axis -->
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);">
+          <span>0ms</span>
+          <span>100ms</span>
+          <span>200ms</span>
+          <span>300ms</span>
+          <span>400ms</span>
+        </div>
+      </div>
+
+      <div class="exec-log" id="exec-log">
+        <div class="log-entry">
+          <span class="log-time">--:--</span>
+          <span class="log-system">ToolRegistry 已初始化，4 个工具就绪</span>
+        </div>
+        <div class="log-entry">
+          <span class="log-time">--:--</span>
+          <span class="log-system">点击工具卡片展开详情，或在下方输入模拟指令</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-panel">
+      <div class="quick-commands">
+        <div class="quick-cmd" onclick="runScenario('read_and_search')">read_file + web_search（并发）</div>
+        <div class="quick-cmd" onclick="runScenario('write_then_shell')">write_file → shell（串行）</div>
+        <div class="quick-cmd" onclick="runScenario('all_four')">全部四工具</div>
+        <div class="quick-cmd" onclick="runScenario('read_only')">只有 read_file</div>
+        <div class="quick-cmd" onclick="clearLog()">清空日志</div>
+      </div>
+      <div class="input-row">
+        <input type="text" class="cmd-input" id="cmd-input" placeholder="输入模拟指令，例如：读取 README.md 同时搜索 pydantic v2" />
+        <button class="run-btn" onclick="runFromInput()">模拟执行</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Tool definitions ──────────────────────────────────────────────
+const TOOLS = [
+  {
+    name: 'read_file',
+    description: '读取本地文件的内容。支持文本文件，返回完整内容。',
+    isReadOnly: true,
+    isDestructive: false,
+    isConcurrencySafe: true,
+    maxResultSizeChars: null, // Infinity
+    schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '文件路径（绝对路径或相对路径）' },
+        encoding: { type: 'string', default: 'utf-8', description: '文件编码' }
+      },
+      required: ['path']
+    },
+    color: '#00d4ff',
+    cssClass: 'read-file',
+    duration: 80, // mock ms
+  },
+  {
+    name: 'write_file',
+    description: '将内容写入本地文件。覆盖或追加模式可选。',
+    isReadOnly: false,
+    isDestructive: true,
+    isConcurrencySafe: false,
+    maxResultSizeChars: 500,
+    schema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: '写入路径' },
+        content: { type: 'string', description: '写入内容' },
+        append: { type: 'boolean', default: false, description: '追加模式' }
+      },
+      required: ['path', 'content']
+    },
+    color: '#ff2d78',
+    cssClass: 'write-file',
+    duration: 60,
+  },
+  {
+    name: 'shell',
+    description: '执行 shell 命令（仅限安全白名单）。危险命令会被阻断。',
+    isReadOnly: false,
+    isDestructive: true,
+    isConcurrencySafe: false,
+    maxResultSizeChars: 4000,
+    schema: {
+      type: 'object',
+      properties: {
+        command: { type: 'string', description: '要执行的 shell 命令' },
+        timeout: { type: 'integer', default: 30, description: '超时秒数' }
+      },
+      required: ['command']
+    },
+    color: '#ff2d78',
+    cssClass: 'shell',
+    duration: 120,
+  },
+  {
+    name: 'web_search',
+    description: '搜索互联网。使用 DuckDuckGo，无需 API Key。',
+    isReadOnly: true,
+    isDestructive: false,
+    isConcurrencySafe: true,
+    maxResultSizeChars: 3000,
+    schema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: '搜索关键词' },
+        max_results: { type: 'integer', default: 5, description: '返回结果数' }
+      },
+      required: ['query']
+    },
+    color: '#00ff88',
+    cssClass: 'web-search',
+    duration: 200,
+  },
+];
+
+// ── Render tool list ──────────────────────────────────────────────
+function renderTools() {
+  const list = document.getElementById('tools-list');
+  list.innerHTML = '';
+
+  TOOLS.forEach((tool, idx) => {
+    const card = document.createElement('div');
+    card.className = 'tool-card';
+    card.id = `tool-${idx}`;
+    card.onclick = () => toggleCard(idx);
+
+    const flags = [];
+    if (tool.isReadOnly) flags.push('<span class="flag readonly">只读</span>');
+    if (tool.isDestructive) flags.push('<span class="flag destructive">破坏性</span>');
+    if (tool.isConcurrencySafe) {
+      flags.push('<span class="flag concurrent">并发安全</span>');
+    } else {
+      flags.push('<span class="flag serial">串行</span>');
+    }
+    const maxStr = tool.maxResultSizeChars === null
+      ? '<span class="flag infinity">max=∞</span>'
+      : `<span class="flag">max=${tool.maxResultSizeChars}</span>`;
+    flags.push(maxStr);
+
+    const schemaStr = JSON.stringify(tool.schema, null, 2);
+
+    card.innerHTML = `
+      <div class="tool-header">
+        <div class="tool-dot" style="background:${tool.color};box-shadow:0 0 8px ${tool.color}55;"></div>
+        <div class="tool-name" style="color:${tool.color};">${tool.name}</div>
+        <div class="tool-flags">${flags.join('')}</div>
+      </div>
+      <div class="tool-detail">
+        <div class="detail-row">
+          <span class="detail-key">描述</span>
+          <span class="detail-val">${tool.description}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">isReadOnly</span>
+          <span class="detail-val" style="color:${tool.isReadOnly ? '#00d4ff' : 'rgba(232,236,244,0.3)'};">${tool.isReadOnly}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">isDestructive</span>
+          <span class="detail-val" style="color:${tool.isDestructive ? '#ff2d78' : 'rgba(232,236,244,0.3)'};">${tool.isDestructive}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">isConcurrent</span>
+          <span class="detail-val" style="color:${tool.isConcurrencySafe ? '#00ff88' : '#ff2d78'};">${tool.isConcurrencySafe}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-key">maxResult</span>
+          <span class="detail-val" style="color:#00d4ff;">${tool.maxResultSizeChars === null ? '∞ (None) — 防 Read 循环' : tool.maxResultSizeChars}</span>
+        </div>
+        <div class="detail-row" style="flex-direction:column;gap:6px;">
+          <span class="detail-key">input_schema</span>
+          <div class="schema-block">${escapeHtml(schemaStr)}</div>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toggleCard(idx) {
+  const card = document.getElementById(`tool-${idx}`);
+  const isActive = card.classList.contains('active');
+  // Close all
+  document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+  if (!isActive) card.classList.add('active');
+}
+
+// ── Timeline rendering ──────────────────────────────────────────
+const TL_TOTAL_WIDTH = 100; // percent of bar container
+const MAX_MS = 400; // total timeline represents 400ms
+
+function renderTimeline(scenario) {
+  const container = document.getElementById('timeline');
+  container.innerHTML = '';
+
+  scenario.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'timeline-row';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'tl-name';
+    nameEl.style.color = TOOLS.find(t => t.name === item.tool)?.color || '#fff';
+    nameEl.textContent = item.tool;
+
+    const barContainer = document.createElement('div');
+    barContainer.className = 'tl-bar-container';
+
+    const bar = document.createElement('div');
+    bar.className = `tl-bar ${TOOLS.find(t => t.name === item.tool)?.cssClass || ''}`;
+    bar.id = `bar-${item.tool}`;
+    // Initial: zero width
+    const leftPct = (item.startMs / MAX_MS) * TL_TOTAL_WIDTH;
+    const widthPct = (item.durationMs / MAX_MS) * TL_TOTAL_WIDTH;
+    bar.style.left = leftPct + '%';
+    bar.style.width = '0%';
+    bar.textContent = item.durationMs + 'ms';
+    barContainer.appendChild(bar);
+
+    const status = document.createElement('div');
+    status.className = 'tl-status waiting';
+    status.id = `status-${item.tool}`;
+    status.textContent = '待机';
+
+    row.appendChild(nameEl);
+    row.appendChild(barContainer);
+    row.appendChild(status);
+    container.appendChild(row);
+
+    // Animate
+    setTimeout(() => {
+      const s = document.getElementById(`status-${item.tool}`);
+      if (s) { s.className = 'tl-status running'; s.textContent = '执行中'; }
+    }, item.startMs);
+
+    setTimeout(() => {
+      bar.style.width = widthPct + '%';
+      const s = document.getElementById(`status-${item.tool}`);
+      if (s) { s.className = 'tl-status running'; s.textContent = '执行中'; }
+    }, item.startMs + 50);
+
+    setTimeout(() => {
+      const s = document.getElementById(`status-${item.tool}`);
+      if (s) { s.className = 'tl-status done'; s.textContent = '完成'; }
+    }, item.startMs + item.durationMs + 50);
+  });
+}
+
+// ── Scenarios ─────────────────────────────────────────────────────
+const SCENARIOS = {
+  read_and_search: {
+    label: '模拟：read_file + web_search 并发执行（isConcurrencySafe=true）',
+    items: [
+      { tool: 'read_file', startMs: 0, durationMs: 80 },
+      { tool: 'web_search', startMs: 0, durationMs: 200 },
+    ],
+    logs: [
+      { t: 0, msg: '收到指令：读取文件 + 搜索网页', type: 'info' },
+      { t: 10, msg: '[调度] read_file: isConcurrencySafe=true → 并发启动', type: 'tool' },
+      { t: 20, msg: '[调度] web_search: isConcurrencySafe=true → 并发启动', type: 'tool' },
+      { t: 80, msg: '[完成] read_file → === requirements.txt (5行) ===', type: 'ok' },
+      { t: 200, msg: '[完成] web_search → 🔍 找到 3 条相关结果', type: 'ok' },
+      { t: 220, msg: '[总计] 200ms（并发）vs 280ms（串行）节省 80ms', type: 'info' },
+    ]
+  },
+  write_then_shell: {
+    label: '模拟：write_file → shell 串行执行（isConcurrencySafe=false）',
+    items: [
+      { tool: 'write_file', startMs: 0, durationMs: 60 },
+      { tool: 'shell', startMs: 80, durationMs: 120 },
+    ],
+    logs: [
+      { t: 0, msg: '收到指令：写文件然后运行', type: 'info' },
+      { t: 10, msg: '[调度] write_file: isConcurrencySafe=false → 串行执行', type: 'tool' },
+      { t: 60, msg: '[完成] write_file → 成功写入 48 字符到 /tmp/test.sh', type: 'ok' },
+      { t: 80, msg: '[调度] shell: 等待 write_file 完成 → 串行启动', type: 'tool' },
+      { t: 200, msg: '[完成] shell → hello from lena', type: 'ok' },
+      { t: 220, msg: '[总计] 串行保证了：先写后执行，数据不丢失', type: 'info' },
+    ]
+  },
+  all_four: {
+    label: '模拟：全部四工具（read+web并发，write+shell串行）',
+    items: [
+      { tool: 'read_file', startMs: 0, durationMs: 80 },
+      { tool: 'web_search', startMs: 0, durationMs: 200 },
+      { tool: 'write_file', startMs: 220, durationMs: 60 },
+      { tool: 'shell', startMs: 300, durationMs: 100 },
+    ],
+    logs: [
+      { t: 0, msg: 'LLM 发出 4 个 tool_use block', type: 'info' },
+      { t: 10, msg: '[调度] read_file + web_search → 并发（safe=true）', type: 'tool' },
+      { t: 80, msg: '[完成] read_file', type: 'ok' },
+      { t: 200, msg: '[完成] web_search', type: 'ok' },
+      { t: 210, msg: '[调度] write_file → 串行（safe=false），等待并发组完成', type: 'tool' },
+      { t: 280, msg: '[完成] write_file', type: 'ok' },
+      { t: 285, msg: '[调度] shell → 串行，等待 write_file 完成', type: 'tool' },
+      { t: 400, msg: '[完成] shell → 全部工具执行完毕', type: 'ok' },
+    ]
+  },
+  read_only: {
+    label: '模拟：只有 read_file（单工具）',
+    items: [
+      { tool: 'read_file', startMs: 0, durationMs: 80 },
+    ],
+    logs: [
+      { t: 0, msg: '收到指令：读取文件', type: 'info' },
+      { t: 10, msg: '[调度] read_file: isReadOnly=true → 无需权限确认', type: 'tool' },
+      { t: 10, msg: '[信息] maxResultSizeChars=None(∞) → 不截断，防 Read 循环', type: 'info' },
+      { t: 80, msg: '[完成] read_file → 文件内容已返回', type: 'ok' },
+    ]
+  }
+};
+
+function runScenario(name) {
+  const scenario = SCENARIOS[name];
+  if (!scenario) return;
+
+  document.getElementById('tl-label').textContent = scenario.label;
+  renderTimeline(scenario.items);
+
+  // Log
+  const log = document.getElementById('exec-log');
+  const now = new Date();
+  const timeStr = now.toTimeString().slice(0, 8);
+
+  scenario.logs.forEach(entry => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      const typeClass = entry.type === 'tool' ? 'log-tool'
+        : entry.type === 'ok' ? 'log-ok'
+        : entry.type === 'err' ? 'log-err'
+        : entry.type === 'info' ? 'log-info'
+        : 'log-system';
+      div.innerHTML = `<span class="log-time">${timeStr}</span><span class="${typeClass}">${entry.msg}</span>`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }, entry.t + 50);
+  });
+}
+
+function runFromInput() {
+  const input = document.getElementById('cmd-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const log = document.getElementById('exec-log');
+  const now = new Date().toTimeString().slice(0, 8);
+
+  // Detect which tools to run
+  const willReadFile = /读|文件|read|file/i.test(text);
+  const willWebSearch = /搜|查|search|网页|web/i.test(text);
+  const willShell = /命令|shell|run|执行/i.test(text);
+  const willWrite = /写|write/i.test(text);
+
+  const tools = [];
+  if (willReadFile) tools.push('read_file');
+  if (willWebSearch) tools.push('web_search');
+  if (willWrite) tools.push('write_file');
+  if (willShell) tools.push('shell');
+
+  if (tools.length === 0) tools.push('web_search'); // default
+
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = `<span class="log-time">${now}</span><span class="log-info">指令：${text}</span>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+
+  // Build timeline based on isConcurrencySafe
+  const concurrentTools = tools.filter(t => TOOLS.find(tool => tool.name === t)?.isConcurrencySafe);
+  const serialTools = tools.filter(t => !TOOLS.find(tool => tool.name === t)?.isConcurrencySafe);
+
+  let items = [];
+  concurrentTools.forEach(t => {
+    const tool = TOOLS.find(tool => tool.name === t);
+    items.push({ tool: t, startMs: 0, durationMs: tool.duration });
+  });
+
+  const concurrentEnd = concurrentTools.length > 0
+    ? Math.max(...concurrentTools.map(t => TOOLS.find(tool => tool.name === t).duration))
+    : 0;
+
+  let serialCursor = concurrentEnd + (concurrentEnd > 0 ? 20 : 0);
+  serialTools.forEach(t => {
+    const tool = TOOLS.find(tool => tool.name === t);
+    items.push({ tool: t, startMs: serialCursor, durationMs: tool.duration });
+    serialCursor += tool.duration + 20;
+  });
+
+  if (items.length > 0) {
+    document.getElementById('tl-label').textContent =
+      `模拟：${tools.join(' + ')}（根据 isConcurrencySafe 调度）`;
+    renderTimeline(items);
+  }
+
+  input.value = '';
+}
+
+function clearLog() {
+  const log = document.getElementById('exec-log');
+  log.innerHTML = '<div class="log-entry"><span class="log-time">--:--</span><span class="log-system">日志已清空</span></div>';
+}
+
+// ── Initial render ────────────────────────────────────────────────
+renderTools();
+
+// Init timeline with all 4 tools placeholder
+renderTimeline([
+  { tool: 'read_file', startMs: 0, durationMs: 80 },
+  { tool: 'web_search', startMs: 0, durationMs: 200 },
+  { tool: 'write_file', startMs: 220, durationMs: 60 },
+  { tool: 'shell', startMs: 300, durationMs: 100 },
+]);
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1800" height="900" viewBox="0 0 1800 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text { font-family: 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+      .title { font-size: 28px; font-weight: 700; fill: #f1f5f9; }
+      .label { font-size: 20px; fill: #f1f5f9; font-weight: 600; }
+      .sub { font-size: 16px; fill: #94a3b8; }
+      .code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 15px; fill: #86efac; }
+    </style>
+    <filter id="glow-cyan">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-purple">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ade80"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1800" height="900" fill="#060612"/>
+  <radialGradient id="bg1" cx="20%" cy="20%">
+    <stop offset="0%" stop-color="#a855f7" stop-opacity="0.06"/>
+    <stop offset="60%" stop-color="#060612" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bg2" cx="80%" cy="80%">
+    <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.04"/>
+    <stop offset="60%" stop-color="#060612" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="1800" height="900" fill="url(#bg1)"/>
+  <rect width="1800" height="900" fill="url(#bg2)"/>
+
+  <!-- Left panel title: 紧耦合 -->
+  <text x="420" y="60" class="title" text-anchor="middle" fill="#ef4444">❌ 紧耦合（lena-v1.1）</text>
+  <text x="420" y="88" class="sub" text-anchor="middle">N 个 Publisher × M 个 Subscriber = N×M 条连线</text>
+
+  <!-- Divider -->
+  <line x1="900" y1="40" x2="900" y2="860" stroke="#1e293b" stroke-width="2" stroke-dasharray="8,6"/>
+
+  <!-- Right panel title: MessageBus -->
+  <text x="1380" y="60" class="title" text-anchor="middle" fill="#4ade80">✅ MessageBus 解耦（lena-v1.2）</text>
+  <text x="1380" y="88" class="sub" text-anchor="middle">N + M，不是 N×M。任何一侧改动不影响另一侧</text>
+
+  <!-- ─── LEFT: Publishers ─── -->
+  <!-- Telegram -->
+  <rect x="60" y="180" width="180" height="64" rx="12" fill="rgba(34,197,94,0.1)" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="150" y="206" class="label" text-anchor="middle">Telegram</text>
+  <text x="150" y="228" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- Discord -->
+  <rect x="60" y="290" width="180" height="64" rx="12" fill="rgba(99,102,241,0.1)" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="150" y="316" class="label" text-anchor="middle">Discord</text>
+  <text x="150" y="338" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- WebSocket -->
+  <rect x="60" y="400" width="180" height="64" rx="12" fill="rgba(234,179,8,0.1)" stroke="#eab308" stroke-width="1.5"/>
+  <text x="150" y="426" class="label" text-anchor="middle">WebSocket</text>
+  <text x="150" y="448" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- HTTP -->
+  <rect x="60" y="510" width="180" height="64" rx="12" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="150" y="536" class="label" text-anchor="middle">HTTP</text>
+  <text x="150" y="558" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- LEFT: Subscribers -->
+  <!-- AgentLoop -->
+  <rect x="570" y="200" width="180" height="64" rx="12" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="660" y="226" class="label" text-anchor="middle" fill="#c084fc">AgentLoop</text>
+  <text x="660" y="248" class="sub" text-anchor="middle">处理消息</text>
+
+  <!-- Logger -->
+  <rect x="570" y="310" width="180" height="64" rx="12" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="660" y="336" class="label" text-anchor="middle" fill="#67e8f9">Logger</text>
+  <text x="660" y="358" class="sub" text-anchor="middle">记录所有消息</text>
+
+  <!-- Notification -->
+  <rect x="570" y="420" width="180" height="64" rx="12" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="660" y="446" class="label" text-anchor="middle" fill="#fde68a">Notification</text>
+  <text x="660" y="468" class="sub" text-anchor="middle">VIP 提醒</text>
+
+  <!-- LEFT: Arrows (N×M = 12 lines, showing chaos) -->
+  <!-- Telegram to AgentLoop -->
+  <line x1="240" y1="212" x2="570" y2="232" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.8"/>
+  <!-- Telegram to Logger -->
+  <line x1="240" y1="218" x2="570" y2="342" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.5"/>
+  <!-- Telegram to Notification -->
+  <line x1="240" y1="224" x2="570" y2="452" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.3"/>
+
+  <!-- Discord to AgentLoop -->
+  <line x1="240" y1="322" x2="570" y2="238" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.5"/>
+  <!-- Discord to Logger -->
+  <line x1="240" y1="328" x2="570" y2="342" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.8"/>
+  <!-- Discord to Notification -->
+  <line x1="240" y1="334" x2="570" y2="452" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.5"/>
+
+  <!-- WebSocket to AgentLoop -->
+  <line x1="240" y1="432" x2="570" y2="244" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.3"/>
+  <!-- WebSocket to Logger -->
+  <line x1="240" y1="432" x2="570" y2="348" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.5"/>
+  <!-- WebSocket to Notification -->
+  <line x1="240" y1="438" x2="570" y2="452" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.7"/>
+
+  <!-- HTTP to AgentLoop -->
+  <line x1="240" y1="542" x2="570" y2="250" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.3"/>
+  <!-- HTTP to Logger -->
+  <line x1="240" y1="542" x2="570" y2="354" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.4"/>
+  <!-- HTTP to Notification -->
+  <line x1="240" y1="548" x2="570" y2="458" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrow-red)" opacity="0.6"/>
+
+  <!-- N×M label -->
+  <rect x="340" y="620" width="200" height="50" rx="10" fill="rgba(239,68,68,0.15)" stroke="#ef4444" stroke-width="1"/>
+  <text x="440" y="641" class="label" text-anchor="middle" fill="#ef4444">N × M 条连线</text>
+  <text x="440" y="660" class="sub" text-anchor="middle">4 × 3 = 12 条耦合</text>
+
+  <!-- ─── RIGHT: Publishers ─── -->
+  <!-- Telegram R -->
+  <rect x="960" y="140" width="180" height="64" rx="12" fill="rgba(34,197,94,0.1)" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="1050" y="166" class="label" text-anchor="middle">Telegram</text>
+  <text x="1050" y="188" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- Discord R -->
+  <rect x="960" y="250" width="180" height="64" rx="12" fill="rgba(99,102,241,0.1)" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="1050" y="276" class="label" text-anchor="middle">Discord</text>
+  <text x="1050" y="298" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- WebSocket R -->
+  <rect x="960" y="360" width="180" height="64" rx="12" fill="rgba(234,179,8,0.1)" stroke="#eab308" stroke-width="1.5"/>
+  <text x="1050" y="386" class="label" text-anchor="middle">WebSocket</text>
+  <text x="1050" y="408" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- HTTP R -->
+  <rect x="960" y="470" width="180" height="64" rx="12" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="1050" y="496" class="label" text-anchor="middle">HTTP</text>
+  <text x="1050" y="518" class="sub" text-anchor="middle">Channel</text>
+
+  <!-- MessageBus CENTER -->
+  <rect x="1200" y="260" width="200" height="220" rx="20" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="2.5" filter="url(#glow-purple)"/>
+  <text x="1300" y="300" class="label" text-anchor="middle" fill="#c084fc" font-size="22px">Message</text>
+  <text x="1300" y="328" class="label" text-anchor="middle" fill="#c084fc" font-size="22px">Bus</text>
+  <text x="1300" y="368" class="sub" text-anchor="middle">topic → handlers</text>
+  <text x="1300" y="392" class="sub" text-anchor="middle">globalHandlers</text>
+  <text x="1300" y="422" class="code" text-anchor="middle">safeHandlerCall</text>
+  <text x="1300" y="452" class="sub" text-anchor="middle" fill="#64748b">134 行</text>
+
+  <!-- RIGHT: Subscribers -->
+  <!-- AgentLoop R -->
+  <rect x="1560" y="160" width="180" height="64" rx="12" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="1650" y="186" class="label" text-anchor="middle" fill="#c084fc">AgentLoop</text>
+  <text x="1650" y="208" class="sub" text-anchor="middle">处理消息</text>
+
+  <!-- Logger R -->
+  <rect x="1560" y="270" width="180" height="64" rx="12" fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="1650" y="296" class="label" text-anchor="middle" fill="#67e8f9">Logger</text>
+  <text x="1650" y="318" class="sub" text-anchor="middle">记录所有消息</text>
+
+  <!-- Notification R -->
+  <rect x="1560" y="380" width="180" height="64" rx="12" fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="1650" y="406" class="label" text-anchor="middle" fill="#fde68a">Notification</text>
+  <text x="1650" y="428" class="sub" text-anchor="middle">VIP 提醒</text>
+
+  <!-- RIGHT: Publisher → Bus arrows (cyan) -->
+  <line x1="1140" y1="172" x2="1200" y2="320" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)" opacity="0.8"/>
+  <line x1="1140" y1="282" x2="1200" y2="350" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)" opacity="0.8"/>
+  <line x1="1140" y1="392" x2="1200" y2="380" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)" opacity="0.8"/>
+  <line x1="1140" y1="502" x2="1200" y2="410" stroke="#22d3ee" stroke-width="2" marker-end="url(#arrow-cyan)" opacity="0.8"/>
+
+  <!-- RIGHT: Bus → Subscriber arrows (green) -->
+  <line x1="1400" y1="320" x2="1560" y2="192" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow-green)" opacity="0.8"/>
+  <line x1="1400" y1="360" x2="1560" y2="302" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow-green)" opacity="0.8"/>
+  <line x1="1400" y1="390" x2="1560" y2="412" stroke="#4ade80" stroke-width="2" marker-end="url(#arrow-green)" opacity="0.8"/>
+
+  <!-- N+M label -->
+  <rect x="1120" y="620" width="200" height="50" rx="10" fill="rgba(74,222,128,0.15)" stroke="#4ade80" stroke-width="1"/>
+  <text x="1220" y="641" class="label" text-anchor="middle" fill="#4ade80">N + M 条连线</text>
+  <text x="1220" y="660" class="sub" text-anchor="middle">4 + 3 = 7 条，清晰解耦</text>
+
+  <!-- Hot-swap label -->
+  <rect x="1160" y="710" width="280" height="80" rx="12" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="1300" y="740" class="sub" text-anchor="middle" fill="#c084fc">热插拔</text>
+  <text x="1300" y="762" class="code" text-anchor="middle">bus.subscribe("new", h)</text>
+  <text x="1300" y="782" class="sub" text-anchor="middle" fill="#64748b">运行中动态接入，不重启</text>
+</svg>

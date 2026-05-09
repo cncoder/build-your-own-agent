@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 14 Demo · Lena 长任务调度面板</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #070B14;
+    --surface: #0D1420;
+    --surface2: #111926;
+    --border: rgba(0,229,255,0.1);
+    --cyan: #00E5FF;
+    --orange: #FF6B2B;
+    --green: #39E07A;
+    --purple: #B78AFF;
+    --yellow: #FFC850;
+    --text: #D0DCF0;
+    --muted: #4A6080;
+    --muted2: #2A3A50;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 24px;
+    background-image: linear-gradient(rgba(0,229,255,0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,229,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .header-left h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #F0F4FF;
+  }
+
+  .header-left .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .badge-cyan { color: var(--cyan); border-color: rgba(0,229,255,0.3); background: rgba(0,229,255,0.06); }
+  .badge-green { color: var(--green); border-color: rgba(57,224,122,0.3); background: rgba(57,224,122,0.06); }
+  .badge-orange { color: var(--orange); border-color: rgba(255,107,43,0.3); background: rgba(255,107,43,0.06); }
+  .badge-running { color: var(--yellow); border-color: rgba(255,200,80,0.3); background: rgba(255,200,80,0.06); animation: pulse 2s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+  /* ─── Cron 输入区 ─── */
+  .cron-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .cron-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .cron-input-group label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .cron-input {
+    background: var(--bg);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    padding: 10px 16px;
+    width: 200px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .cron-input:focus { border-color: rgba(0,229,255,0.4); }
+
+  .next-run-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .next-run-display span {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* ─── 操作按钮 ─── */
+  .btn {
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1px solid;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: rgba(0,229,255,0.1);
+    border-color: rgba(0,229,255,0.3);
+    color: var(--cyan);
+  }
+  .btn-primary:hover { background: rgba(0,229,255,0.18); }
+
+  .btn-danger {
+    background: rgba(255,107,43,0.08);
+    border-color: rgba(255,107,43,0.3);
+    color: var(--orange);
+  }
+  .btn-danger:hover { background: rgba(255,107,43,0.16); }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: rgba(255,255,255,0.08);
+    color: var(--muted);
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
+
+  /* ─── 任务队列 ─── */
+  .section-title {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.15em;
+    color: var(--muted2);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .task-item {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .task-item:hover { border-color: rgba(0,229,255,0.15); background: var(--surface2); }
+  .task-item.selected { border-color: rgba(0,229,255,0.3); background: rgba(0,229,255,0.04); }
+
+  .task-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-completed { background: var(--green); box-shadow: 0 0 6px rgba(57,224,122,0.5); }
+  .dot-running { background: var(--yellow); box-shadow: 0 0 6px rgba(255,200,80,0.5); animation: pulse 1.5s infinite; }
+  .dot-failed { background: var(--orange); box-shadow: 0 0 6px rgba(255,107,43,0.5); }
+  .dot-pending { background: var(--muted2); }
+  .dot-checkpoint { background: var(--cyan); box-shadow: 0 0 6px rgba(0,229,255,0.4); }
+
+  .task-info { flex: 1; }
+
+  .task-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .task-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .task-progress-bar {
+    width: 120px;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 999px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .task-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s ease;
+  }
+
+  /* ─── 详情面板 ─── */
+  .detail-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+  }
+
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .detail-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .detail-stat {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .detail-stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .detail-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─── Steps 列表 ─── */
+  .steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .step-item.done { background: rgba(57,224,122,0.04); border-color: rgba(57,224,122,0.12); }
+  .step-item.running { background: rgba(255,200,80,0.04); border-color: rgba(255,200,80,0.12); }
+  .step-item.pending { background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.04); }
+  .step-item.failed { background: rgba(255,107,43,0.04); border-color: rgba(255,107,43,0.12); }
+
+  .step-icon { font-size: 16px; flex-shrink: 0; width: 24px; text-align: center; }
+  .step-name { font-family: 'JetBrains Mono', monospace; font-size: 14px; flex: 1; }
+  .step-time { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ─── 崩溃恢复演示按钮 ─── */
+  .crash-demo-panel {
+    background: rgba(255,107,43,0.04);
+    border: 1px solid rgba(255,107,43,0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .crash-demo-info { flex: 1; }
+  .crash-demo-info h3 { font-size: 15px; font-weight: 600; color: var(--orange); margin-bottom: 4px; }
+  .crash-demo-info p { font-size: 13px; color: var(--muted); }
+
+  /* ─── Checkpoint 状态 ─── */
+  .checkpoint-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .checkpoint-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 6px rgba(0,229,255,0.6);
+  }
+
+  /* ─── Log 输出 ─── */
+  .log-panel {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #4A8060;
+    max-height: 160px;
+    overflow-y: auto;
+    line-height: 1.8;
+    margin-top: 16px;
+  }
+
+  .log-info { color: #4A8060; }
+  .log-success { color: var(--green); }
+  .log-warn { color: var(--yellow); }
+  .log-error { color: var(--orange); }
+  .log-resume { color: var(--purple); }
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<div class="header">
+  <div class="header-left">
+    <h1>lena-v1.4 · 长任务调度面板</h1>
+    <div class="subtitle">Ch 14 · Cron 与 Long-running Task · Demo</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="badge badge-cyan">croniter</span>
+    <span class="badge badge-green">SQLite checkpoint</span>
+    <span id="scheduler-status" class="badge badge-running">调度器运行中</span>
+  </div>
+</div>
+
+<!-- ─── Cron 配置 ─── -->
+<div class="cron-panel">
+  <div class="cron-input-group">
+    <label>Cron 表达式</label>
+    <input class="cron-input" id="cronExpr" value="0 * * * *" maxlength="30">
+  </div>
+  <div class="next-run-display" id="nextRunDisplay">
+    下次触发：<span id="nextRunTime">计算中...</span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="simulateNewTask()">+ 立即触发</button>
+    <button class="btn btn-ghost" onclick="setCron('0 * * * *')">每小时</button>
+    <button class="btn btn-ghost" onclick="setCron('0 0 * * *')">凌晨</button>
+    <button class="btn btn-ghost" onclick="setCron('30 4 * * *')">凌晨4:30</button>
+  </div>
+</div>
+
+<!-- ─── 任务队列 ─── -->
+<div class="section-title">任务队列</div>
+<div class="task-list" id="taskList"></div>
+
+<!-- ─── 详情面板 ─── -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <div class="detail-title" id="detailTaskId">选择一个任务查看详情</div>
+    <div class="checkpoint-status">
+      <div class="checkpoint-dot" id="checkpointDot" style="background:var(--muted2);box-shadow:none;"></div>
+      <span id="checkpointLabel" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">checkpoint: —</span>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-stat">
+      <div class="detail-stat-label">已抓取文章</div>
+      <div class="detail-stat-value" id="statArticles" style="color:var(--cyan);">—</div>
+    </div>
+    <div class="detail-stat">
+      <div class="detail-stat-label">已处理步骤</div>
+      <div class="detail-stat-value" id="statSteps" style="color:var(--green);">—</div>
+    </div>
+    <div class="detail-stat">
+      <div class="detail-stat-label">进度</div>
+      <div class="detail-stat-value" id="statProgress" style="color:var(--purple);">—</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:0;">步骤详情</div>
+  <div class="steps-list" id="stepsList">
+    <div style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 0;">
+      请点击左侧任务查看步骤详情
+    </div>
+  </div>
+
+  <div class="log-panel" id="logPanel">
+    <div class="log-info">[demo] 面板就绪，等待任务...</div>
+  </div>
+</div>
+
+<!-- ─── 崩溃恢复演示 ─── -->
+<div class="crash-demo-panel">
+  <div class="crash-demo-info">
+    <h3>模拟崩溃恢复演示</h3>
+    <p>选中一个运行中的任务，点击「模拟 kill -9」使其崩溃，然后点击「从 checkpoint 恢复」</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-danger" onclick="simulateCrash()">💥 模拟 kill -9</button>
+    <button class="btn btn-primary" onclick="simulateResume()">↺ 从 checkpoint 恢复</button>
+  </div>
+</div>
+
+<script>
+// ─── 状态数据 ───
+const SOURCES = [
+  { id: 'hn',     name: 'Hacker News',    icon: '📰' },
+  { id: 'github', name: 'GitHub Trending', icon: '⭐' },
+  { id: 'arxiv',  name: 'arXiv ML',       icon: '📄' },
+];
+
+let tasks = [];
+let selectedTaskId = null;
+let ticker = null;
+
+// ─── 初始化假数据 ───
+function initMockTasks() {
+  const now = new Date();
+  tasks = [
+    {
+      task_id: 'news-2026-05-05-22',
+      status: 'completed',
+      progress: 100,
+      total_steps: 3,
+      created_at: new Date(now - 3600000 * 2).toISOString(),
+      updated_at: new Date(now - 3600000 * 2 + 180000).toISOString(),
+      steps: [
+        { id: 'fetch_hn',     status: 'done',    count: 12, time: '00:01:24' },
+        { id: 'fetch_github', status: 'done',    count: 8,  time: '00:00:58' },
+        { id: 'fetch_arxiv',  status: 'done',    count: 5,  time: '00:01:12' },
+      ]
+    },
+    {
+      task_id: 'news-2026-05-05-23',
+      status: 'running',
+      progress: 33,
+      total_steps: 3,
+      created_at: new Date(now - 120000).toISOString(),
+      updated_at: new Date(now - 30000).toISOString(),
+      steps: [
+        { id: 'fetch_hn',     status: 'done',    count: 9,  time: '00:01:08' },
+        { id: 'fetch_github', status: 'running', count: 0,  time: '—' },
+        { id: 'fetch_arxiv',  status: 'pending', count: 0,  time: '—' },
+      ]
+    },
+  ];
+  renderTaskList();
+  selectTask(tasks[1].task_id);
+}
+
+// ─── 渲染任务列表 ───
+function renderTaskList() {
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  [...tasks].reverse().forEach(t => {
+    const el = document.createElement('div');
+    el.className = `task-item${selectedTaskId === t.task_id ? ' selected' : ''}`;
+    el.onclick = () => selectTask(t.task_id);
+
+    const dotClass = {
+      completed: 'dot-completed',
+      running: 'dot-running',
+      failed: 'dot-failed',
+      pending: 'dot-pending',
+      checkpoint_saved: 'dot-checkpoint',
+    }[t.status] || 'dot-pending';
+
+    const statusLabel = {
+      completed: '已完成',
+      running: '执行中',
+      failed: '失败',
+      pending: '等待',
+      checkpoint_saved: 'Checkpoint 已保存',
+    }[t.status] || t.status;
+
+    const progressColor = t.status === 'completed' ? 'var(--green)' : t.status === 'running' ? 'var(--yellow)' : 'var(--orange)';
+
+    el.innerHTML = `
+      <div class="task-dot ${dotClass}"></div>
+      <div class="task-info">
+        <div class="task-id">${t.task_id}</div>
+        <div class="task-meta">${statusLabel} · ${new Date(t.updated_at).toLocaleTimeString('zh-CN')}</div>
+      </div>
+      <div class="task-progress-bar">
+        <div class="task-progress-fill" style="width:${t.progress}%;background:${progressColor};"></div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:${progressColor};width:48px;text-align:right;">${t.progress}%</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ─── 选择任务 ───
+function selectTask(taskId) {
+  selectedTaskId = taskId;
+  const t = tasks.find(x => x.task_id === taskId);
+  if (!t) return;
+
+  renderTaskList();
+
+  document.getElementById('detailTaskId').textContent = t.task_id;
+
+  const articles = t.steps.reduce((s, st) => s + (st.count || 0), 0);
+  const done = t.steps.filter(st => st.status === 'done').length;
+  document.getElementById('statArticles').textContent = articles;
+  document.getElementById('statSteps').textContent = `${done} / ${t.total_steps}`;
+  document.getElementById('statProgress').textContent = `${t.progress}%`;
+
+  const dot = document.getElementById('checkpointDot');
+  const label = document.getElementById('checkpointLabel');
+  if (t.status === 'completed' || t.status === 'checkpoint_saved' || (t.status === 'running' && done > 0)) {
+    dot.style.background = 'var(--cyan)';
+    dot.style.boxShadow = '0 0 6px rgba(0,229,255,0.6)';
+    label.textContent = `checkpoint: step ${done}/${t.total_steps} 已保存`;
+    label.style.color = 'var(--cyan)';
+  } else {
+    dot.style.background = 'var(--muted2)';
+    dot.style.boxShadow = 'none';
+    label.textContent = 'checkpoint: —';
+    label.style.color = 'var(--muted)';
+  }
+
+  // 渲染步骤
+  const stepsList = document.getElementById('stepsList');
+  const sourceMap = Object.fromEntries(SOURCES.map(s => [s.id, s]));
+  stepsList.innerHTML = '';
+  t.steps.forEach(st => {
+    const src = sourceMap[st.id.replace('fetch_', '')] || {};
+    const el = document.createElement('div');
+    el.className = `step-item ${st.status}`;
+    const icon = { done: '✓', running: '⟳', pending: '○', failed: '✗' }[st.status] || '○';
+    const iconColor = { done: 'var(--green)', running: 'var(--yellow)', pending: 'var(--muted2)', failed: 'var(--orange)' }[st.status] || 'var(--muted)';
+    el.innerHTML = `
+      <div class="step-icon" style="color:${iconColor};">${icon}</div>
+      <div class="step-name" style="color:${st.status==='pending'?'var(--muted2)':'var(--text)'};">
+        ${st.id}${src.name ? ` <span style="color:var(--muted);font-size:12px;">(${src.name})</span>` : ''}
+      </div>
+      ${st.count > 0 ? `<div class="step-time" style="color:var(--cyan);">${st.count} 篇</div>` : ''}
+      <div class="step-time">${st.time}</div>
+    `;
+    stepsList.appendChild(el);
+  });
+}
+
+// ─── 立即触发新任务 ───
+function simulateNewTask() {
+  const now = new Date();
+  const taskId = `news-${now.toISOString().slice(0,13).replace('T','-')}`;
+  const newTask = {
+    task_id: taskId,
+    status: 'running',
+    progress: 0,
+    total_steps: 3,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+    steps: [
+      { id: 'fetch_hn',     status: 'running', count: 0, time: '—' },
+      { id: 'fetch_github', status: 'pending', count: 0, time: '—' },
+      { id: 'fetch_arxiv',  status: 'pending', count: 0, time: '—' },
+    ]
+  };
+  tasks.push(newTask);
+  renderTaskList();
+  selectTask(taskId);
+  addLog(`[trigger] 任务 ${taskId} 已触发`, 'info');
+
+  // 模拟进度推进
+  let step = 0;
+  const counts = [Math.floor(Math.random()*8)+5, Math.floor(Math.random()*6)+4, Math.floor(Math.random()*5)+3];
+  const sourceNames = ['Hacker News', 'GitHub Trending', 'arXiv ML'];
+  const interval = setInterval(() => {
+    const t = tasks.find(x => x.task_id === taskId);
+    if (!t || step >= 3) { clearInterval(interval); return; }
+    t.steps[step].status = 'done';
+    t.steps[step].count = counts[step];
+    t.steps[step].time = `00:0${step+1}:${(Math.floor(Math.random()*59)+10)}`;
+    addLog(`[checkpoint] ${sourceNames[step]} 完成，${counts[step]} 篇文章`, 'success');
+    step++;
+    if (step < 3) {
+      t.steps[step].status = 'running';
+      t.status = 'checkpoint_saved';
+    } else {
+      t.status = 'completed';
+      addLog(`[completed] 任务 ${taskId} 全部完成`, 'success');
+    }
+    t.progress = Math.round(step / 3 * 100);
+    t.updated_at = new Date().toISOString();
+    renderTaskList();
+    if (selectedTaskId === taskId) selectTask(taskId);
+  }, 1500);
+}
+
+// ─── 模拟崩溃 ───
+function simulateCrash() {
+  const t = tasks.find(x => x.task_id === selectedTaskId);
+  if (!t || t.status === 'completed') {
+    addLog('[demo] 请先选择一个运行中的任务', 'warn');
+    return;
+  }
+  const wasStep = t.steps.filter(s => s.status === 'done').length;
+  t.steps.forEach((s, i) => { if (s.status === 'running') s.status = 'failed'; });
+  t.status = 'failed';
+  t.updated_at = new Date().toISOString();
+  renderTaskList();
+  selectTask(t.task_id);
+  addLog(`[💥 crash] kill -9 信号，任务 ${t.task_id} 终止`, 'error');
+  addLog(`[checkpoint] 已保存步骤 ${wasStep}/${t.total_steps}，数据不丢失`, 'resume');
+}
+
+// ─── 模拟恢复 ───
+function simulateResume() {
+  const t = tasks.find(x => x.task_id === selectedTaskId);
+  if (!t || t.status !== 'failed') {
+    addLog('[demo] 请先点击「模拟 kill -9」触发崩溃', 'warn');
+    return;
+  }
+  const doneSteps = t.steps.filter(s => s.status === 'done');
+  addLog(`[↺ resume] 从 checkpoint 恢复，跳过已完成步骤 ${doneSteps.map(s=>s.id).join(', ')}`, 'resume');
+
+  let step = doneSteps.length;
+  t.status = 'running';
+  if (step < t.steps.length) t.steps[step].status = 'running';
+  t.updated_at = new Date().toISOString();
+  renderTaskList();
+  if (selectedTaskId === t.task_id) selectTask(t.task_id);
+
+  const sourceNames = ['Hacker News', 'GitHub Trending', 'arXiv ML'];
+  const interval = setInterval(() => {
+    const tRef = tasks.find(x => x.task_id === selectedTaskId);
+    if (!tRef || step >= 3) { clearInterval(interval); return; }
+    tRef.steps[step].status = 'done';
+    tRef.steps[step].count = Math.floor(Math.random()*8)+4;
+    tRef.steps[step].time = `00:0${step+1}:${Math.floor(Math.random()*59)+10}`;
+    addLog(`[checkpoint] ${sourceNames[step]} 完成（续传后）`, 'success');
+    step++;
+    if (step < 3) {
+      tRef.steps[step].status = 'running';
+      tRef.status = 'checkpoint_saved';
+    } else {
+      tRef.status = 'completed';
+      addLog('[completed] 崩溃恢复成功！任务完成', 'success');
+    }
+    tRef.progress = Math.round(step / 3 * 100);
+    tRef.updated_at = new Date().toISOString();
+    renderTaskList();
+    if (selectedTaskId === tRef.task_id) selectTask(tRef.task_id);
+  }, 1200);
+}
+
+// ─── cron 工具 ───
+function setCron(expr) {
+  document.getElementById('cronExpr').value = expr;
+  updateNextRun();
+}
+
+function updateNextRun() {
+  const expr = document.getElementById('cronExpr').value.trim();
+  const parts = expr.split(/\s+/);
+  if (parts.length !== 5) {
+    document.getElementById('nextRunTime').textContent = '表达式无效';
+    return;
+  }
+  // 简单计算下次整点（仅 demo 用）
+  const now = new Date();
+  let next = new Date(now);
+  if (expr === '0 * * * *') {
+    next.setMinutes(0, 0, 0);
+    if (next <= now) next.setHours(next.getHours() + 1);
+  } else if (expr === '0 0 * * *') {
+    next.setHours(0, 0, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+  } else if (expr === '30 4 * * *') {
+    next.setHours(4, 30, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+  } else {
+    next.setMinutes(next.getMinutes() + 1, 0, 0);
+  }
+  document.getElementById('nextRunTime').textContent = next.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ─── Log ───
+function addLog(msg, type = 'info') {
+  const log = document.getElementById('logPanel');
+  const line = document.createElement('div');
+  line.className = `log-${type}`;
+  const time = new Date().toLocaleTimeString('zh-CN');
+  line.textContent = `[${time}] ${msg}`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ─── 初始化 ───
+initMockTasks();
+updateNextRun();
+document.getElementById('cronExpr').addEventListener('input', updateNextRun);
+// 定时刷新下次触发时间
+setInterval(updateNextRun, 10000);
+</script>
+
+</body>
+</html>

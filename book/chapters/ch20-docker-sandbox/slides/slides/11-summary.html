@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.bg-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(0,200,80,0.05) 0%, transparent 70%); bottom: -100px; right: -100px; }
+
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 52px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(0,204,85,0.7); margin-top: 8px; }
+
+.content { position: absolute; top: 240px; left: 80px; right: 80px; bottom: 80px; display: flex; gap: 64px; }
+
+.summary-list { flex: 1.2; display: flex; flex-direction: column; gap: 16px; }
+
+.summary-item { display: flex; gap: 20px; align-items: flex-start; padding: 16px 20px; background: rgba(0,204,85,0.04); border: 1px solid rgba(0,204,85,0.12); border-radius: 4px; }
+.s-key { font-size: 14px; font-weight: 700; color: #00cc55; min-width: 180px; flex-shrink: 0; line-height: 1.4; }
+.s-val { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+.s-val strong { color: #fff; }
+
+.right-col { flex: 1; display: flex; flex-direction: column; gap: 24px; justify-content: center; }
+
+.lena-upgrade {
+  background: #0f1418; border: 1px solid rgba(0,204,85,0.25);
+  border-radius: 6px; padding: 24px;
+}
+.lu-title { font-size: 12px; letter-spacing: 0.2em; color: rgba(0,204,85,0.6); margin-bottom: 12px; text-transform: uppercase; }
+.version-chain { display: flex; flex-direction: column; gap: 6px; }
+.vc-item { display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.vc-ver { color: rgba(255,255,255,0.3); width: 48px; flex-shrink: 0; }
+.vc-desc { color: rgba(255,255,255,0.5); }
+.vc-item.current .vc-ver { color: #00cc55; font-weight: 700; }
+.vc-item.current .vc-desc { color: #fff; }
+.vc-line { width: 1px; height: 8px; background: rgba(255,255,255,0.08); margin-left: 20px; }
+
+.production-rule {
+  background: rgba(255,200,0,0.05); border: 1px solid rgba(255,200,0,0.2);
+  padding: 20px; border-radius: 4px;
+}
+.pr-title { font-size: 12px; letter-spacing: 0.2em; color: #ffcc44; margin-bottom: 8px; text-transform: uppercase; }
+.pr-text { font-size: 15px; color: rgba(255,255,255,0.7); line-height: 1.7; }
+.pr-text strong { color: #fff; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent 0%, #00cc55 40%, #00ff88 60%, transparent 100%); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="slide-label">本章小结</div>
+<div class="page-num">11 / 11</div>
+
+<div class="title-area">
+  <h2>生产级安全底线</h2>
+  <div class="sub">lena-v1.6 — Docker sandbox + exec-approvals session 记忆</div>
+</div>
+
+<div class="content">
+  <div class="summary-list">
+    <div class="summary-item">
+      <div class="s-key">Docker sandbox</div>
+      <div class="s-val">把代码扔进容器，<strong>出不来就安全了</strong></div>
+    </div>
+    <div class="summary-item">
+      <div class="s-key">阻挂 docker socket</div>
+      <div class="s-val">容器不能访问 Docker daemon<br>否则能<strong>逃逸到宿主机</strong>（docker.ts:30-32）</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-key">seccomp + AppArmor</div>
+      <div class="s-val">内核/MAC 级约束，正则过不了的<br><strong>在这里挡住</strong>（validate-sandbox-security.ts:311-322）</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-key">exec-approvals</div>
+      <div class="s-val">批准一次，session 内自动通过<br><strong>session 结束重置</strong>（infra/exec-approvals.ts）</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-key">正则 vs Docker</div>
+      <div class="s-val">本地开发用正则<br><strong>生产多租户必须 Docker</strong></div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="lena-upgrade">
+      <div class="lu-title">Lena 版本递进</div>
+      <div class="version-chain">
+        <div class="vc-item"><div class="vc-ver">v1.0</div><div class="vc-desc">ShellSandbox + HITL</div></div>
+        <div class="vc-line"></div>
+        <div class="vc-item"><div class="vc-ver">v1.1~1.5</div><div class="vc-desc">工具 / 流式 / 记忆 / MCP</div></div>
+        <div class="vc-line"></div>
+        <div class="vc-item current"><div class="vc-ver">v1.6 ★</div><div class="vc-desc">Docker sandbox + exec-approvals</div></div>
+      </div>
+    </div>
+
+    <div class="production-rule">
+      <div class="pr-title">铁律</div>
+      <div class="pr-text">
+        任何向外部用户开放<strong>「执行代码」</strong>能力的 agent，<br>
+        必须用<strong>容器隔离</strong>，不能只靠黑名单过滤。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

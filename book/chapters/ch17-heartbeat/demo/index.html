@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 17 · Heartbeat 心跳监控</title>
+<style>
+/* ── 深空霓虹 · neon-green accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #34d399;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --cyan: #38bdf8;
+  --violet: #a78bfa;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--sans);
+  min-height: 100vh; padding: 36px 24px 60px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 10% -10%, rgba(52,211,153,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 90%, rgba(56,189,248,0.04) 0%, transparent 50%);
+}
+.wrap { max-width: 1000px; margin: 0 auto; }
+
+header { text-align: center; margin-bottom: 28px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 13px; color: var(--dim); max-width: 540px; margin: 0 auto; line-height: 1.65; }
+
+/* 顶部状态栏 */
+.status-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+@media (max-width: 560px) { .status-bar { grid-template-columns: repeat(2,1fr); } }
+.stat-card {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 14px 16px;
+}
+.stat-card .label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+.stat-card .value { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat-card.alert .value { color: var(--red); animation: pulse-red 1s ease infinite; }
+@keyframes pulse-red { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* ECG 画布 */
+.ecg-panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(52,211,153,0.15);
+  border-radius: 14px; overflow: hidden; margin-bottom: 18px; position: relative;
+}
+.ecg-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.ecg-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; }
+.ecg-bpm { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+.ecg-canvas-wrap { padding: 8px 0; background: rgba(0,0,0,0.2); }
+canvas#ecg { width: 100%; display: block; }
+
+/* 告警横幅 */
+.alert-banner {
+  display: none; position: absolute; top: 0; left: 0; right: 0;
+  background: rgba(248,113,113,0.12); border-bottom: 1px solid rgba(248,113,113,0.3);
+  padding: 8px 16px; font-family: var(--mono); font-size: 12px; color: var(--red);
+  animation: flash 0.5s step-end infinite; z-index: 10;
+}
+.alert-banner.show { display: flex; align-items: center; gap: 10px; }
+@keyframes flash { 50% { opacity: 0.4; } }
+
+/* 主布局 */
+.grid2 { display: grid; grid-template-columns: 1fr 340px; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 660px) { .grid2 { grid-template-columns: 1fr; } }
+
+.panel { background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; overflow: hidden; }
+.panel-header { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.panel-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; }
+
+/* 任务列表 */
+.task-list { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.task-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10,18,40,0.5); transition: border-color 0.3s;
+}
+.task-item.running { border-color: rgba(52,211,153,0.3); }
+.task-item.failed  { border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.04); }
+.task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.task-dot.idle    { background: rgba(255,255,255,0.2); }
+.task-dot.running { background: var(--accent); animation: pulse-g 1s ease infinite; }
+.task-dot.done    { background: var(--accent); }
+.task-dot.failed  { background: var(--red); }
+@keyframes pulse-g { 0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.5);} 50%{box-shadow:0 0 0 5px rgba(52,211,153,0);} }
+.task-name { font-size: 13px; color: var(--dim); flex: 1; }
+.task-item.running .task-name { color: var(--text); }
+.task-status { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.task-status.running { color: var(--accent); }
+.task-status.failed  { color: var(--red); }
+
+/* 日志区 */
+.log-area { padding: 10px 14px; height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.log-area::-webkit-scrollbar { width: 4px; }
+.log-area::-webkit-scrollbar-thumb { background: rgba(52,211,153,0.2); border-radius: 2px; }
+.log-entry {
+  font-family: var(--mono); font-size: 11px; line-height: 1.5;
+  padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+  animation: fadein 0.3s ease;
+}
+@keyframes fadein { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+.log-entry .ts { color: var(--muted); margin-right: 8px; }
+.log-entry.info  .msg { color: rgba(255,255,255,0.65); }
+.log-entry.ok    .msg { color: var(--accent); }
+.log-entry.warn  .msg { color: var(--amber); }
+.log-entry.error .msg { color: var(--red); }
+
+/* 控制栏 */
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.btn {
+  padding: 9px 20px; border-radius: 9px; font-size: 14px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s; border: 1px solid;
+}
+.btn-green { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.4); color: var(--accent); font-weight: 600; }
+.btn-green:hover { background: rgba(52,211,153,0.22); }
+.btn-red { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.35); color: var(--red); }
+.btn-red:hover { background: rgba(248,113,113,0.2); }
+.btn-ghost { background: var(--surface); border-color: var(--border); color: var(--dim); }
+.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+/* 教学提示 */
+.insight {
+  background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 10px; padding: 12px 16px; font-size: 13px; color: rgba(253,230,138,0.85); line-height: 1.65;
+}
+.insight .label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+
+footer { text-align: center; margin-top: 40px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Ch 17 · Heartbeat 机制</div>
+  <h1>Agent 的心跳：Always-On 运行时</h1>
+  <p>通用 agent 不等待用户——它每隔固定周期「心跳」一次，检查待处理任务，触发定时工作。心跳漏跳则触发告警。</p>
+</header>
+
+<div class="status-bar">
+  <div class="stat-card" id="sc-uptime"><div class="label">运行时长</div><div class="value" id="sv-uptime">00:00</div></div>
+  <div class="stat-card"><div class="label">心跳次数</div><div class="value" id="sv-beat">0</div></div>
+  <div class="stat-card"><div class="label">活跃任务</div><div class="value" id="sv-tasks">0</div></div>
+  <div class="stat-card" id="sc-miss"><div class="label">漏跳次数</div><div class="value" id="sv-miss">0</div></div>
+</div>
+
+<div class="ecg-panel">
+  <div class="alert-banner" id="alert-banner">⚠ 心跳漏跳告警 — Agent 可能已挂起，监控系统已记录</div>
+  <div class="ecg-header">
+    <span class="ecg-title">ECG 心跳波形（实时滚动）</span>
+    <span class="ecg-bpm" id="ecg-bpm">— BPM</span>
+  </div>
+  <div class="ecg-canvas-wrap">
+    <canvas id="ecg" height="100"></canvas>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-green" onclick="toggleRun()" id="btn-run" tabindex="0">▶ 启动 Agent</button>
+  <button class="btn btn-red" onclick="triggerMiss()" tabindex="0">模拟漏跳</button>
+  <button class="btn btn-ghost" onclick="resetAll()" tabindex="0">重置</button>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">心跳任务队列</span></div>
+    <div class="task-list" id="task-list"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">运行日志</span></div>
+    <div class="log-area" id="log-area"></div>
+  </div>
+</div>
+
+<div class="insight">
+  <div class="label">读者学到什么</div>
+  Heartbeat 让 agent 从「被动响应」变为「主动巡检」。实现只需一个 while True + asyncio.sleep(interval)——agent 每隔 N 秒唤醒，检查任务队列、触发 cron。漏跳监控通过外部看门狗实现：若 N+buffer 秒内未收到心跳 ping，则告警或自动重启。
+</div>
+
+<footer>《从零构建你的 AI Agent》第 17 章 · Heartbeat 机制 · 交互式 Demo</footer>
+</div>
+
+<script>
+const TASK_DEFS = [
+  { name: '邮件摘要', interval: 4 },
+  { name: '价格监控', interval: 6 },
+  { name: '新闻聚合', interval: 8 },
+  { name: '系统健康检查', interval: 3 },
+  { name: 'Discord 消息同步', interval: 5 },
+];
+
+let running = false;
+let hbTimer = null;
+let uptTimer = null;
+let startTime = null;
+let beatCount = 0;
+let missCount = 0;
+let taskCounters = new Array(TASK_DEFS.length).fill(0);
+let taskRunning = new Array(TASK_DEFS.length).fill(false);
+let missMode = false;
+let ecgAnimId = null;
+let ecgData = [];
+let ecgStep = 0;
+
+// 初始化 ECG 画布
+const ecgCanvas = document.getElementById('ecg');
+const ecgCtx = ecgCanvas.getContext('2d');
+
+function initECG() {
+  const W = ecgCanvas.parentElement.offsetWidth || 800;
+  ecgCanvas.width = W;
+  ecgCanvas.height = 100;
+  ecgData = new Array(W).fill(50);
+}
+
+function drawECG() {
+  const W = ecgCanvas.width, H = ecgCanvas.height;
+  ecgCtx.clearRect(0, 0, W, H);
+  ecgCtx.fillStyle = 'rgba(0,0,0,0.25)';
+  ecgCtx.fillRect(0, 0, W, H);
+  // 网格
+  ecgCtx.strokeStyle = 'rgba(52,211,153,0.06)';
+  ecgCtx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ecgCtx.beginPath(); ecgCtx.moveTo(x,0); ecgCtx.lineTo(x,H); ecgCtx.stroke(); }
+  for (let y = 0; y < H; y += 20) { ecgCtx.beginPath(); ecgCtx.moveTo(0,y); ecgCtx.lineTo(W,y); ecgCtx.stroke(); }
+  // 基线
+  ecgCtx.strokeStyle = 'rgba(52,211,153,0.12)';
+  ecgCtx.beginPath(); ecgCtx.moveTo(0, H/2); ecgCtx.lineTo(W, H/2); ecgCtx.stroke();
+  // 波形
+  const isAlert = missMode;
+  ecgCtx.strokeStyle = isAlert ? 'rgba(248,113,113,0.9)' : 'rgba(52,211,153,0.9)';
+  ecgCtx.lineWidth = 2;
+  ecgCtx.shadowColor = isAlert ? 'rgba(248,113,113,0.5)' : 'rgba(52,211,153,0.5)';
+  ecgCtx.shadowBlur = 6;
+  ecgCtx.beginPath();
+  ecgData.forEach((v, i) => i === 0 ? ecgCtx.moveTo(i, v) : ecgCtx.lineTo(i, v));
+  ecgCtx.stroke();
+  ecgCtx.shadowBlur = 0;
+  // 扫描头
+  const lx = ecgData.length - 1;
+  ecgCtx.strokeStyle = isAlert ? 'rgba(248,113,113,0.3)' : 'rgba(52,211,153,0.3)';
+  ecgCtx.lineWidth = 1;
+  ecgCtx.beginPath(); ecgCtx.moveTo(lx, 0); ecgCtx.lineTo(lx, H); ecgCtx.stroke();
+}
+
+function ecgTick() {
+  const H = ecgCanvas.height;
+  const baseline = H / 2;
+  const PERIOD = 80;
+  const pos = ecgStep % PERIOD;
+  ecgStep++;
+  let y;
+  if (missMode || !running) {
+    y = baseline; // 漏跳拉平
+  } else {
+    // PQRST 波形
+    if (pos < 5) y = baseline - 2;
+    else if (pos < 8) y = baseline - 8;
+    else if (pos < 12) y = baseline + 3;
+    else if (pos < 14) y = baseline - 40;
+    else if (pos < 17) y = baseline + 5;
+    else if (pos < 22) y = baseline;
+    else if (pos < 28) y = baseline - 10;
+    else if (pos < 34) y = baseline;
+    else y = baseline;
+  }
+  ecgData.push(y);
+  if (ecgData.length > ecgCanvas.width) ecgData.shift();
+  drawECG();
+  ecgAnimId = requestAnimationFrame(ecgTick);
+}
+
+function buildTaskList() {
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+  TASK_DEFS.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'task-item';
+    item.id = `task-${i}`;
+    item.innerHTML = `<div class="task-dot idle" id="tdot-${i}"></div>
+      <div class="task-name">${t.name}</div>
+      <div class="task-status" id="tstatus-${i}">每 ${t.interval} 次心跳</div>`;
+    list.appendChild(item);
+  });
+}
+
+function heartbeat() {
+  if (!running) return;
+  beatCount++;
+  document.getElementById('sv-beat').textContent = beatCount;
+  document.getElementById('ecg-bpm').textContent = '30 BPM';
+
+  let activeTasks = 0;
+  TASK_DEFS.forEach((t, i) => {
+    taskCounters[i]++;
+    if (taskCounters[i] >= t.interval && !taskRunning[i]) {
+      taskCounters[i] = 0;
+      triggerTask(i);
+      activeTasks++;
+    }
+  });
+  document.getElementById('sv-tasks').textContent = TASK_DEFS.filter((_,i) => taskRunning[i]).length;
+  addLog('ok', `心跳 #${beatCount} — 完成，触发 ${activeTasks} 个任务`);
+  hbTimer = setTimeout(heartbeat, 2000);
+}
+
+function triggerTask(i) {
+  const t = TASK_DEFS[i];
+  taskRunning[i] = true;
+  const item = document.getElementById(`task-${i}`);
+  item.className = 'task-item running';
+  document.getElementById(`tdot-${i}`).className = 'task-dot running';
+  const st = document.getElementById(`tstatus-${i}`);
+  st.className = 'task-status running';
+  st.textContent = '执行中...';
+  addLog('info', `→ 触发: ${t.name}`);
+  setTimeout(() => {
+    taskRunning[i] = false;
+    item.className = 'task-item';
+    document.getElementById(`tdot-${i}`).className = 'task-dot done';
+    st.className = 'task-status';
+    st.textContent = '✓ 完成';
+    addLog('ok', `✓ ${t.name} 执行成功`);
+    document.getElementById('sv-tasks').textContent = TASK_DEFS.filter((_,i2) => taskRunning[i2]).length;
+    setTimeout(() => {
+      st.textContent = `每 ${t.interval} 次心跳`;
+      document.getElementById(`tdot-${i}`).className = 'task-dot idle';
+    }, 1500);
+  }, 500 + Math.random() * 900);
+}
+
+function addLog(type, msg) {
+  const area = document.getElementById('log-area');
+  const now = new Date();
+  const ts = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2,'0')).join(':');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.innerHTML = `<span class="ts">${ts}</span><span class="msg">${msg}</span>`;
+  area.appendChild(entry);
+  area.scrollTop = area.scrollHeight;
+  while (area.children.length > 200) area.removeChild(area.firstChild);
+}
+
+function toggleRun() {
+  running = !running;
+  const btn = document.getElementById('btn-run');
+  if (running) {
+    btn.textContent = '⏸ 暂停';
+    btn.className = 'btn btn-ghost';
+    startTime = Date.now();
+    uptTimer = setInterval(() => {
+      const e = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('sv-uptime').textContent =
+        String(Math.floor(e/60)).padStart(2,'0') + ':' + String(e%60).padStart(2,'0');
+    }, 1000);
+    addLog('ok', 'Agent 启动 — heartbeat 间隔 2s');
+    heartbeat();
+    if (!ecgAnimId) ecgTick();
+  } else {
+    btn.textContent = '▶ 启动 Agent';
+    btn.className = 'btn btn-green';
+    clearTimeout(hbTimer);
+    clearInterval(uptTimer);
+    addLog('warn', 'Agent 已暂停');
+  }
+}
+
+function triggerMiss() {
+  if (!running) { addLog('warn', '请先启动 Agent 再模拟漏跳'); return; }
+  missMode = true;
+  missCount++;
+  document.getElementById('sv-miss').textContent = missCount;
+  document.getElementById('sc-miss').classList.add('alert');
+  document.getElementById('alert-banner').classList.add('show');
+  addLog('error', `⚠ 心跳漏跳！告警已触发 (miss #${missCount})`);
+  setTimeout(() => {
+    missMode = false;
+    document.getElementById('alert-banner').classList.remove('show');
+    document.getElementById('sc-miss').classList.remove('alert');
+    addLog('ok', '心跳已恢复');
+  }, 5000);
+}
+
+function resetAll() {
+  running = false;
+  clearTimeout(hbTimer); clearInterval(uptTimer);
+  cancelAnimationFrame(ecgAnimId); ecgAnimId = null;
+  missMode = false;
+  beatCount = 0; missCount = 0; ecgStep = 0;
+  taskCounters.fill(0); taskRunning.fill(false);
+  document.getElementById('sv-uptime').textContent = '00:00';
+  document.getElementById('sv-beat').textContent = '0';
+  document.getElementById('sv-tasks').textContent = '0';
+  document.getElementById('sv-miss').textContent = '0';
+  document.getElementById('ecg-bpm').textContent = '— BPM';
+  document.getElementById('alert-banner').classList.remove('show');
+  document.getElementById('sc-miss').classList.remove('alert');
+  document.getElementById('btn-run').textContent = '▶ 启动 Agent';
+  document.getElementById('btn-run').className = 'btn btn-green';
+  document.getElementById('log-area').innerHTML = '';
+  buildTaskList();
+  initECG(); drawECG();
+}
+
+initECG();
+buildTaskList();
+drawECG();
+
+window.addEventListener('resize', initECG);
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') { e.preventDefault(); toggleRun(); }
+  if (e.key === 'm' || e.key === 'M') triggerMiss();
+  if (e.key === 'r' || e.key === 'R') resetAll();
+});
+</script>
+</body>
+</html>

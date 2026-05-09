@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A3: 1190×842px，深空霓虹风格 -->
+<svg width="1190" height="842" viewBox="0 0 1190 842" xmlns="http://www.w3.org/2000/svg"
+     font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#060612"/>
+      <stop offset="100%" stop-color="#080818"/>
+    </linearGradient>
+    <linearGradient id="cliGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ea580c" stop-opacity="0.06"/>
+    </linearGradient>
+    <linearGradient id="aoGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.07"/>
+    </linearGradient>
+    <linearGradient id="arrowGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="30%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="70%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="arrO" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#fb923c"/>
+    </marker>
+    <marker id="arrP" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#a855f7"/>
+    </marker>
+    <filter id="softglow">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1190" height="842" fill="url(#bg)"/>
+  <rect width="1190" height="842" fill="url(#glow1)"/>
+  <rect width="1190" height="842" fill="url(#glow2)"/>
+
+  <!-- Grid lines (subtle) -->
+  <g stroke="rgba(255,255,255,0.03)" stroke-width="1">
+    <line x1="0" y1="200" x2="1190" y2="200"/>
+    <line x1="0" y1="420" x2="1190" y2="420"/>
+    <line x1="0" y1="640" x2="1190" y2="640"/>
+    <line x1="595" y1="0" x2="595" y2="842"/>
+  </g>
+
+  <!-- ===== HEADER ===== -->
+  <text x="595" y="56" text-anchor="middle" font-size="34" font-weight="800" fill="#f1f5f9"
+        letter-spacing="0.02em">
+    CLI Agent  →  Always-on Gateway
+  </text>
+  <text x="595" y="88" text-anchor="middle" font-size="16" fill="#64748b">
+    Ch 11 · Gateway 与 Channel：让 Agent 住进你的 Telegram
+  </text>
+  <!-- Divider -->
+  <line x1="160" y1="106" x2="1030" y2="106" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- ===== LEFT: CLI Agent ===== -->
+  <rect x="40" y="126" width="480" height="500" rx="20" fill="url(#cliGrad)"
+        stroke="#fb923c" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="280" y="162" text-anchor="middle" font-size="18" font-weight="700" fill="#fb923c">
+    CLI Agent（Part 1）
+  </text>
+  <text x="280" y="184" text-anchor="middle" font-size="13" fill="#94a3b8">
+    一次性·无状态·命令行触发
+  </text>
+
+  <!-- CLI flow boxes -->
+  <rect x="100" y="208" width="360" height="50" rx="10"
+        fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="280" y="230" text-anchor="middle" font-size="13" fill="#fdba74" font-weight="600">python3 main.py</text>
+  <text x="280" y="248" text-anchor="middle" font-size="11" fill="#6b7280">用户手动启动</text>
+
+  <line x1="280" y1="258" x2="280" y2="278" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arrO)"/>
+
+  <rect x="100" y="278" width="360" height="50" rx="10"
+        fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="280" y="300" text-anchor="middle" font-size="13" fill="#e2e8f0" font-weight="600">AgentLoop 执行</text>
+  <text x="280" y="318" text-anchor="middle" font-size="11" fill="#6b7280">工具调用 · LLM 推理</text>
+
+  <line x1="280" y1="328" x2="280" y2="348" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arrO)"/>
+
+  <rect x="100" y="348" width="360" height="50" rx="10"
+        fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="280" y="370" text-anchor="middle" font-size="13" fill="#e2e8f0" font-weight="600">输出结果到 stdout</text>
+  <text x="280" y="388" text-anchor="middle" font-size="11" fill="#6b7280">print() / stream</text>
+
+  <line x1="280" y1="398" x2="280" y2="418" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arrO)"/>
+
+  <rect x="100" y="418" width="360" height="50" rx="10"
+        fill="rgba(239,68,68,0.12)" stroke="rgba(239,68,68,0.3)" stroke-width="1.5"/>
+  <text x="280" y="440" text-anchor="middle" font-size="14" fill="#f87171" font-weight="700">进程退出</text>
+  <text x="280" y="458" text-anchor="middle" font-size="11" fill="#6b7280">Ctrl+C 或执行完毕 → 消失</text>
+
+  <!-- Pain points -->
+  <rect x="80" y="492" width="400" height="116" rx="12"
+        fill="rgba(239,68,68,0.06)" stroke="rgba(239,68,68,0.2)" stroke-width="1"/>
+  <text x="280" y="516" text-anchor="middle" font-size="13" fill="#f87171" font-weight="600">Pain Points</text>
+  <text x="100" y="540" font-size="12" fill="#94a3b8">✗  关掉 terminal = Lena 消失</text>
+  <text x="100" y="560" font-size="12" fill="#94a3b8">✗  手机无法发消息给 Lena</text>
+  <text x="100" y="580" font-size="12" fill="#94a3b8">✗  无法后台处理定时任务</text>
+  <text x="100" y="600" font-size="12" fill="#94a3b8">✗  每次需手动重启</text>
+
+  <!-- ===== CENTER ARROW ===== -->
+  <g filter="url(#softglow)">
+    <line x1="540" y1="390" x2="650" y2="390" stroke="url(#arrowGrad)" stroke-width="4"
+          marker-end="url(#arrP)"/>
+    <text x="595" y="378" text-anchor="middle" font-size="13" font-weight="700" fill="#c4b5fd">
+      架构
+    </text>
+    <text x="595" y="408" text-anchor="middle" font-size="13" font-weight="700" fill="#c4b5fd">
+      跃迁
+    </text>
+  </g>
+
+  <!-- ===== RIGHT: Always-on Gateway ===== -->
+  <rect x="670" y="126" width="480" height="500" rx="20" fill="url(#aoGrad)"
+        stroke="#a855f7" stroke-width="1.5"/>
+  <text x="910" y="162" text-anchor="middle" font-size="18" font-weight="700" fill="#a855f7">
+    Always-on Gateway（Part 2）
+  </text>
+  <text x="910" y="184" text-anchor="middle" font-size="13" fill="#94a3b8">
+    常驻·多 Channel·launchd 守护
+  </text>
+
+  <!-- Gateway components -->
+  <rect x="690" y="208" width="440" height="64" rx="10"
+        fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="910" y="232" text-anchor="middle" font-size="13" fill="#c084fc" font-weight="600">
+    Gateway Server
+  </text>
+  <text x="800" y="254" text-anchor="middle" font-size="11" fill="#94a3b8">WS :8765</text>
+  <text x="1020" y="254" text-anchor="middle" font-size="11" fill="#94a3b8">HTTP :3000</text>
+
+  <!-- Channel plugins row -->
+  <text x="910" y="298" text-anchor="middle" font-size="12" fill="#6b7280">Channel Plugins（插件化）</text>
+  <rect x="690" y="308" width="96" height="44" rx="8"
+        fill="rgba(34,211,238,0.1)" stroke="#22d3ee" stroke-width="0.8"/>
+  <text x="738" y="334" text-anchor="middle" font-size="11" fill="#22d3ee">Telegram</text>
+
+  <rect x="794" y="308" width="80" height="44" rx="8"
+        fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="0.8"/>
+  <text x="834" y="334" text-anchor="middle" font-size="11" fill="#a855f7">Discord</text>
+
+  <rect x="882" y="308" width="80" height="44" rx="8"
+        fill="rgba(251,191,36,0.1)" stroke="#fbbf24" stroke-width="0.8"/>
+  <text x="922" y="334" text-anchor="middle" font-size="11" fill="#fbbf24">飞书</text>
+
+  <rect x="970" y="308" width="96" height="44" rx="8"
+        fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="0.8"/>
+  <text x="1018" y="334" text-anchor="middle" font-size="11" fill="#4ade80">Console</text>
+
+  <!-- AgentLoop -->
+  <rect x="690" y="372" width="440" height="50" rx="10"
+        fill="rgba(34,211,238,0.08)" stroke="#22d3ee" stroke-width="1"/>
+  <text x="910" y="395" text-anchor="middle" font-size="13" fill="#22d3ee" font-weight="600">AgentLoop（永远运行）</text>
+  <text x="910" y="413" text-anchor="middle" font-size="11" fill="#64748b">claude-sonnet · per-channel 对话历史</text>
+
+  <!-- Backoff -->
+  <rect x="690" y="432" width="210" height="50" rx="10"
+        fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="795" y="452" text-anchor="middle" font-size="12" fill="#c084fc" font-weight="600">指数退避重连</text>
+  <text x="795" y="470" text-anchor="middle" font-size="10" fill="#64748b">1s→2s→…→5min</text>
+
+  <!-- launchd -->
+  <rect x="910" y="432" width="220" height="50" rx="10"
+        fill="rgba(74,222,128,0.08)" stroke="rgba(74,222,128,0.3)" stroke-width="1"/>
+  <text x="1020" y="452" text-anchor="middle" font-size="12" fill="#4ade80" font-weight="600">launchd 守护</text>
+  <text x="1020" y="470" text-anchor="middle" font-size="10" fill="#64748b">ThrottleInterval: 60s</text>
+
+  <!-- Gains -->
+  <rect x="710" y="500" width="400" height="108" rx="12"
+        fill="rgba(74,222,128,0.06)" stroke="rgba(74,222,128,0.2)" stroke-width="1"/>
+  <text x="910" y="524" text-anchor="middle" font-size="13" fill="#4ade80" font-weight="600">Gains</text>
+  <text x="730" y="548" font-size="12" fill="#94a3b8">✓  7×24 常驻，关掉 terminal 不影响</text>
+  <text x="730" y="568" font-size="12" fill="#94a3b8">✓  Telegram 发消息实时回复</text>
+  <text x="730" y="588" font-size="12" fill="#94a3b8">✓  Channel 换渠道只改一个配置参数</text>
+
+  <!-- ===== BOTTOM: Scale comparison matrix ===== -->
+  <rect x="40" y="648" width="1110" height="162" rx="16"
+        fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="595" y="676" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">
+    规模对比矩阵：nano-claw vs OpenClaw
+  </text>
+
+  <!-- Matrix headers -->
+  <text x="200" y="706" text-anchor="middle" font-size="13" fill="#64748b">维度</text>
+  <text x="420" y="706" text-anchor="middle" font-size="13" fill="#fb923c">nano-claw（教学）</text>
+  <text x="700" y="706" text-anchor="middle" font-size="13" fill="#a855f7">OpenClaw（生产）</text>
+  <text x="980" y="706" text-anchor="middle" font-size="13" fill="#64748b">何时升级</text>
+  <line x1="70" y1="714" x2="1120" y2="714" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- Row 1 -->
+  <text x="200" y="736" text-anchor="middle" font-size="12" fill="#94a3b8">代码规模</text>
+  <text x="420" y="736" text-anchor="middle" font-size="13" fill="#fb923c" font-weight="600">219 行</text>
+  <text x="700" y="736" text-anchor="middle" font-size="13" fill="#a855f7" font-weight="600">230+ 文件</text>
+  <text x="980" y="736" text-anchor="middle" font-size="12" fill="#64748b">需要生产级可观测性</text>
+
+  <!-- Row 2 -->
+  <text x="200" y="760" text-anchor="middle" font-size="12" fill="#94a3b8">Channel 数量</text>
+  <text x="420" y="760" text-anchor="middle" font-size="13" fill="#fb923c" font-weight="600">2（Telegram + Console）</text>
+  <text x="700" y="760" text-anchor="middle" font-size="13" fill="#a855f7" font-weight="600">20+ Channel</text>
+  <text x="980" y="760" text-anchor="middle" font-size="12" fill="#64748b">需要接入企业通信工具</text>
+
+  <!-- Row 3 -->
+  <text x="200" y="784" text-anchor="middle" font-size="12" fill="#94a3b8">重连策略</text>
+  <text x="420" y="784" text-anchor="middle" font-size="13" fill="#fb923c" font-weight="600">指数退避（本章实现）</text>
+  <text x="700" y="784" text-anchor="middle" font-size="13" fill="#a855f7" font-weight="600">BackoffPolicy + AbortController</text>
+  <text x="980" y="784" text-anchor="middle" font-size="12" fill="#64748b">需要更健壮的取消机制</text>
+
+  <!-- Footer -->
+  <text x="595" y="826" text-anchor="middle" font-size="11" fill="#374151">
+    《从零构建你的 AI Agent：Claude Code &amp; OpenClaw 深度实战》· 第 11 章 · 架构跃迁信息图
+  </text>
+</svg>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 09 · RAG 向量检索热力图</title>
+<style>
+/* ── 深空霓虹 · neon-purple accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #a78bfa;       /* neon-purple */
+  --cyan: #38bdf8;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--sans);
+  min-height: 100vh; padding: 36px 24px 60px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(167,139,250,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 85% 85%, rgba(56,189,248,0.04) 0%, transparent 50%);
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+header { text-align: center; margin-bottom: 28px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 13px; color: var(--dim); max-width: 540px; margin: 0 auto; line-height: 1.65; }
+
+/* 查询输入 */
+.query-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+.query-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+.preset-btn {
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--dim); font-size: 13px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.preset-btn:hover { border-color: rgba(167,139,250,0.4); color: var(--accent); }
+.preset-btn.active { background: rgba(167,139,250,0.1); border-color: rgba(167,139,250,0.45); color: var(--accent); }
+.k-row { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.k-row label { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+input[type=range] { accent-color: var(--accent); cursor: pointer; width: 90px; }
+.k-val { font-family: var(--mono); font-size: 13px; color: var(--accent); min-width: 18px; text-align: center; }
+
+/* 主布局 */
+.main-grid { display: grid; grid-template-columns: 1fr 260px; gap: 18px; margin-bottom: 18px; }
+@media (max-width: 720px) { .main-grid { grid-template-columns: 1fr; } }
+
+.panel { background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; overflow: hidden; }
+.panel-header { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.panel-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; }
+
+/* 热力图格子 */
+.heatmap { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; padding: 16px; }
+.cell {
+  aspect-ratio: 1; border-radius: 6px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer; transition: background 0.4s ease, border-color 0.3s, transform 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 9px; color: rgba(255,255,255,0.3);
+  position: relative;
+}
+.cell:hover { transform: scale(1.08); z-index: 2; }
+.cell.selected { border: 2px solid rgba(255,255,255,0.7) !important; }
+.cell .cell-idx { opacity: 0.4; }
+/* tooltip */
+.cell-tooltip {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: rgba(5,8,20,0.95); border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--text);
+  white-space: nowrap; z-index: 20; font-family: var(--sans); line-height: 1.5;
+  pointer-events: none; min-width: 140px;
+}
+.cell:hover .cell-tooltip { display: block; }
+.cell-tooltip strong { color: var(--accent); font-family: var(--mono); }
+
+/* 图例条 */
+.legend-bar {
+  display: flex; align-items: center; gap: 10px; padding: 0 16px 12px;
+}
+.legend-gradient {
+  flex: 1; height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, #a78bfa, #38bdf8, rgba(255,255,255,0.8));
+}
+.legend-label { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+/* 散点图 */
+.scatter { width: 100%; aspect-ratio: 1; position: relative; overflow: hidden; }
+.scatter-canvas { width: 100%; height: 100%; }
+
+/* Top-K 面板 */
+.topk-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.topk-item {
+  padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10,18,40,0.5); transition: border-color 0.3s;
+  cursor: pointer;
+}
+.topk-item.selected { border-color: rgba(167,139,250,0.4); background: rgba(167,139,250,0.06); }
+.topk-item .score { font-family: var(--mono); font-size: 11px; color: var(--accent); margin-bottom: 4px; }
+.topk-item .snippet { font-size: 12px; color: var(--dim); line-height: 1.5; }
+
+/* Context 区 */
+.context-panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 16px 20px;
+  margin-bottom: 18px;
+}
+.context-panel .context-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+.context-content {
+  font-size: 13px; line-height: 1.7; color: rgba(255,255,255,0.75);
+  white-space: pre-wrap; max-height: 130px; overflow-y: auto;
+  padding-right: 4px;
+}
+.context-content::-webkit-scrollbar { width: 4px; }
+.context-content::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 2px; }
+.context-tokens { margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.context-tokens span { color: var(--accent); }
+
+/* 搜索按钮 */
+.btn-search {
+  padding: 10px 24px; border-radius: 9px;
+  background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.4);
+  color: var(--accent); font-size: 14px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s; margin-bottom: 18px;
+}
+.btn-search:hover { background: rgba(167,139,250,0.22); }
+
+footer { text-align: center; margin-top: 40px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Ch 09 · RAG 向量检索</div>
+  <h1>查询 → 向量距离 → Top-K 召回</h1>
+  <p>输入查询后，64 个知识库 chunk 根据余弦相似度染色：紫=最近 / 青=中等 / 白=最远。Top-K 被选中后拼成 LLM 的 context。</p>
+</header>
+
+<!-- 查询选择 -->
+<div class="query-row">
+  <span class="query-label">预置查询：</span>
+  <button class="preset-btn active" data-q="0" onclick="selectQuery(0)">什么是 embedding</button>
+  <button class="preset-btn" data-q="1" onclick="selectQuery(1)">RAG 和微调的区别</button>
+  <button class="preset-btn" data-q="2" onclick="selectQuery(2)">向量数据库选型</button>
+  <div class="k-row">
+    <label>Top-K</label>
+    <input type="range" min="1" max="10" value="5" id="k-slider" oninput="updateK()">
+    <span class="k-val" id="k-val">5</span>
+  </div>
+</div>
+
+<button class="btn-search" onclick="runSearch()">向量检索</button>
+
+<!-- 主区 -->
+<div class="main-grid">
+  <!-- 左：热力图 + 散点 -->
+  <div>
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="panel-title">知识库热力图（64 chunk）</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="search-status">未检索</span>
+      </div>
+      <div class="heatmap" id="heatmap"></div>
+      <div class="legend-bar">
+        <span class="legend-label">相似</span>
+        <div class="legend-gradient"></div>
+        <span class="legend-label">相异</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">2D PCA 投影散点图</span></div>
+      <div style="padding:12px;">
+        <canvas id="scatter-canvas" style="width:100%;max-height:180px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：Top-K 列表 -->
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Top-K 召回结果</span></div>
+    <div class="topk-list" id="topk-list">
+      <div style="font-size:13px;color:var(--muted);padding:8px 0;">点击「向量检索」查看结果</div>
+    </div>
+  </div>
+</div>
+
+<!-- 最终 Context -->
+<div class="context-panel">
+  <div class="context-title">最终送给 LLM 的 Context（拼接后）</div>
+  <div class="context-content" id="context-content">等待检索...</div>
+  <div class="context-tokens">预估 token 数：<span id="ctx-tokens">—</span> / 上下文窗口：128k</div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 09 章 · RAG 向量检索 · 交互式 Demo</footer>
+</div>
+
+<script>
+/* ── 知识库 chunk 定义 ── */
+const CHUNKS = [
+  "Embedding 是将文本映射到高维浮点向量空间的技术，语义相似的文本在空间中距离更近。",
+  "余弦相似度是向量检索中最常用的距离度量：cos(θ) = (A·B) / (|A||B|)，值域 [-1, 1]。",
+  "向量数据库通过 ANN 算法（如 HNSW）加速检索，避免暴力遍历。HNSW 建图后查询复杂度 O(log N)。",
+  "RAG（Retrieval-Augmented Generation）把外部知识动态注入 prompt，不需要重训练模型。",
+  "微调改变模型权重，适合固定领域知识；RAG 动态检索，适合频繁更新的知识库。",
+  "RAG 的核心流程：查询 → 向量化 → 检索 Top-K → 拼接 prompt → LLM 生成。",
+  "Chroma 是轻量级向量数据库，支持进程内模式，适合原型和小规模场景。",
+  "Qdrant 用 Rust 编写，支持 payload 过滤和标量量化，是生产级首选之一。",
+  "Milvus 是分布式向量数据库，支持亿级向量，适合超大规模企业场景。",
+  "pgvector 是 PostgreSQL 扩展，无需额外服务，适合团队已用 PG 的场景。",
+  "text-embedding-3-small 是 OpenAI 低成本嵌入模型，1536 维，性价比高。",
+  "BGE-M3 是开源多语言嵌入模型，中文效果优秀，支持私有化部署。",
+  "Recall@K 是 RAG 系统的核心评估指标：前 K 个结果中相关文档比例。",
+  "Reranker 在初检后精选：先用 ANN 检索 top-20，再用交叉编码器重排取 top-5。",
+  "chunk 策略影响检索质量：固定窗口 / 句子边界 / 递归分割各有优劣。",
+  "chunk 大小权衡：太大丢焦点，太小缺上下文。128-512 token 是常见范围。",
+  "Hybrid Search 结合稀疏（BM25）和稠密（embedding）检索，适用于关键词明确的查询。",
+  "ColBERT 使用 late interaction，每个 token 独立 embed，提升精度但存储增加 10-30 倍。",
+  "HyDE（Hypothetical Document Embeddings）：先让 LLM 生成假设文档，再用其 embedding 检索。",
+  "RAPTOR 树状分层摘要：把文档压缩成多层摘要树，支持跨段落的高层推理。",
+  "Contextual Retrieval 在 chunk 前添加上下文前缀（Anthropic 方案），提升 chunk 独立理解性。",
+  "向量量化（PQ/SQ）压缩索引大小，1/4 存储换取约 5% 检索质量损失。",
+  "FAISS 是 Meta 开源的高效相似性搜索库，支持 GPU 加速，适合研究和离线批处理。",
+  "Weaviate 提供 GraphQL 接口和原生多模态支持，适合复杂查询场景。",
+  "Pinecone 是全托管向量数据库服务，零运维但成本较高。",
+  "LlamaIndex 是 RAG 开发框架，提供文档解析、chunk、索引、检索的全流程抽象。",
+  "LangChain 提供 RAG chain 组件，可快速搭建原型，但抽象层复杂度较高。",
+  "Document Loader 负责解析 PDF/Word/Markdown/网页等格式，是 RAG 的第一步。",
+  "Index 构建：load → split → embed → store，是一次性离线操作。",
+  "Query 流程：embed(query) → search(index, top_k) → rerank → build_prompt → llm.call()。",
+  "Self-Query Retrieval：LLM 先把自然语言查询转为结构化过滤条件，再检索。",
+  "Multi-Query RAG：对同一问题生成多个变体查询，取并集，提升召回。",
+  "Parent-Child Chunk：小 chunk 用于精准检索，但返回其父 chunk 给 LLM，保留更多上下文。",
+  "Sparse Embedding（BM25）对关键词精确匹配有优势，Dense Embedding 擅长语义理解。",
+  "RRF（Reciprocal Rank Fusion）是 Hybrid Search 中融合多路检索结果的常用算法。",
+  "Sentence Window Retrieval：检索命中的句子 + 上下各 N 句，增加检索窗口。",
+  "GraphRAG：构建知识图谱，通过图遍历检索关联实体，适合多跳推理。",
+  "Incremental Indexing：新文档增量添加到向量库，无需重建全量索引。",
+  "Cache-Augmented Generation（CAG）：把全部文档塞入超长上下文，避免检索步骤。",
+  "Embedding Drift：模型更新后旧 embedding 可能不兼容，需要全库重新索引。",
+  "向量归一化：L2 归一化后余弦相似度等价于内积，可用更快的 MIPS 算法。",
+  "Namespace/Tenant 隔离：多租户向量库中不同用户的向量完全隔离，避免数据泄露。",
+  "Access Control：检索时结合用户权限过滤，确保只返回授权文档。",
+  "Metadata Filter：检索前用 payload 字段（日期/作者/来源）缩小搜索范围。",
+  "MMR（Maximal Marginal Relevance）：在相似性和多样性间平衡，避免检索结果过于相似。",
+  "Cross-lingual Retrieval：多语言 embedding 模型支持跨语言检索，中文查询匹配英文文档。",
+  "Hallucination Grounding：RAG 生成的答案必须能在 retrieved chunks 中找到依据。",
+  "Faithfulness vs. Relevance：评估 RAG 时同时衡量答案忠于源文档的程度和回答问题的程度。",
+  "RAGAS 是 RAG 评估框架：context precision、context recall、faithfulness、answer relevancy。",
+  "TruLens 提供 RAG 三角评估：context relevance + groundedness + answer relevance。",
+  "Embedding 维度选择：更高维度通常更准确，但存储和计算成本线性增加。",
+  "MTEB Benchmark 是 embedding 模型的标准评测榜单，包含多任务多语言。",
+  "对话式 RAG：把多轮对话历史浓缩成查询，避免每轮独立检索。",
+  "Streaming RAG：检索和生成并行流式，用户几乎立刻看到首个 token。",
+  "Agentic RAG：agent 自主决策何时检索、检索什么、是否需要多次检索。",
+  "Tool-Augmented RAG：把检索工具化，agent 自主调用，可传入结构化参数。",
+  "长文档 RAG：超长文档（书籍/代码库）需要特殊分层策略，避免重要信息被淹没。",
+  "Code RAG：代码 chunk 按函数/类边界分割，embedding 用代码专用模型（如 CodeBERT）。",
+  "Multimodal RAG：图文混合检索，图像用 CLIP 等多模态 embedding 模型。",
+  "知识库版本管理：通过 snapshot 保存向量库状态，支持回滚到历史版本。",
+  "冷启动问题：知识库建立初期缺乏数据，可用 synthetic data 补充。",
+  "Online vs Offline Indexing：实时索引延迟低但吞吐有限，批量索引吞吐高但有更新延迟。",
+  "向量数据库容量规划：1M 向量（1536 维 float32）≈ 6GB，量化后约 1.5GB。",
+  "Production RAG Checklist：监控检索延迟、召回率、用户反馈，定期重新评估 chunk 策略。",
+];
+
+/* ── 查询预置 ── */
+const QUERIES = [
+  { text: '什么是 embedding', relatedIdxs: [0,1,2,10,11,40,50,51] },
+  { text: 'RAG 和微调的区别', relatedIdxs: [3,4,5,26,28,29,53,54] },
+  { text: '向量数据库选型', relatedIdxs: [6,7,8,9,21,22,23,24,25] },
+];
+
+let currentQuery = 0;
+let topK = 5;
+let scores = new Array(64).fill(0);
+let selectedCell = -1;
+
+/* 初始化热力图 */
+function buildHeatmap() {
+  const container = document.getElementById('heatmap');
+  container.innerHTML = '';
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.id = `cell-${i}`;
+    cell.innerHTML = `<span class="cell-idx">${i+1}</span>
+      <div class="cell-tooltip"><strong>#${i+1}</strong><br>${CHUNKS[i].substring(0,30)}...</div>`;
+    cell.setAttribute('tabindex', '0');
+    cell.onclick = () => focusCell(i);
+    cell.onkeydown = e => { if (e.key === 'Enter') focusCell(i); };
+    container.appendChild(cell);
+  }
+}
+
+function selectQuery(idx) {
+  currentQuery = idx;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', +b.dataset.q === idx));
+}
+
+function updateK() {
+  topK = +document.getElementById('k-slider').value;
+  document.getElementById('k-val').textContent = topK;
+}
+
+function runSearch() {
+  const q = QUERIES[currentQuery];
+  // 模拟相似度分布：相关 chunk 高分，其余随机
+  for (let i = 0; i < 64; i++) {
+    const isRelated = q.relatedIdxs.includes(i);
+    const base = isRelated ? 0.65 + Math.random() * 0.3 : Math.random() * 0.45;
+    scores[i] = +base.toFixed(3);
+  }
+  animateHeatmap();
+  updateTopK();
+  buildScatter();
+  document.getElementById('search-status').textContent = `查询: "${q.text}"`;
+}
+
+function animateHeatmap() {
+  // 先重置颜色，再逐格动画
+  for (let i = 0; i < 64; i++) {
+    const cell = document.getElementById(`cell-${i}`);
+    cell.style.background = 'rgba(255,255,255,0.03)';
+    cell.classList.remove('selected');
+  }
+  setTimeout(() => {
+    const topIdxs = [...Array(64).keys()].sort((a,b) => scores[b]-scores[a]).slice(0, topK);
+    for (let i = 0; i < 64; i++) {
+      const cell = document.getElementById(`cell-${i}`);
+      const s = scores[i]; // 0-1
+      const color = scoreToColor(s);
+      cell.style.background = color;
+      cell.style.borderColor = s > 0.7 ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.06)';
+      cell.querySelector('.cell-tooltip').innerHTML =
+        `<strong>#${i+1}</strong> 相似度 ${s}<br>${CHUNKS[i].substring(0,40)}...`;
+      if (topIdxs.includes(i)) {
+        setTimeout(() => cell.classList.add('selected'), 300 + i * 5);
+      }
+    }
+  }, 100);
+}
+
+/* 相似度 → 颜色：紫(高) / 青(中) / 灰白(低) */
+function scoreToColor(s) {
+  if (s > 0.75) {
+    // 紫 neon
+    const a = (s - 0.75) / 0.25;
+    return `rgba(167,139,250,${0.3 + a * 0.55})`;
+  } else if (s > 0.45) {
+    // 青
+    const a = (s - 0.45) / 0.3;
+    return `rgba(56,189,248,${0.1 + a * 0.35})`;
+  } else {
+    return `rgba(255,255,255,${0.03 + s * 0.1})`;
+  }
+}
+
+function updateTopK() {
+  const list = document.getElementById('topk-list');
+  list.innerHTML = '';
+  const sorted = [...Array(64).keys()].sort((a,b) => scores[b]-scores[a]).slice(0, topK);
+  sorted.forEach((idx, rank) => {
+    const item = document.createElement('div');
+    item.className = 'topk-item';
+    item.onclick = () => focusCell(idx);
+    item.innerHTML = `<div class="score">#${rank+1} · 相似度 ${scores[idx]}</div>
+      <div class="snippet">${CHUNKS[idx].substring(0, 60)}...</div>`;
+    list.appendChild(item);
+  });
+  buildContext(sorted);
+}
+
+function buildContext(idxs) {
+  const texts = idxs.map(i => `[${i+1}] ${CHUNKS[i]}`).join('\n\n');
+  document.getElementById('context-content').textContent = texts;
+  const tokens = Math.round(texts.length / 1.8);
+  document.getElementById('ctx-tokens').textContent = tokens.toLocaleString();
+}
+
+function focusCell(i) {
+  selectedCell = i;
+  document.querySelectorAll('.cell').forEach(c => c.style.outline = 'none');
+  document.getElementById(`cell-${i}`).style.outline = '2px solid var(--accent)';
+  // 高亮 topK 中的对应 item
+  document.querySelectorAll('.topk-item').forEach((item, r) => {
+    const sorted = [...Array(64).keys()].sort((a,b) => scores[b]-scores[a]).slice(0, topK);
+    item.classList.toggle('selected', sorted[r] === i);
+  });
+}
+
+/* 2D 散点图（模拟 PCA 投影）*/
+function buildScatter() {
+  const canvas = document.getElementById('scatter-canvas');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = Math.min(180, rect.width * 0.5);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 生成伪 2D 坐标（根据分数聚类）
+  const W = canvas.width, H = canvas.height;
+  const q = QUERIES[currentQuery];
+  const topIdxs = new Set([...Array(64).keys()].sort((a,b) => scores[b]-scores[a]).slice(0, topK));
+
+  // 背景网格
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // 中心轴（查询向量投影到原点）
+  ctx.strokeStyle = 'rgba(167,139,250,0.2)';
+  ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+
+  // 绘制每个 chunk 散点
+  for (let i = 0; i < 64; i++) {
+    // 伪随机但稳定的坐标，相关 chunk 聚集在中心
+    const seed = i * 7919;
+    const angle = (seed % 628) / 100;
+    const isRelated = q.relatedIdxs.includes(i);
+    const r = isRelated
+      ? (0.1 + (1 - scores[i]) * 0.25) * Math.min(W, H) / 2
+      : (0.35 + Math.random() * 0.45) * Math.min(W, H) / 2;
+    const jitter = (Math.sin(seed) * 0.1);
+    const px = W/2 + Math.cos(angle + jitter) * r;
+    const py = H/2 + Math.sin(angle + jitter) * r * 0.7;
+
+    const radius = topIdxs.has(i) ? 5 : 3;
+    ctx.beginPath();
+    ctx.arc(px, py, radius, 0, Math.PI * 2);
+    if (topIdxs.has(i)) {
+      ctx.fillStyle = 'rgba(167,139,250,0.85)';
+      ctx.shadowColor = 'rgba(167,139,250,0.6)';
+      ctx.shadowBlur = 8;
+    } else {
+      ctx.fillStyle = `rgba(255,255,255,${0.1 + scores[i] * 0.4})`;
+      ctx.shadowBlur = 0;
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // 查询点
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, 7, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(251,191,36,0.9)';
+  ctx.shadowColor = 'rgba(251,191,36,0.7)';
+  ctx.shadowBlur = 12;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.fillText('Q', W/2-4, H/2+4);
+}
+
+// 初始化
+buildHeatmap();
+document.getElementById('k-slider').value = topK;
+document.getElementById('k-val').textContent = topK;
+
+// 键盘
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') runSearch();
+});
+</script>
+</body>
+</html>

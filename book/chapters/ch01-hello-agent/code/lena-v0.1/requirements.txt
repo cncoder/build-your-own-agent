@@ -1,0 +1,3 @@
+# lena-v0.1 依赖
+# 安装：pip install -r requirements.txt
+boto3==1.38.0

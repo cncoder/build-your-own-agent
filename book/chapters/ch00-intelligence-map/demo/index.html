@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24 章聪明度进化地图 — 《从零构建你的 AI Agent》</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --border: #1f2d44;
+    --accent: #3b82f6;
+    --accent2: #8b5cf6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --success: #10b981;
+    --warn: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+  /* ── Dimension Legend ── */
+  .dim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    max-width: 900px;
+    margin: 0 auto 2rem;
+  }
+  .dim-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    cursor: default;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .dim-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .dim-num { font-size: 1.4rem; margin-bottom: 0.3rem; }
+  .dim-name { font-weight: 600; font-size: 0.95rem; }
+  .dim-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; line-height: 1.4; }
+
+  /* ── Chapter Timeline ── */
+  .timeline { max-width: 900px; margin: 0 auto; }
+  .timeline-header {
+    display: grid;
+    grid-template-columns: 60px 1fr 180px;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .ch-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 180px;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    align-items: center;
+  }
+  .ch-row:hover { background: var(--panel); }
+  .ch-row.active { background: #1a2236; border: 1px solid var(--accent); }
+  .ch-num { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ch-title { font-size: 0.92rem; }
+  .ch-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .tag {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .tag-reason   { background: #1e3a5f; color: #60a5fa; }
+  .tag-memory   { background: #1a3a2a; color: #34d399; }
+  .tag-plan     { background: #312e45; color: #a78bfa; }
+  .tag-collab   { background: #3a2a1e; color: #fb923c; }
+  .tag-learn    { background: #3a2a2a; color: #f87171; }
+  .tag-safety   { background: #3a3a1e; color: #fbbf24; }
+  .tag-aware    { background: #2a3a3a; color: #22d3ee; }
+  .tag-extend   { background: #1e2a3a; color: #818cf8; }
+  .tag-meta     { background: #2a2a2a; color: #94a3b8; }
+
+  /* ── Detail Panel ── */
+  #detail {
+    max-width: 900px;
+    margin: 1.5rem auto 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: none;
+  }
+  #detail.visible { display: block; }
+  #detail h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent); }
+  #detail .meta { font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem; }
+  #detail .bars { margin-top: 1rem; }
+  .bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; }
+  .bar-label { width: 80px; font-size: 0.8rem; color: var(--text); }
+  .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  .bar-val { width: 32px; font-size: 0.78rem; color: var(--muted); text-align: right; }
+</style>
+</head>
+<body>
+
+<h1>24 章聪明度进化地图</h1>
+<p class="subtitle">《从零构建你的 AI Agent：Claude Code & OpenClaw 深度实战》· 序章互动版</p>
+
+<!-- Dimension Legend -->
+<div class="dim-grid" id="dimGrid"></div>
+
+<!-- Chapter Timeline -->
+<div class="timeline">
+  <div class="timeline-header">
+    <span>章节</span><span>主题</span><span>解锁维度</span>
+  </div>
+  <div id="chList"></div>
+</div>
+
+<!-- Detail Panel -->
+<div id="detail">
+  <h3 id="dTitle"></h3>
+  <div class="meta" id="dMeta"></div>
+  <p id="dDesc" style="font-size:0.88rem;line-height:1.6;color:#94a3b8;"></p>
+  <div class="bars" id="dBars"></div>
+</div>
+
+<script>
+const DIMS = [
+  { id:'reason', num:'①', name:'推理', color:'#60a5fa', desc:'多步任务中做出有依据的决策' },
+  { id:'memory', num:'②', name:'记忆', color:'#34d399', desc:'跨会话保持上下文与知识' },
+  { id:'plan',   num:'③', name:'规划', color:'#a78bfa', desc:'将大目标自主拆解为子步骤' },
+  { id:'collab', num:'④', name:'协作', color:'#fb923c', desc:'委托工作给子 agent 并整合结果' },
+  { id:'learn',  num:'⑤', name:'学习', color:'#f87171', desc:'通过反馈与经验更新自身行为' },
+  { id:'safety', num:'⑥', name:'安全', color:'#fbbf24', desc:'不确定时主动降级或请求确认' },
+  { id:'aware',  num:'⑦', name:'自省', color:'#22d3ee', desc:'监控自身状态并动态调整策略' },
+  { id:'extend', num:'⑧', name:'跨界', color:'#818cf8', desc:'无需修改核心即可接入新能力' },
+];
+
+// 每章数据：[章号, 标题, 解锁维度列表, 描述, 该章结束后各维度分数快照]
+const CHAPTERS = [
+  ['序', '聪明度地图（本章）', [], '建立 8 维坐标系，理解本书旅程', {reason:2,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:1}],
+  ['Ch1', '你好，Agent', [], '10 行 Python 跑通第一次 API 调用', {reason:2,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:1}],
+  ['Ch2', 'ReAct 循环的秘密', ['reason'], 'Thought→Action→Observation 循环，agent 的原子', {reason:5,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:1}],
+  ['Ch3', 'Lena 诞生：50 行 Python', ['extend'], '最小 agent loop，工具注册，while 循环', {reason:5,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:4}],
+  ['Ch4', 'LLM 底层（方法论）', [], 'Transformer/KV Cache/量化决策树，工程直觉', {reason:5,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:4}],
+  ['Ch5', '技术选型（方法论）', [], 'Prompt/RAG/Fine-tune/Agent 怎么选', {reason:5,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:4}],
+  ['Ch6', 'Tool 系统', ['extend'], '任何能力都是工具，插件式注册机制', {reason:5,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:8}],
+  ['Ch7', '流式与并发', ['reason'], 'SSE + 工具并发抢跑，agent 不卡顿', {reason:7,memory:0,plan:1,collab:0,learn:0,safety:1,aware:0,extend:8}],
+  ['Ch8', '记忆与上下文', ['memory'], '短期 + 长期记忆，CLAUDE.md 自动加载', {reason:7,memory:6,plan:1,collab:0,learn:0,safety:1,aware:0,extend:8}],
+  ['Ch9', 'RAG 与向量检索', ['memory'], '读懂 200 页 PDF，pgvector + rerank', {reason:7,memory:8,plan:1,collab:0,learn:0,safety:1,aware:0,extend:8}],
+  ['Ch10','Context Engineering', ['aware'], 'Token 经济学，autocompact，prompt caching', {reason:7,memory:8,plan:1,collab:0,learn:0,safety:1,aware:5,extend:8}],
+  ['Ch11','Planning 与 Subagent', ['plan','collab'], '从 ReAct 到自主拆任务，并发子 agent', {reason:7,memory:8,plan:7,collab:6,learn:0,safety:1,aware:5,extend:8}],
+  ['Ch12','Skills：可复用能力单元', ['learn'], 'Skills vs Tools，SOP 包装，跨平台', {reason:7,memory:8,plan:7,collab:6,learn:5,safety:1,aware:5,extend:8}],
+  ['Ch13','输入层安全', ['safety'], 'Prompt Injection，权限边界，人类在环', {reason:7,memory:8,plan:7,collab:6,learn:5,safety:6,aware:5,extend:8}],
+  ['Ch14','执行层 & 凭证安全', ['safety'], '沙箱逃逸，凭证隔离，审计与取证', {reason:7,memory:8,plan:7,collab:6,learn:5,safety:9,aware:5,extend:8}],
+  ['Ch15','Gateway 与 Channel', ['extend'], 'WebSocket + Telegram，always-on 进程', {reason:7,memory:8,plan:7,collab:6,learn:5,safety:9,aware:5,extend:9}],
+  ['Ch16','MessageBus 与事件驱动', ['collab'], 'pub/sub 解耦，channel 热插拔', {reason:7,memory:8,plan:7,collab:8,learn:5,safety:9,aware:5,extend:9}],
+  ['Ch17','Heartbeat：让 Agent 主动找你', ['plan'], 'Proactive vs Reactive，always-on 核心', {reason:7,memory:8,plan:8,collab:8,learn:5,safety:9,aware:5,extend:9}],
+  ['Ch18','Cron 与长任务', ['plan'], '断点续传，崩溃恢复，跨天任务', {reason:7,memory:8,plan:9,collab:8,learn:5,safety:9,aware:5,extend:9}],
+  ['Ch19','MCP 协议', ['extend'], '万物皆可连接，200 行 stdio 实现', {reason:7,memory:8,plan:9,collab:8,learn:5,safety:9,aware:5,extend:10}],
+  ['Ch20','Docker Sandbox', ['safety'], '生产级代码执行，seccomp，AppArmor', {reason:7,memory:8,plan:9,collab:8,learn:5,safety:10,aware:5,extend:10}],
+  ['Ch21','Evals：量化 agent 质量', ['learn'], 'LLM-as-Judge，golden dataset，CI 回归', {reason:7,memory:8,plan:9,collab:8,learn:8,safety:10,aware:5,extend:10}],
+  ['Ch22','可观测性与部署', ['aware'], 'Agent trace，cost 追踪，上线 checklist', {reason:7,memory:8,plan:9,collab:8,learn:8,safety:10,aware:9,extend:10}],
+  ['Ch23','Specialization Pattern', ['learn'], 'system prompt 特化/工具裁剪/skills 注入', {reason:7,memory:8,plan:9,collab:8,learn:9,safety:10,aware:9,extend:10}],
+  ['Ch24','实战：Browser Agent', [], 'DOM 感知 + CDP，自主浏览网页完成任务', {reason:8,memory:8,plan:9,collab:8,learn:9,safety:10,aware:9,extend:10}],
+  ['Ch25','从通用到自主（终章）', [], '派生你自己的专用 agent，下一步', {reason:8,memory:8,plan:9,collab:8,learn:9,safety:10,aware:9,extend:10}],
+];
+
+const DIM_TAG_CLASS = {reason:'reason',memory:'memory',plan:'plan',collab:'collab',learn:'learn',safety:'safety',aware:'aware',extend:'extend'};
+
+// Render dim legend
+const dimGrid = document.getElementById('dimGrid');
+DIMS.forEach(d => {
+  const card = document.createElement('div');
+  card.className = 'dim-card';
+  card.innerHTML = `<div class="dim-num">${d.num}</div><div class="dim-name">${d.name}</div><div class="dim-desc">${d.desc}</div>`;
+  dimGrid.appendChild(card);
+});
+
+// Render chapter list
+const chList = document.getElementById('chList');
+let activeRow = null;
+CHAPTERS.forEach((ch, idx) => {
+  const [num, title, dims, desc, scores] = ch;
+  const row = document.createElement('div');
+  row.className = 'ch-row';
+  const tagsHtml = dims.map(d => {
+    const dim = DIMS.find(x => x.id === d);
+    return `<span class="tag tag-${d}">${dim ? dim.num + dim.name : d}</span>`;
+  }).join('');
+  row.innerHTML = `
+    <span class="ch-num">${num}</span>
+    <span class="ch-title">${title}</span>
+    <span class="ch-tags">${tagsHtml || '<span style="color:#475569;font-size:0.75rem">方法论 / 综合</span>'}</span>
+  `;
+  row.addEventListener('click', () => {
+    if (activeRow) activeRow.classList.remove('active');
+    row.classList.add('active');
+    activeRow = row;
+    showDetail(num, title, desc, dims, scores);
+  });
+  chList.appendChild(row);
+});
+
+function showDetail(num, title, desc, dims, scores) {
+  const panel = document.getElementById('detail');
+  document.getElementById('dTitle').textContent = `${num}  ${title}`;
+  document.getElementById('dMeta').textContent = dims.length
+    ? `本章解锁：${dims.map(d => { const x = DIMS.find(y => y.id===d); return x ? x.num+x.name : d; }).join('、')}`
+    : '方法论章 / 综合收尾（无新解锁维度，但强化已有能力）';
+  document.getElementById('dDesc').textContent = desc;
+  const barsEl = document.getElementById('dBars');
+  barsEl.innerHTML = DIMS.map(d => {
+    const val = scores[d.id] || 0;
+    return `<div class="bar-row">
+      <span class="bar-label">${d.num} ${d.name}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${val*10}%;background:${d.color}"></div></div>
+      <span class="bar-val">${val}/10</span>
+    </div>`;
+  }).join('');
+  panel.classList.add('visible');
+}
+</script>
+</body>
+</html>

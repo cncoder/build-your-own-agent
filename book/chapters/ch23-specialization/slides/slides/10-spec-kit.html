@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 54px; font-weight: 900; }
+
+.layout { position: absolute; top: 230px; left: 100px; right: 100px; display: flex; gap: 40px; }
+
+/* 左：命令行动画区 */
+.terminal {
+  width: 760px; flex-shrink: 0;
+  background: #0a0c14; border: 1px solid rgba(153,102,255,0.2);
+  border-radius: 8px; overflow: hidden;
+}
+.terminal-bar {
+  padding: 10px 16px; background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; gap: 8px;
+}
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.r { background: #ff5f57; } .dot.y { background: #ffbd2e; } .dot.g { background: #28c840; }
+.terminal-title { font-size: 12px; color: rgba(255,255,255,0.25); margin-left: 8px; letter-spacing: 0.1em; }
+.terminal-body { padding: 24px 24px; font-family: 'SF Mono','Fira Code',monospace; font-size: 13px; line-height: 2; }
+.prompt { color: rgba(153,102,255,0.6); }
+.cmd { color: #cc88ff; }
+.output-ok { color: #00cc66; }
+.output-dim { color: rgba(255,255,255,0.35); }
+.output-next { color: #ffcc66; }
+.cursor { display: inline-block; width: 8px; height: 14px; background: #9966ff; animation: blink 1s infinite; vertical-align: middle; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* 右：三列对比 */
+.three-col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+.col-title { font-size: 13px; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); text-transform: uppercase; margin-bottom: 8px; }
+.agents-row { display: flex; gap: 16px; flex: 1; }
+.agent-card {
+  flex: 1; border-radius: 8px; padding: 20px;
+}
+.agent-card.trader  { background: rgba(0,200,100,0.04); border: 1px solid rgba(0,200,100,0.2); }
+.agent-card.news    { background: rgba(0,150,255,0.04); border: 1px solid rgba(0,150,255,0.2); }
+.agent-card.devops  { background: rgba(255,150,0,0.04);  border: 1px solid rgba(255,150,0,0.2);  }
+.agent-icon { font-size: 28px; margin-bottom: 10px; }
+.agent-name-big { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.agent-card.trader  .agent-name-big { color: #00cc66; }
+.agent-card.news    .agent-name-big { color: #3399ff; }
+.agent-card.devops  .agent-name-big { color: #ff9900; }
+.agent-detail { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.8; font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="title">Lena-SpecKit · lena-v1.9</div>
+<div class="heading">一行命令 fork Lena 为任意专用 agent</div>
+
+<div class="layout">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="terminal-title">lena-spec · Lena-SpecKit v1.9</span>
+    </div>
+    <div class="terminal-body">
+<span class="prompt">$</span> <span class="cmd">python -m spec_kit.cli create trader \
+    --role "crypto trader" --template trading</span>
+
+<span class="output-dim">创建专用 agent：trader</span>
+<span class="output-dim">  角色：crypto trader</span>
+<span class="output-dim">  模板：trading</span>
+
+<span class="output-ok">✓</span> <span class="output-dim">创建成功：agents/trader</span>
+<span class="output-ok">✓</span> <span class="output-dim">system prompt: agents/trader/system_prompt.md</span>
+<span class="output-ok">✓</span> <span class="output-dim">工具集 (7 个): agents/trader/tool_profile.json</span>
+<span class="output-ok">✓</span> <span class="output-dim">skills: agents/trader/skills/trading-sop.md</span>
+<span class="output-ok">✓</span> <span class="output-dim">config: agents/trader/config.json</span>
+
+<span class="output-next">下一步：</span>
+  <span class="output-dim">1. vim agents/trader/config.json  # 填入 API 密钥</span>
+  <span class="output-dim">2. python -m spec_kit.cli test trader</span>
+  <span class="output-dim">3. python -m spec_kit.cli deploy trader</span>
+<span class="prompt">$</span> <span class="cursor"></span>
+    </div>
+  </div>
+
+  <div class="three-col">
+    <div class="col-title">已派生的专用 agent</div>
+    <div class="agents-row">
+      <div class="agent-card trader">
+        <div class="agent-icon">📈</div>
+        <div class="agent-name-big">TradingBot</div>
+        <div class="agent-detail">
+          template: trading<br>
+          tools: 7<br>
+          skill: trading-sop.md<br>
+          prompt: 量化交易员人格
+        </div>
+      </div>
+      <div class="agent-card news">
+        <div class="agent-icon">📰</div>
+        <div class="agent-name-big">NewsBot</div>
+        <div class="agent-detail">
+          forked_from: main<br>
+          tools: 4<br>
+          skill: news-sop.md<br>
+          prompt: 新闻编辑人格
+        </div>
+      </div>
+      <div class="agent-card devops">
+        <div class="agent-icon">🔧</div>
+        <div class="agent-name-big">DevOpsBot</div>
+        <div class="agent-detail">
+          template: devops<br>
+          tools: 3<br>
+          skill: devops-sop.md<br>
+          prompt: 运维工程师人格
+        </div>
+      </div>
+    </div>
+    <div style="padding: 16px 20px; background: rgba(153,102,255,0.04); border: 1px solid rgba(153,102,255,0.12); border-radius: 6px; font-size: 13px; color: rgba(200,180,255,0.6); line-height: 1.7;">
+      <strong style="color:#cc88ff">Design Note：</strong>SpecKit 故意做成"薄层"——只做模板渲染和目录生成，不封装 LLM 调用逻辑。底层还是 Anthropic SDK 原生调用。框架升级时，只需更新底层，不需要维护重量级封装。
+    </div>
+  </div>
+</div>
+</body>
+</html>

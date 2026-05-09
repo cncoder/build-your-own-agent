@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch 1 · 你好，Agent：从一次 API 调用开始</title>
+<style>
+  :root {
+    --bg:          #030712;
+    --surface:     #0a0e1a;
+    --surface2:    #0d1433;
+    --border:      #1e293b;
+    --border2:     #0f172a;
+    --blue:        #4a9eff;
+    --blue-dim:    #1d4ed8;
+    --purple:      #a855f7;
+    --purple-dim:  #7e22ce;
+    --green:       #34d399;
+    --green-dim:   #059669;
+    --cyan:        #22d3ee;
+    --amber:       #fbbf24;
+    --red:         #f87171;
+    --text:        #e2e8f0;
+    --text-muted:  #94a3b8;
+    --text-dim:    #475569;
+    --mono:        'SF Mono', 'Cascadia Code', 'Fira Code', Monaco, monospace;
+    --sans:        -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%; background: #000;
+    overflow: hidden;
+    font-family: var(--sans);
+  }
+
+  #stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  #scaler {
+    position: relative;
+    width: 1920px; height: 1080px;
+    transform-origin: top left;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    background: var(--bg);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .slide.active { display: flex; }
+  .slide.visible { opacity: 1; }
+
+  /* ──── Grid bg ──── */
+  .grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* ──── Slide counter ──── */
+  #counter {
+    position: fixed;
+    bottom: 18px; right: 28px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    z-index: 200;
+    letter-spacing: 0.08em;
+  }
+
+  /* ──── Nav hints ──── */
+  #nav-hint {
+    position: fixed;
+    bottom: 18px; left: 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    z-index: 200;
+  }
+
+  /* ──── Progress bar ──── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--purple), var(--green));
+    z-index: 300;
+    transition: width 0.4s ease;
+  }
+
+  /* ─────────────────────────────────────────────
+     SHARED COMPONENTS
+  ───────────────────────────────────────────── */
+
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+  .tag-blue  { background: rgba(74,158,255,.12); color: var(--blue);   border: 1px solid rgba(74,158,255,.3); }
+  .tag-purple{ background: rgba(168,85,247,.12); color: var(--purple); border: 1px solid rgba(168,85,247,.3); }
+  .tag-green { background: rgba(52,211,153,.12); color: var(--green);  border: 1px solid rgba(52,211,153,.3); }
+  .tag-amber { background: rgba(251,191,36,.1);  color: var(--amber);  border: 1px solid rgba(251,191,36,.25); }
+
+  .mono { font-family: var(--mono); }
+
+  .code-block {
+    background: #020810;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .code-block .kw  { color: #a78bfa; }
+  .code-block .fn  { color: #60a5fa; }
+  .code-block .str { color: #86efac; }
+  .code-block .num { color: var(--amber); }
+  .code-block .cmt { color: #334155; }
+  .code-block .hl  { color: var(--text); }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 1: COVER
+  ───────────────────────────────────────────── */
+
+  #s1 {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse 100% 80% at 50% 120%, #0d1b40 0%, var(--bg) 60%);
+  }
+
+  #s1 .cover-eyebrow {
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 0.18em;
+    color: var(--blue);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0.8;
+  }
+
+  #s1 .cover-title {
+    font-size: 86px;
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: var(--text);
+    max-width: 1200px;
+  }
+
+  #s1 .cover-title .accent-blue { color: var(--blue); }
+  #s1 .cover-title .accent-purple { color: var(--purple); }
+
+  #s1 .cover-sub {
+    margin-top: 36px;
+    font-size: 24px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  #s1 .cover-tagline {
+    margin-top: 52px;
+    font-family: var(--mono);
+    font-size: 17px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    border: 1px solid var(--border);
+    padding: 14px 32px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.02);
+  }
+
+  #s1 .cover-badge {
+    position: absolute;
+    bottom: 52px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  /* Decorative orbs */
+  #s1 .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 2: WHAT IS LLM
+  ───────────────────────────────────────────── */
+
+  #s2 { align-items: center; justify-content: center; }
+
+  #s2 .llm-diagram {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    justify-content: center;
+    width: 100%;
+    padding: 0 120px;
+  }
+
+  .box-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 40px;
+  }
+
+  .arrow-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .arrow-svg { flex-shrink: 0; }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 3: LLM vs AGENT
+  ───────────────────────────────────────────── */
+
+  #s3 { align-items: stretch; justify-content: flex-start; flex-direction: column; }
+
+  #s3 .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #s3 .compare-col {
+    padding: 52px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  #s3 .compare-col.llm-col  { background: #030b1a; border-right: 1px solid var(--border); }
+  #s3 .compare-col.agent-col { background: #060214; }
+
+  #s3 .compare-title {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  #s3 .trait-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+
+  #s3 .trait-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  #s3 .trait-label { font-size: 18px; font-weight: 600; color: var(--text); }
+  #s3 .trait-desc  { font-size: 14px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 4: WHY NOT CHATGPT
+  ───────────────────────────────────────────── */
+
+  #s4 { align-items: center; justify-content: center; flex-direction: column; }
+
+  #s4 .comparison-table {
+    width: 1500px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  #s4 .ct-header {
+    display: grid;
+    grid-template-columns: 240px 1fr 1fr;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  #s4 .ct-header > div {
+    padding: 18px 28px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+
+  #s4 .ct-row {
+    display: grid;
+    grid-template-columns: 240px 1fr 1fr;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  #s4 .ct-row:last-child { border-bottom: none; }
+  #s4 .ct-row > div { padding: 16px 28px; font-size: 15px; }
+  #s4 .ct-row .dim-col { color: var(--text-dim); font-family: var(--mono); font-size: 14px; }
+  #s4 .ct-row .chatgpt-col { color: var(--text-muted); }
+  #s4 .ct-row .api-col { color: var(--green); }
+  #s4 .ct-row:nth-child(odd) { background: rgba(255,255,255,.01); }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 5: THREE PROVIDERS
+  ───────────────────────────────────────────── */
+
+  #s5 { align-items: stretch; flex-direction: column; }
+
+  #s5 .providers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #s5 .provider-col {
+    padding: 48px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden;
+  }
+
+  #s5 .provider-col.anthropic { background: #030b1a; border-right: 1px solid var(--border); }
+  #s5 .provider-col.openai    { background: #050f05; border-right: 1px solid var(--border); }
+  #s5 .provider-col.bedrock   { background: #06020f; }
+
+  #s5 .provider-name {
+    font-size: 26px;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 6: THE 10-LINE CODE
+  ───────────────────────────────────────────── */
+
+  #s6 { align-items: center; justify-content: center; flex-direction: column; }
+
+  #s6 .code-container {
+    width: 1300px;
+    background: #020810;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 80px rgba(74,158,255,.06);
+  }
+
+  #s6 .code-titlebar {
+    background: var(--surface2);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #s6 .dot { width: 13px; height: 13px; border-radius: 50%; }
+  #s6 .dot-r { background: #ff5f57; }
+  #s6 .dot-y { background: #ffbd2e; }
+  #s6 .dot-g { background: #28ca41; }
+  #s6 .filename { font-family: var(--mono); font-size: 13px; color: var(--text-dim); margin-left: 8px; }
+
+  #s6 .code-lines {
+    padding: 32px 48px;
+    font-family: var(--mono);
+    font-size: 18px;
+    line-height: 1.85;
+  }
+  #s6 .ln { color: #1e3a5f; width: 36px; display: inline-block; text-align: right; margin-right: 24px; user-select: none; }
+  #s6 .kw  { color: #a78bfa; }
+  #s6 .fn  { color: #60a5fa; }
+  #s6 .str { color: #86efac; }
+  #s6 .num { color: var(--amber); }
+  #s6 .cmt { color: #334155; }
+  #s6 .hl  { color: var(--text); }
+  #s6 .line-hl { background: rgba(74,158,255,.06); display: block; margin: 0 -48px; padding: 0 48px; }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 7: TERMINAL OUTPUT
+  ───────────────────────────────────────────── */
+
+  #s7 { align-items: center; justify-content: center; flex-direction: column; gap: 40px; }
+
+  #s7 .terminal {
+    width: 1300px;
+    background: #010508;
+    border: 1px solid #1a2a3a;
+    border-radius: 16px;
+    overflow: hidden;
+    font-family: var(--mono);
+  }
+
+  #s7 .term-bar {
+    background: #0d1a26;
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #1a2a3a;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  #s7 .term-body {
+    padding: 28px 36px;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  #s7 .term-cmd  { color: var(--green); }
+  #s7 .term-prompt { color: var(--blue); }
+  #s7 .term-output { color: var(--text-muted); }
+  #s7 .term-dim  { color: var(--text-dim); }
+  #s7 .term-warn { color: var(--amber); }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 8: LENA ROADMAP
+  ───────────────────────────────────────────── */
+
+  #s8 { align-items: center; justify-content: center; flex-direction: column; gap: 0; }
+
+  #s8 .roadmap-wrap {
+    width: 1680px;
+    position: relative;
+    padding: 20px 0;
+  }
+
+  #s8 .roadmap-row {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 8px;
+    position: relative;
+  }
+
+  #s8 .rm-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    position: relative;
+  }
+
+  #s8 .rm-node.active {
+    border-color: var(--blue);
+    background: rgba(74,158,255,.08);
+    box-shadow: 0 0 24px rgba(74,158,255,.12);
+  }
+
+  #s8 .rm-node.future { opacity: 0.5; }
+
+  #s8 .rm-ch {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  #s8 .rm-ver {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+
+  #s8 .rm-cap {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 9: SIX PILLARS
+  ───────────────────────────────────────────── */
+
+  #s9 { align-items: center; justify-content: center; flex-direction: column; }
+
+  #s9 .pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px;
+    width: 1500px;
+    margin-top: 40px;
+  }
+
+  #s9 .pillar-card {
+    border-radius: 20px;
+    padding: 36px 40px;
+    border: 1px solid;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #s9 .pillar-card.locked {
+    opacity: 0.35;
+    filter: grayscale(0.6);
+  }
+
+  #s9 .pillar-card.unlocked {
+    border-color: var(--blue);
+    background: rgba(74,158,255,.06);
+    box-shadow: 0 0 40px rgba(74,158,255,.1);
+  }
+
+  #s9 .pillar-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    opacity: 0.5;
+  }
+
+  #s9 .pillar-name {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  #s9 .pillar-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  #s9 .pillar-ch {
+    font-family: var(--mono);
+    font-size: 12px;
+    opacity: 0.5;
+    margin-top: auto;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 10: DESIGN NOTE — WHY PYTHON
+  ───────────────────────────────────────────── */
+
+  #s10 { align-items: center; justify-content: center; }
+
+  #s10 .dn-card {
+    width: 1400px;
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d0820 100%);
+    border: 1px solid rgba(168,85,247,.25);
+    border-radius: 24px;
+    padding: 56px 64px;
+    position: relative;
+  }
+
+  #s10 .dn-badge {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--purple);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  #s10 .dn-title {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 40px;
+    line-height: 1.15;
+  }
+
+  #s10 .tradeoff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+
+  #s10 .tradeoff-col {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px;
+  }
+
+  #s10 .tradeoff-lang {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  #s10 .tradeoff-point {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  #s10 .tradeoff-point:last-child { border: none; }
+  #s10 .tradeoff-point .check { color: var(--green); margin-right: 8px; }
+  #s10 .tradeoff-point .cross { color: #475569; margin-right: 8px; }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 11: FURTHER READING
+  ───────────────────────────────────────────── */
+
+  #s11 { align-items: center; justify-content: center; flex-direction: column; }
+
+  #s11 .reading-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 1400px;
+    margin-top: 40px;
+  }
+
+  #s11 .reading-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #s11 .reading-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  #s11 .reading-url {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--blue);
+    opacity: 0.7;
+    word-break: break-all;
+  }
+  #s11 .reading-desc { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 12: SUMMARY
+  ───────────────────────────────────────────── */
+
+  #s12 {
+    align-items: center; justify-content: center; flex-direction: column;
+    background: radial-gradient(ellipse 90% 70% at 50% 120%, #0d1040 0%, var(--bg) 60%);
+  }
+
+  #s12 .summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: 1300px;
+    margin-top: 48px;
+  }
+
+  #s12 .summary-item {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    padding: 28px 36px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+
+  #s12 .summary-num {
+    font-family: var(--mono);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--blue);
+    opacity: 0.35;
+    flex-shrink: 0;
+    line-height: 1;
+    width: 52px;
+  }
+
+  #s12 .summary-text { font-size: 20px; color: var(--text); line-height: 1.55; }
+  #s12 .summary-text strong { color: var(--text); font-weight: 700; }
+
+  /* ─────────────────────────────────────────────
+     SLIDE HEADERS (shared)
+  ───────────────────────────────────────────── */
+
+  .slide-header {
+    padding: 36px 72px 28px;
+    border-bottom: 1px solid var(--border2);
+    background: rgba(0,0,0,.3);
+    flex-shrink: 0;
+  }
+
+  .slide-header .sh-eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .slide-header .sh-title {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+  }
+
+  .slide-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Glow orb reusable */
+  .orb-blue {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: rgba(74,158,255,.12); filter: blur(80px);
+  }
+  .orb-purple {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: rgba(168,85,247,.1); filter: blur(80px);
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="stage">
+  <div id="scaler">
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 1 · COVER
+    ════════════════════════════════════════════ -->
+    <div id="s1" class="slide">
+      <div class="grid-bg"></div>
+
+      <!-- decorative orbs -->
+      <div class="orb-blue" style="width:600px;height:600px;top:-100px;left:-100px;opacity:0.6;"></div>
+      <div class="orb-purple" style="width:700px;height:700px;bottom:-200px;right:-100px;opacity:0.6;"></div>
+      <div class="orb-blue" style="width:300px;height:300px;top:300px;right:300px;opacity:0.3;"></div>
+
+      <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;">
+        <div class="cover-eyebrow">《从零构建你的 AI Agent》· 第一章</div>
+
+        <div class="cover-title">
+          你好，<span class="accent-blue">Agent</span>
+          <br>
+          从一次 <span class="accent-purple">API 调用</span>开始
+        </div>
+
+        <div class="cover-sub">
+          20 分钟 · 10 行代码 · 三家 API · lena-v0.1 跑通
+        </div>
+
+        <div class="cover-tagline">
+          $ python3 lena.py anthropic&nbsp;&nbsp;#&nbsp;让我们开始
+        </div>
+
+        <div class="cover-badge">
+          <span class="tag tag-blue">🧱 核心章节</span>
+          <span class="tag tag-purple">🎙️ 配播客</span>
+          <span class="tag tag-green">🕹️ 可交互 Demo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 2 · WHAT IS LLM
+    ════════════════════════════════════════════ -->
+    <div id="s2" class="slide">
+      <div class="grid-bg" style="opacity:0.5;"></div>
+
+      <div style="display:flex;flex-direction:column;width:100%;height:100%;">
+        <div class="slide-header">
+          <div class="sh-eyebrow">核心概念 01</div>
+          <div class="sh-title">什么是 LLM？一张"输入→黑盒→输出"极简图</div>
+        </div>
+
+        <div class="slide-body" style="align-items:center;justify-content:center;padding:0 80px;">
+          <div class="llm-diagram">
+
+            <!-- Input -->
+            <div class="box-card" style="min-width:280px;text-align:center;border-color:rgba(74,158,255,.3);">
+              <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);letter-spacing:.1em;margin-bottom:16px;">INPUT · PROMPT</div>
+              <div style="font-size:26px;color:var(--text);line-height:1.4;margin-bottom:12px;">"明天天气<br>怎么样？"</div>
+              <div class="tag tag-blue" style="font-size:11px;">字符串 · tokens</div>
+            </div>
+
+            <!-- Arrow 1 -->
+            <div class="arrow-line">
+              <svg width="100" height="32" class="arrow-svg">
+                <defs>
+                  <marker id="ah1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L8,3 z" fill="#4a9eff"/>
+                  </marker>
+                </defs>
+                <line x1="0" y1="16" x2="92" y2="16" stroke="#4a9eff" stroke-width="2.5" marker-end="url(#ah1)"/>
+              </svg>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">tokenize</div>
+            </div>
+
+            <!-- LLM Black box -->
+            <div style="position:relative;">
+              <div class="box-card" style="min-width:400px;text-align:center;border-color:var(--blue);background:#060c1a;padding:40px 48px;box-shadow:0 0 60px rgba(74,158,255,.08);">
+                <div style="font-family:var(--mono);font-size:13px;color:var(--blue);letter-spacing:.1em;margin-bottom:20px;">LLM · 大语言模型</div>
+                <div style="font-size:64px;color:var(--text-dim);margin-bottom:16px;">⬛</div>
+                <div style="font-size:16px;color:var(--text-muted);margin-bottom:8px;">数十亿参数的神经网络</div>
+                <div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);">训练截止：2025-04</div>
+              </div>
+            </div>
+
+            <!-- Arrow 2 -->
+            <div class="arrow-line">
+              <svg width="100" height="32" class="arrow-svg">
+                <defs>
+                  <marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L8,3 z" fill="#4a9eff"/>
+                  </marker>
+                </defs>
+                <line x1="0" y1="16" x2="92" y2="16" stroke="#4a9eff" stroke-width="2.5" marker-end="url(#ah2)"/>
+              </svg>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);">generate</div>
+            </div>
+
+            <!-- Output -->
+            <div class="box-card" style="min-width:280px;text-align:center;border-color:rgba(74,158,255,.3);">
+              <div style="font-family:var(--mono);font-size:13px;color:var(--text-dim);letter-spacing:.1em;margin-bottom:16px;">OUTPUT · COMPLETION</div>
+              <div style="font-size:22px;color:var(--red);line-height:1.4;margin-bottom:12px;">"我无法查询<br>实时天气信息"</div>
+              <div class="tag tag-amber" style="font-size:11px;">❌ 无实时数据</div>
+            </div>
+
+          </div>
+
+          <!-- Traits -->
+          <div style="display:flex;gap:20px;margin-top:52px;">
+            <div class="tag tag-blue">无状态</div>
+            <div class="tag tag-blue">单次调用</div>
+            <div class="tag tag-blue">纯文字 I/O</div>
+            <div class="tag tag-blue">知识有截止日期</div>
+            <div class="tag tag-amber">没有工具</div>
+            <div class="tag tag-amber">没有循环</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 3 · LLM vs AGENT
+    ════════════════════════════════════════════ -->
+    <div id="s3" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">核心概念 02</div>
+        <div class="sh-title">LLM vs Agent：函数 <span style="color:var(--text-dim);font-weight:300;">vs</span> 程序</div>
+      </div>
+
+      <div class="compare-grid" style="flex:1;overflow:hidden;">
+        <!-- LLM -->
+        <div class="compare-col llm-col">
+          <div class="compare-title" style="color:var(--blue);">
+            <span style="font-size:28px;">f(x)</span>
+            LLM（函数）
+          </div>
+
+          <div class="trait-row">
+            <div class="trait-icon" style="background:rgba(248,113,113,.12);color:#f87171;">✗</div>
+            <div>
+              <div class="trait-label">无状态</div>
+              <div class="trait-desc">每次调用独立，不记得上次说了什么</div>
+            </div>
+          </div>
+          <div class="trait-row">
+            <div class="trait-icon" style="background:rgba(248,113,113,.12);color:#f87171;">✗</div>
+            <div>
+              <div class="trait-label">无工具</div>
+              <div class="trait-desc">只能生成文字，不能查 API、读文件</div>
+            </div>
+          </div>
+          <div class="trait-row">
+            <div class="trait-icon" style="background:rgba(248,113,113,.12);color:#f87171;">✗</div>
+            <div>
+              <div class="trait-label">无循环</div>
+              <div class="trait-desc">一问一答，不能多步规划</div>
+            </div>
+          </div>
+          <div class="trait-row" style="border:none;">
+            <div class="trait-icon" style="background:rgba(52,211,153,.12);color:var(--green);">✓</div>
+            <div>
+              <div class="trait-label">极速</div>
+              <div class="trait-desc">单次调用毫秒级，cost 低</div>
+            </div>
+          </div>
+
+          <div class="code-block" style="font-size:14px;margin-top:auto;">
+            <span class="cmt"># 函数模型</span><br>
+            result = <span class="fn">llm</span>(<span class="str">"明天天气?"</span>)<br>
+            <span class="cmt"># 结束了，没有循环</span>
+          </div>
+        </div>
+
+        <!-- Agent -->
+        <div class="compare-col agent-col">
+          <div class="compare-title" style="color:var(--purple);">
+            <span style="font-size:28px;">⟳</span>
+            Agent（程序）
+          </div>
+
+          <div class="trait-row">
+            <div class="trait-icon" style="background:rgba(168,85,247,.12);color:var(--purple);">✓</div>
+            <div>
+              <div class="trait-label" style="color:var(--purple);">有循环</div>
+              <div class="trait-desc">while True: 多步决策，直到任务完成</div>
+            </div>
+          </div>
+          <div class="trait-row">
+            <div class="trait-icon" style="background:rgba(52,211,153,.12);color:var(--green);">✓</div>
+            <div>
+              <div class="trait-label" style="color:var(--green);">有工具</div>
+              <div class="trait-desc">调用 API、读文件、执行代码、搜索网页</div>
+            </div>
+          </div>
+          <div class="trait-row">
+            <div class="trait-icon" style="background:rgba(34,211,238,.12);color:var(--cyan);">✓</div>
+            <div>
+              <div class="trait-label" style="color:var(--cyan);">有记忆</div>
+              <div class="trait-desc">每步结果加进上下文，上一步影响下一步</div>
+            </div>
+          </div>
+          <div class="trait-row" style="border:none;">
+            <div class="trait-icon" style="background:rgba(251,191,36,.1);color:var(--amber);">✓</div>
+            <div>
+              <div class="trait-label" style="color:var(--amber);">有主动性</div>
+              <div class="trait-desc">不等你问，定时推送晨报（Ch13 Heartbeat）</div>
+            </div>
+          </div>
+
+          <div class="code-block" style="font-size:14px;margin-top:auto;">
+            <span class="cmt"># 程序模型</span><br>
+            <span class="kw">while</span> task.pending:<br>
+            &nbsp;&nbsp;decision = <span class="fn">llm</span>(context)<br>
+            &nbsp;&nbsp;<span class="kw">if</span> decision.tool:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;result = <span class="fn">execute</span>(decision.tool)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;context += result  <span class="cmt"># 循环！</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 4 · WHY NOT CHATGPT
+    ════════════════════════════════════════════ -->
+    <div id="s4" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">动机</div>
+        <div class="sh-title">为什么不直接用 ChatGPT？——可控、可扩展、可组合</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;padding:40px 80px;">
+        <div class="comparison-table">
+          <div class="ct-header">
+            <div style="color:var(--text-dim);">维度</div>
+            <div style="color:#60a5fa;text-align:center;">ChatGPT / Claude.ai</div>
+            <div style="color:var(--green);text-align:center;">直调 API（你的代码）</div>
+          </div>
+
+          <div class="ct-row">
+            <div class="dim-col">模型选择</div>
+            <div class="chatgpt-col">固定，版本不由你控制</div>
+            <div class="api-col">✓ 自选 Anthropic / OpenAI / Bedrock</div>
+          </div>
+          <div class="ct-row">
+            <div class="dim-col">工具调用</div>
+            <div class="chatgpt-col">内置固定工具，无法扩展</div>
+            <div class="api-col">✓ 你定义工具是什么</div>
+          </div>
+          <div class="ct-row">
+            <div class="dim-col">记忆策略</div>
+            <div class="chatgpt-col">固定窗口，不透明</div>
+            <div class="api-col">✓ 你控制压缩、向量搜索、持久化</div>
+          </div>
+          <div class="ct-row">
+            <div class="dim-col">成本结构</div>
+            <div class="chatgpt-col">订阅制，无法分层</div>
+            <div class="api-col">✓ Opus 主控 + Haiku IO，差价 20-30×</div>
+          </div>
+          <div class="ct-row">
+            <div class="dim-col">可观测性</div>
+            <div class="chatgpt-col">黑盒，无日志</div>
+            <div class="api-col">✓ 每条请求完整可追踪</div>
+          </div>
+          <div class="ct-row" style="border:none;">
+            <div class="dim-col">可组合性</div>
+            <div class="chatgpt-col">封闭，不能集成进你的系统</div>
+            <div class="api-col">✓ 任意接入你的工作流 / Telegram / HA</div>
+          </div>
+        </div>
+
+        <div style="margin-top:32px;font-size:16px;color:var(--text-dim);font-family:var(--mono);text-align:center;">
+          实机案例：在真实生产系统中，同一实例 Opus 主控 + Sonnet 子任务 + Haiku IO，月度账单降幅约 58%
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 5 · THREE PROVIDERS
+    ════════════════════════════════════════════ -->
+    <div id="s5" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">工程细节</div>
+        <div class="sh-title">三家 API 格式对比——同一件事，三种写法</div>
+      </div>
+
+      <div class="providers-grid">
+        <!-- Anthropic -->
+        <div class="provider-col anthropic">
+          <div class="provider-name" style="color:var(--blue);">Anthropic</div>
+          <div class="tag tag-blue" style="align-self:flex-start;font-size:11px;">Messages API</div>
+          <div class="code-block" style="font-size:13px;flex:1;">
+            <span class="cmt"># system 是顶层字段</span><br>
+            client.<span class="fn">messages.create</span>(<br>
+            &nbsp;&nbsp;model=<span class="str">"claude-opus-4-5-20251101"</span>,<br>
+            &nbsp;&nbsp;<span style="color:var(--cyan);">system=<span class="str">"你是 Lena"</span>,</span>&nbsp;<span class="cmt">← 顶层</span><br>
+            &nbsp;&nbsp;messages=[{<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"role"</span>: <span class="str">"user"</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"content"</span>: <span class="str">"你好"</span>&nbsp;<span class="cmt">← 字符串</span><br>
+            &nbsp;&nbsp;}]<br>
+            )<br><br>
+            <span class="cmt"># 回复路径</span><br>
+            resp.content[<span class="num">0</span>].text<br>
+            resp.stop_reason  <span class="cmt"># "end_turn"</span>
+          </div>
+        </div>
+
+        <!-- OpenAI -->
+        <div class="provider-col openai">
+          <div class="provider-name" style="color:var(--green);">OpenAI</div>
+          <div class="tag tag-green" style="align-self:flex-start;font-size:11px;">Chat Completions</div>
+          <div class="code-block" style="font-size:13px;flex:1;">
+            <span class="cmt"># system 在 messages 里</span><br>
+            client.chat.completions.<span class="fn">create</span>(<br>
+            &nbsp;&nbsp;model=<span class="str">"gpt-4o"</span>,<br>
+            &nbsp;&nbsp;messages=[<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--amber);">{<span class="str">"role"</span>:<span class="str">"system"</span>,&nbsp;<span class="cmt">← 列表里</span></span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"content"</span>:<span class="str">"你是 Lena"</span>},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;{<span class="str">"role"</span>:<span class="str">"user"</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"content"</span>:<span class="str">"你好"</span>}<br>
+            &nbsp;&nbsp;]<br>
+            )<br><br>
+            <span class="cmt"># 回复路径</span><br>
+            resp.choices[<span class="num">0</span>].message.content<br>
+            resp.choices[<span class="num">0</span>].finish_reason
+          </div>
+        </div>
+
+        <!-- Bedrock -->
+        <div class="provider-col bedrock">
+          <div class="provider-name" style="color:var(--purple);">AWS Bedrock</div>
+          <div class="tag tag-purple" style="align-self:flex-start;font-size:11px;">Converse API</div>
+          <div class="code-block" style="font-size:13px;flex:1;">
+            <span class="cmt"># content 是列表！blood tears: inferenceProfileId</span><br>
+            bedrock.<span class="fn">converse</span>(<br>
+            &nbsp;&nbsp;modelId=<span style="color:var(--red);">"us.anthropic.claude-sonnet-4-6"</span>,<br>
+            &nbsp;&nbsp;<span class="cmt"># ↑ inferenceProfile，不是 modelId！</span><br>
+            &nbsp;&nbsp;<span style="color:var(--cyan);">system=[{<span class="str">"text"</span>:<span class="str">"你是 Lena"</span>}],</span><br>
+            &nbsp;&nbsp;<span class="cmt"># ↑ 列表，不是字符串！</span><br>
+            &nbsp;&nbsp;messages=[{<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"role"</span>:<span class="str">"user"</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"content"</span>:[{<span class="str">"text"</span>:<span class="str">"你好"</span>}]&nbsp;<span class="cmt">← 列表</span><br>
+            &nbsp;&nbsp;}],<br>
+            &nbsp;&nbsp;inferenceConfig={<span class="str">"maxTokens"</span>:<span class="num">1024</span>}<br>
+            )<br><br>
+            <span class="cmt"># 回复路径（多层）</span><br>
+            resp[<span class="str">"output"</span>][<span class="str">"message"</span>][<span class="str">"content"</span>][<span class="num">0</span>][<span class="str">"text"</span>]
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 6 · 10-LINE CODE
+    ════════════════════════════════════════════ -->
+    <div id="s6" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">动手写</div>
+        <div class="sh-title">10 行 Python——lena-v0.1 完整代码（Bedrock 版）</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;padding:32px;">
+        <div class="code-container">
+          <div class="code-titlebar">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+            <div class="filename">code/lena-v0.1/bedrock_hello.py</div>
+            <div style="margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--text-dim);">lena-v0.1 · Python 3.12 · boto3 1.38.0</div>
+          </div>
+
+          <div class="code-lines">
+            <span class="ln">1</span><span class="cmt">"""lena-v0.1: 最小 LLM 骨架，10 行打通 Bedrock"""</span><br>
+            <span class="ln">2</span><span class="kw">import</span> <span class="hl">boto3</span>  <span class="cmt"># pip install boto3==1.38.0</span><br>
+            <span class="ln">3</span><br>
+            <span class="ln">4</span><span class="hl">bedrock</span> = <span class="hl">boto3</span>.<span class="fn">client</span>(<span class="str">"bedrock-runtime"</span>, region_name=<span class="str">"us-east-1"</span>)<br>
+            <span class="ln">5</span><br>
+            <span class="ln">6</span><span class="line-hl"><span class="hl">response</span> = <span class="hl">bedrock</span>.<span class="fn">converse</span>(</span><br>
+            <span class="ln">7</span><span class="line-hl">    <span class="str">modelId</span>=<span class="str">"us.anthropic.claude-sonnet-4-6"</span>,  <span class="cmt"># inference profile ID！</span></span><br>
+            <span class="ln">8</span><span class="line-hl">    <span class="str">messages</span>=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: [{<span class="str">"text"</span>: <span class="str">"你好，Lena！"</span>}]}],</span><br>
+            <span class="ln">9</span><span class="line-hl">    <span class="str">inferenceConfig</span>={<span class="str">"maxTokens"</span>: <span class="num">1024</span>},</span><br>
+            <span class="ln">10</span><span class="line-hl">)</span><br>
+            <span class="ln">11</span><br>
+            <span class="ln">12</span><span class="fn">print</span>(<span class="hl">response</span>[<span class="str">"output"</span>][<span class="str">"message"</span>][<span class="str">"content"</span>][<span class="num">0</span>][<span class="str">"text"</span>])
+          </div>
+        </div>
+
+        <div style="display:flex;gap:24px;margin-top:32px;">
+          <div class="tag tag-blue">anthropic==0.84.0</div>
+          <div class="tag tag-green">openai==2.30.0</div>
+          <div class="tag tag-purple">boto3==1.38.0</div>
+          <div class="tag tag-amber">Python 3.10+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 7 · TERMINAL OUTPUT
+    ════════════════════════════════════════════ -->
+    <div id="s7" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">跑通的样子</div>
+        <div class="sh-title">终端输出截图——真实执行，2026-05-05</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;gap:32px;padding:32px;">
+        <div class="terminal">
+          <div class="term-bar">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+            <div style="margin-left:8px;">zsh · lena-v0.1/</div>
+          </div>
+
+          <div class="term-body">
+            <div><span class="term-cmd">$ python3 lena.py bedrock</span></div>
+            <div class="term-dim">[lena-v0.1] provider=bedrock</div>
+            <div class="term-dim">输入 prompt（Ctrl+C 退出）：</div>
+            <div style="margin-top:8px;"></div>
+
+            <div><span class="term-prompt">>>> </span><span style="color:var(--text);">用一句话解释什么是大语言模型</span></div>
+            <div style="margin-top:8px;"></div>
+            <div class="term-output">大语言模型是一种通过海量文本数据训练、能够理解和生成自然语言的大规模人工智能模型。</div>
+            <div class="term-dim" style="margin-top:4px;"># inputTokens=23, outputTokens=45, stopReason=end_turn ✓</div>
+            <div style="margin-top:12px;"></div>
+
+            <div><span class="term-prompt">>>> </span><span style="color:var(--text);">今天是什么日子？</span></div>
+            <div style="margin-top:8px;"></div>
+            <div class="term-output">我没有办法知道今天的确切日期，因为我无法访问实时信息或当前时间。<br>您可以查看手机、电脑或其他设备来确认今天的日期。</div>
+            <div style="margin-top:8px;"></div>
+            <div class="term-warn"># ↑ 这正是 LLM 的局限——Ch3 的 get_time 工具会解决这个问题！</div>
+            <div style="margin-top:12px;"></div>
+            <div><span class="term-cmd">^C</span></div>
+            <div class="term-dim">Bye！</div>
+          </div>
+        </div>
+
+        <div style="font-size:16px;color:var(--text-dim);font-family:var(--mono);text-align:center;">
+          model: us.anthropic.claude-sonnet-4-6 · region: us-west-2 · Python 3.14 on macOS Darwin 25.4.0
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 8 · LENA ROADMAP
+    ════════════════════════════════════════════ -->
+    <div id="s8" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">全书路线图</div>
+        <div class="sh-title">全书 Lena 能力路线图——Ch1→Ch20 版本跃迁</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;padding:28px 60px;">
+        <div class="roadmap-wrap">
+          <!-- Row 1: Ch1-10 -->
+          <div class="roadmap-row" style="margin-bottom:16px;">
+            <div class="rm-node active">
+              <div class="rm-ch">Ch 1</div>
+              <div class="rm-ver" style="color:var(--blue);">v0.1</div>
+              <div class="rm-cap">打印回复<br>三家 API</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 2</div>
+              <div class="rm-ver">v0.2</div>
+              <div class="rm-cap">ReAct<br>状态机</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 3</div>
+              <div class="rm-ver">v0.3</div>
+              <div class="rm-cap">get_time<br>while 循环</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 4</div>
+              <div class="rm-ver">v0.4</div>
+              <div class="rm-cap">工具注册<br>4 工具</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 5</div>
+              <div class="rm-ver">v0.5</div>
+              <div class="rm-cap">SSE 流式<br>并发工具</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 6</div>
+              <div class="rm-ver">v0.6</div>
+              <div class="rm-cap">SQLite<br>记忆</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 7</div>
+              <div class="rm-ver">v0.7</div>
+              <div class="rm-cap">压缩<br>Caching</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 8</div>
+              <div class="rm-ver">v0.8</div>
+              <div class="rm-cap">子任务<br>并行派发</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 9</div>
+              <div class="rm-ver">v0.9</div>
+              <div class="rm-cap">Skills<br>加载</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 10</div>
+              <div class="rm-ver">v1.0</div>
+              <div class="rm-cap">安全门控<br>注入防御</div>
+            </div>
+          </div>
+
+          <!-- Row 2: Ch11-20 -->
+          <div class="roadmap-row">
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 11</div>
+              <div class="rm-ver">v1.1</div>
+              <div class="rm-cap">Gateway<br>Telegram</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 12</div>
+              <div class="rm-ver">v1.2</div>
+              <div class="rm-cap">MessageBus<br>热插拔</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 13</div>
+              <div class="rm-ver">v1.3</div>
+              <div class="rm-cap">Heartbeat<br>主动推送</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 14</div>
+              <div class="rm-ver">v1.4</div>
+              <div class="rm-cap">Cron<br>断点恢复</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 15</div>
+              <div class="rm-ver">v1.5</div>
+              <div class="rm-cap">MCP<br>接入生态</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 16</div>
+              <div class="rm-ver">v1.6</div>
+              <div class="rm-cap">Docker<br>真沙箱</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 17</div>
+              <div class="rm-ver">v1.7</div>
+              <div class="rm-cap">Evals<br>CI 评分</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 18</div>
+              <div class="rm-ver">v1.8</div>
+              <div class="rm-cap">部署<br>7×24</div>
+            </div>
+            <div class="rm-node future">
+              <div class="rm-ch">Ch 19</div>
+              <div class="rm-ver">v1.9</div>
+              <div class="rm-cap">派生<br>专用 Agent</div>
+            </div>
+            <div class="rm-node future" style="border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.06);">
+              <div class="rm-ch">Ch 20</div>
+              <div class="rm-ver" style="color:var(--purple);">v2.0</div>
+              <div class="rm-cap" style="color:var(--text-muted);">Browser Agent<br>自主浏览</div>
+            </div>
+          </div>
+
+          <!-- Connection line -->
+          <div style="position:absolute;top:50%;left:5%;right:5%;height:2px;background:linear-gradient(90deg,var(--blue),var(--purple));opacity:0.15;transform:translateY(-50%);pointer-events:none;"></div>
+        </div>
+
+        <div style="font-size:14px;color:var(--text-dim);margin-top:16px;text-align:center;">
+          你现在在这里：Ch 1 v0.1&nbsp;→&nbsp;每章一个可跑产物，Crafting Interpreters 范式
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 9 · SIX PILLARS
+    ════════════════════════════════════════════ -->
+    <div id="s9" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">全书结构预告</div>
+        <div class="sh-title">六大支柱——通用 Agent 的六个维度（本章预埋）</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;padding:28px 60px;">
+        <div class="pillars-grid">
+          <!-- Pillar 1: Tool Universality — unlocked -->
+          <div class="pillar-card unlocked" style="border-color:var(--blue);background:rgba(74,158,255,.06);">
+            <div class="pillar-num" style="color:var(--blue);">支柱 ①</div>
+            <div class="pillar-name" style="color:var(--blue);">Tool Universality</div>
+            <div class="pillar-desc">任何能力都可以变成工具。加工具不改核心。Pydantic → JSON Schema 自动化。</div>
+            <div class="pillar-ch" style="color:var(--blue);">Ch4-5 展开</div>
+          </div>
+
+          <!-- Pillar 2: Memory -->
+          <div class="pillar-card locked" style="border-color:var(--cyan);">
+            <div class="pillar-num" style="color:var(--cyan);">支柱 ②</div>
+            <div class="pillar-name" style="color:var(--cyan);">Memory</div>
+            <div class="pillar-desc">短期会话历史 + 长期文件系统 + 向量检索。让 agent 有「昨天」。</div>
+            <div class="pillar-ch" style="color:var(--cyan);">Ch6-7 展开</div>
+          </div>
+
+          <!-- Pillar 3: Planning -->
+          <div class="pillar-card locked" style="border-color:var(--amber);">
+            <div class="pillar-num" style="color:var(--amber);">支柱 ③</div>
+            <div class="pillar-name" style="color:var(--amber);">Planning</div>
+            <div class="pillar-desc">把大任务拆成可执行子任务。子 agent 并行派发。ReAct 升级到 Plan-Execute。</div>
+            <div class="pillar-ch" style="color:var(--amber);">Ch8 展开</div>
+          </div>
+
+          <!-- Pillar 4: Long-horizon -->
+          <div class="pillar-card locked" style="border-color:var(--green);">
+            <div class="pillar-num" style="color:var(--green);">支柱 ④</div>
+            <div class="pillar-name" style="color:var(--green);">Long-horizon</div>
+            <div class="pillar-desc">跨小时跨天不丢状态。Heartbeat 主动推送。Cron 定时任务崩溃恢复。</div>
+            <div class="pillar-ch" style="color:var(--green);">Ch13-14 展开</div>
+          </div>
+
+          <!-- Pillar 5: Safety -->
+          <div class="pillar-card locked" style="border-color:var(--red);">
+            <div class="pillar-num" style="color:var(--red);">支柱 ⑤</div>
+            <div class="pillar-name" style="color:var(--red);">Safety</div>
+            <div class="pillar-desc">Prompt Injection 首要威胁。Shell 沙箱三层过滤。Docker 真沙箱。HITL 审批门控。</div>
+            <div class="pillar-ch" style="color:var(--red);">Ch10+Ch16 展开</div>
+          </div>
+
+          <!-- Pillar 6: Specialization -->
+          <div class="pillar-card locked" style="border-color:var(--purple);">
+            <div class="pillar-num" style="color:var(--purple);">支柱 ⑥</div>
+            <div class="pillar-name" style="color:var(--purple);">Specialization</div>
+            <div class="pillar-desc">通用 Lena 派生量化交易 Agent / 播客 Agent / Browser Agent。一行命令 fork。</div>
+            <div class="pillar-ch" style="color:var(--purple);">Ch19-20 展开</div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;font-size:15px;color:var(--text-dim);text-align:center;">
+          本章只点亮起步。六大支柱在 Ch4-20 逐一解锁。
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 10 · DESIGN NOTE: WHY PYTHON
+    ════════════════════════════════════════════ -->
+    <div id="s10" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">Design Note</div>
+        <div class="sh-title">为什么选 Python？——生态成熟，动态工具 schema 最顺手</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;padding:32px 80px;">
+        <div class="dn-card">
+          <div class="dn-badge">
+            <span>⚠</span>
+            Design Note · 权衡讨论
+          </div>
+
+          <div class="tradeoff-grid">
+            <!-- Python -->
+            <div class="tradeoff-col">
+              <div class="tradeoff-lang" style="color:var(--green);">Python ✓ 本书主线</div>
+              <div class="tradeoff-point"><span class="check">✓</span>LangGraph / CrewAI / pydantic-ai 全是 Python-first</div>
+              <div class="tradeoff-point"><span class="check">✓</span>Pydantic 动态 JSON Schema，工具定义最顺手</div>
+              <div class="tradeoff-point"><span class="check">✓</span>后端工程师最大公约数，入门无障碍</div>
+              <div class="tradeoff-point"><span class="check">✓</span>Bedrock / OpenAI / Anthropic SDK 全覆盖</div>
+              <div class="tradeoff-point"><span class="cross">—</span>GIL 并发，CPU 密集场景不如 Go/Rust</div>
+            </div>
+
+            <!-- TypeScript -->
+            <div class="tradeoff-col">
+              <div class="tradeoff-lang" style="color:var(--blue);">TypeScript ○ CLI agent</div>
+              <div class="tradeoff-point"><span class="check">✓</span>Claude Code / OpenClaw 用 TS（本书参考实现）</div>
+              <div class="tradeoff-point"><span class="check">✓</span>前端深度集成（Next.js + agent）</div>
+              <div class="tradeoff-point"><span class="check">✓</span>Zod schema 类型安全工具定义</div>
+              <div class="tradeoff-point"><span class="cross">—</span>无 LangGraph 等价实现</div>
+              <div class="tradeoff-point"><span class="cross">—</span>动态 tool schema 摩擦较大</div>
+            </div>
+
+            <!-- Rust -->
+            <div class="tradeoff-col">
+              <div class="tradeoff-lang" style="color:var(--text-dim);">Rust △ 附录 A</div>
+              <div class="tradeoff-point"><span class="check">✓</span>极低延迟代理层（rtk，减少 60-90% token）</div>
+              <div class="tradeoff-point"><span class="check">✓</span>嵌入式 agent runtime</div>
+              <div class="tradeoff-point"><span class="cross">—</span>无 LangGraph/CrewAI 等价物</div>
+              <div class="tradeoff-point"><span class="cross">—</span>serde_json::Value 动态 schema 摩擦大</div>
+              <div class="tradeoff-point"><span class="cross">—</span>MCP 生态仍处于早期（R3 §四）</div>
+            </div>
+          </div>
+
+          <div style="margin-top:28px;font-size:14px;color:var(--text-dim);font-family:var(--mono);text-align:center;">
+            来源：R3 §四 Rust 生态写 Agent 的现状 · 附录 A 给出 rig / aichat / rtk 完整指路图
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 11 · FURTHER READING
+    ════════════════════════════════════════════ -->
+    <div id="s11" class="slide" style="flex-direction:column;">
+      <div class="slide-header">
+        <div class="sh-eyebrow">延伸阅读</div>
+        <div class="sh-title">精选 6 份——从官方文档到 Crafting Interpreters 范本</div>
+      </div>
+
+      <div class="slide-body" style="align-items:center;justify-content:center;padding:24px 80px;">
+        <div class="reading-grid">
+          <div class="reading-card">
+            <div class="reading-title">Building Effective Agents</div>
+            <div class="reading-url">anthropic.com/news/building-effective-agents</div>
+            <div class="reading-desc">Anthropic 官方博客 2024-12-19。五大工作流模式，"何时不用 agent"反向强调。本书教学设计的重要参考。</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-title">Anthropic Messages API 文档</div>
+            <div class="reading-url">docs.anthropic.com/en/api/messages</div>
+            <div class="reading-desc">system / messages / tools 字段完整规格。三家对比时 Anthropic 侧的权威来源。</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-title">AWS Bedrock Converse API</div>
+            <div class="reading-url">docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html</div>
+            <div class="reading-desc">Converse API 完整参数。inference profile ID 规则和模型列表——血泪教训的官方答案在这里。</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-title">Crafting Interpreters</div>
+            <div class="reading-url">craftinginterpreters.com/contents.html</div>
+            <div class="reading-desc">本书"每章产物可跑"教学范式的源头。Robert Nystrom 的两遍实现同一语言的方法论，值得通读。</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-title">nano-claw (TS 教学版)</div>
+            <div class="reading-url">github: nano-claw (本地教学版)</div>
+            <div class="reading-desc">Provider 抽象最简 TS 实现，src/providers/base.ts 297 行。Ch3 之前建议阅读，理解三家 API 统一抽象的思路。</div>
+          </div>
+          <div class="reading-card">
+            <div class="reading-title">nanoClaw (Py 完整版)</div>
+            <div class="reading-url">github: nanoClaw (Py 完整版)</div>
+            <div class="reading-desc">Provider + SSE + Caching 完整 Python 实现。llm.py 处理三家 cache token 字段差异，是本书 Ch7 的主要参考。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         SLIDE 12 · SUMMARY
+    ════════════════════════════════════════════ -->
+    <div id="s12" class="slide">
+      <div class="grid-bg" style="opacity:0.4;"></div>
+      <div class="orb-blue" style="width:500px;height:500px;top:-50px;right:-50px;opacity:0.5;"></div>
+      <div class="orb-purple" style="width:400px;height:400px;bottom:-100px;left:100px;opacity:0.4;"></div>
+
+      <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;width:100%;">
+        <div style="font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;margin-bottom:20px;">
+          本章小结 · Ch 1
+        </div>
+        <div style="font-size:52px;font-weight:700;color:var(--text);margin-bottom:8px;">三条金句</div>
+
+        <div class="summary-list">
+          <div class="summary-item">
+            <div class="summary-num">01</div>
+            <div class="summary-text">
+              <strong>LLM 是函数，Agent 是程序</strong>——这个区别决定了本书后续所有设计选择
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-num">02</div>
+            <div class="summary-text">
+              <strong>三家 API 格式不同，但目的相同</strong>——system 位置、content 格式、model ID 命名，今天踩了后面不再踩
+            </div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-num">03</div>
+            <div class="summary-text">
+              <strong>10 行代码是起点，不是终点</strong>——lena-v0.1 是活的，Ch20 之前每章都往上加砖
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:36px;display:flex;gap:20px;align-items:center;">
+          <span style="color:var(--text-dim);font-family:var(--mono);font-size:13px;">下一章：</span>
+          <div style="font-size:18px;color:var(--text);">Ch 2 · 从 Chat 到 Agent：ReAct 循环的秘密</div>
+          <div class="tag tag-blue">lena-v0.2</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /scaler -->
+</div><!-- /stage -->
+
+<div id="counter">1 / 12</div>
+<div id="nav-hint">← → 键切换 · F 全屏</div>
+
+<script>
+  const TOTAL = 12;
+  let current = 1;
+
+  const scaler = document.getElementById('scaler');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+
+  function scale() {
+    const W = window.innerWidth, H = window.innerHeight;
+    const sx = W / 1920, sy = H / 1080;
+    const s = Math.min(sx, sy);
+    const ox = (W - 1920 * s) / 2;
+    const oy = (H - 1080 * s) / 2;
+    scaler.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`;
+  }
+
+  function showSlide(n) {
+    const prev = document.querySelector('.slide.active');
+    if (prev) {
+      prev.classList.remove('visible');
+      setTimeout(() => prev.classList.remove('active'), 420);
+    }
+    const next = document.getElementById('s' + n);
+    next.classList.add('active');
+    requestAnimationFrame(() => requestAnimationFrame(() => next.classList.add('visible')));
+    counter.textContent = n + ' / ' + TOTAL;
+    progress.style.width = (n / TOTAL * 100) + '%';
+    current = n;
+  }
+
+  function navigate(dir) {
+    const n = Math.max(1, Math.min(TOTAL, current + dir));
+    if (n !== current) showSlide(n);
+  }
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') navigate(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     navigate(-1);
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  window.addEventListener('resize', scale);
+  scale();
+  showSlide(1);
+</script>
+</body>
+</html>

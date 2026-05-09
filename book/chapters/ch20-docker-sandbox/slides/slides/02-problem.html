@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.content { position: absolute; top: 120px; left: 80px; right: 80px; bottom: 60px; display: flex; gap: 80px; }
+.left { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.right { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+
+.section-title { font-size: 13px; letter-spacing: 0.3em; color: #00cc55; margin-bottom: 20px; text-transform: uppercase; }
+h2 { font-size: 56px; font-weight: 900; color: #fff; line-height: 1.1; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; margin-bottom: 24px; }
+.desc { font-size: 20px; color: rgba(255,255,255,0.55); line-height: 1.8; }
+
+.code-block {
+  background: #0f1418;
+  border: 1px solid rgba(0,204,85,0.15);
+  border-left: 3px solid #00cc55;
+  padding: 20px 24px;
+  border-radius: 4px;
+}
+.code-block .comment { color: rgba(255,255,255,0.25); font-size: 13px; margin-bottom: 8px; }
+.code-line { font-size: 14px; color: #ff6b6b; margin: 4px 0; padding: 3px 0; }
+.code-line .cmd { color: #ff9966; }
+.code-line .bypass { color: #ff4444; font-size: 13px; }
+.bypass-label {
+  font-size: 11px; color: rgba(255,100,100,0.7); letter-spacing: 0.15em;
+  text-align: right; margin-top: 8px;
+}
+
+.divider { width: 1px; background: rgba(255,255,255,0.06); }
+
+.verdict {
+  margin-top: 32px; padding: 20px 24px;
+  border: 1px solid rgba(255,80,80,0.2);
+  background: rgba(255,80,80,0.03);
+}
+.verdict-title { font-size: 13px; letter-spacing: 0.2em; color: #ff6666; margin-bottom: 8px; }
+.verdict-text { font-size: 18px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+.verdict-text strong { color: #fff; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">问题引入</div>
+<div class="page-num">02 / 11</div>
+
+<div class="content">
+  <div class="left">
+    <div class="section-title">Agent 能跑任意代码</div>
+    <h2>正则过滤<br>挡不住</h2>
+    <div class="desc">
+      Ch10 封锁了 <code style="color:#00cc55">rm -rf</code>。<br>
+      但攻击者有无数绕过方式。<br>
+      黑名单永远比攻击者的想象力慢。
+    </div>
+    <div class="verdict">
+      <div class="verdict-title">根本矛盾</div>
+      <div class="verdict-text">
+        黑名单枚举<strong>已知危险</strong>。<br>
+        攻击者制造<strong>未知危险</strong>。
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="right">
+    <div class="code-block">
+      <div class="comment"># 「禁止 rm -rf」被绕过的 5 种方式</div>
+      <div class="code-line"><span class="cmd">python3</span> -c <span style="color:#ffd700">"import shutil; shutil.rmtree('/')"</span> <span class="bypass">↑ Python</span></div>
+      <div class="code-line"><span class="cmd">find</span> / -type f <span style="color:#ffd700">| xargs unlink</span> <span class="bypass">↑ find+pipe</span></div>
+      <div class="code-line"><span class="cmd">dd</span> if=/dev/zero of=/dev/sda bs=512 <span class="bypass">↑ dd</span></div>
+      <div class="code-line"><span class="cmd">perl</span> -e <span style="color:#ffd700">'unlink glob("/home/*")'</span> <span class="bypass">↑ Perl</span></div>
+      <div class="code-line"><span style="color:#ffd700">echo "cm0gLXJmIC8=" | base64 -d | bash</span> <span class="bypass">↑ Base64</span></div>
+      <div class="bypass-label">每一条都绕过了正则过滤</div>
+    </div>
+
+    <div class="code-block" style="border-left-color: #00cc55; margin-top: 8px;">
+      <div class="comment"># 隔离的逻辑（Docker）</div>
+      <div class="code-line" style="color: #00cc55;">不管代码做什么，出不了这个笼子。</div>
+      <div class="code-line" style="color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 8px;">容器内 rm -rf / → 只删容器内的文件</div>
+      <div class="code-line" style="color: rgba(255,255,255,0.5); font-size: 13px;">容器销毁 → 一切恢复原状</div>
+    </div>
+  </div>
+</div>
+<div class="bottom-bar"></div>
+</body>
+</html>

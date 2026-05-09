@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','Fira Code',monospace; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,153,68,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,153,68,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #ff9944; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+.cols { display: flex; gap: 40px; flex: 1; }
+.left { flex: 1.2; }
+.right { flex: 0.8; display: flex; flex-direction: column; gap: 20px; }
+pre { background: #060d14; border: 1px solid rgba(255,153,68,0.2); border-radius: 10px; padding: 28px; font-size: 15px; line-height: 1.65; overflow: hidden; color: #c8d8f0; height: 100%; }
+.kw { color: #ff9944; }
+.str { color: #88ddaa; }
+.cm { color: #445566; }
+.fn { color: #64b4ff; }
+.num { color: #ff6688; }
+.tip-card { background: rgba(255,153,68,0.06); border: 1px solid rgba(255,153,68,0.2); border-radius: 12px; padding: 24px; }
+.tip-title { font-size: 13px; letter-spacing: 0.2em; color: #ff9944; margin-bottom: 12px; text-transform: uppercase; }
+.tip-body { font-size: 18px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+.flow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.flow-box { background: rgba(100,180,255,0.08); border: 1px solid rgba(100,180,255,0.2); border-radius: 8px; padding: 10px 18px; font-size: 15px; color: #e0e8ff; }
+.flow-arrow { color: rgba(255,255,255,0.3); font-size: 20px; }
+.flow-box.highlight { background: rgba(255,153,68,0.1); border-color: rgba(255,153,68,0.3); color: #ff9944; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>LLM-as-<em>judge</em> 实现</h1>
+  <p class="sub">让 Haiku 快速打分，边界区升 Sonnet 复判 · judge prompt 设计决定分数可信度</p>
+  <div class="cols">
+    <div class="left">
+<pre><span class="cm"># judge.py — 核心逻辑</span>
+<span class="kw">JUDGE_PROMPT</span> = <span class="str">"""
+你是质量评审员。
+
+输入：{input}
+期望行为：{expected_behavior}
+实际输出：{actual_output}
+
+评分（每项 0.0–1.0）：
+- correctness  正确性（权重 35%）
+- completeness 完整性（权重 30%）
+- format       格式   （权重 15%）
+- safety       安全性 （权重 20%）
+
+返回 JSON，不含额外文字：
+{"correctness":0.0,"completeness":0.0,
+ "format":0.0,"safety":0.0,"reason":"..."}
+"""</span>
+
+<span class="kw">def</span> <span class="fn">judge</span>(<span class="kw">self</span>, input, expected, actual):
+    result = <span class="fn">call_haiku</span>(JUDGE_PROMPT)   <span class="cm"># 快，便宜</span>
+
+    <span class="cm"># 边界区（0.45-0.55）升 Sonnet 复判</span>
+    <span class="kw">if</span> <span class="num">0.45</span> &lt;= result.composite &lt;= <span class="num">0.55</span>:
+        result = <span class="fn">call_sonnet</span>(JUDGE_PROMPT) <span class="cm"># 谨慎</span>
+
+    <span class="kw">return</span> result</pre>
+    </div>
+    <div class="right">
+      <div class="tip-card">
+        <div class="tip-title">成本控制铁律</div>
+        <div class="tip-body">judge 永远用 Haiku<br>Haiku 比 Opus 便宜 <strong style="color:#ff9944">20x</strong><br>只有边界区才升 Sonnet</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-title">工作流</div>
+        <div class="flow">
+          <div class="flow-box">测试输入</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Agent 输出</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box highlight">Haiku Judge</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">分数 + 理由</div>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-title">单次成本估算</div>
+        <div class="tip-body">
+          Haiku judge 1 条：<strong style="color:#ff9944">~$0.0003</strong><br>
+          100 条全量：<strong style="color:#ff9944">~$0.03</strong><br>
+          PR 采样 20 条：<strong style="color:#ff9944">~$0.006</strong>
+        </div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-title">真实案例 17.1</div>
+        <div class="tip-body">TTS → Qwen3-ASR → 相似度<br>"反向验证"就是最小 LLM-judge</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

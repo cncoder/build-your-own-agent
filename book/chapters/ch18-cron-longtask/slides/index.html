@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 14 · Cron 与 Long-running Task</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ─── 全局 Slide 基底 ─── */
+  deck-stage > section {
+    background: #070B14;
+    color: #E8EDF5;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+    width: 1920px;
+    height: 1080px;
+  }
+
+  /* ─── 共用背景噪点网格 ─── */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+  }
+
+  .bg-glow-tl {
+    position: absolute;
+    top: -300px; left: -200px;
+    width: 900px; height: 900px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .bg-glow-br {
+    position: absolute;
+    bottom: -300px; right: -200px;
+    width: 800px; height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,43,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ─── 共用排版 ─── */
+  .chapter-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    color: #00E5FF;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .slide-title {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #F0F4FF;
+  }
+
+  .slide-subtitle {
+    font-size: 28px;
+    font-weight: 400;
+    color: #7A8BA8;
+    line-height: 1.5;
+  }
+
+  .accent-cyan { color: #00E5FF; }
+  .accent-orange { color: #FF6B2B; }
+  .accent-green { color: #39E07A; }
+  .accent-purple { color: #B78AFF; }
+
+  /* ─── Code Block ─── */
+  .code-block {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    line-height: 1.7;
+    background: rgba(0,229,255,0.04);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 12px;
+    padding: 32px 36px;
+    color: #C8D8F0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .code-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00E5FF 0%, rgba(0,229,255,0) 100%);
+  }
+
+  .code-comment { color: #4A6080; font-style: italic; }
+  .code-keyword { color: #FF6B2B; }
+  .code-string { color: #39E07A; }
+  .code-func { color: #00E5FF; }
+  .code-num { color: #B78AFF; }
+
+  /* ─── Design Note 侧栏 ─── */
+  .design-note {
+    background: rgba(183,138,255,0.07);
+    border-left: 3px solid #B78AFF;
+    border-radius: 0 8px 8px 0;
+    padding: 20px 28px;
+    font-size: 19px;
+    color: #A898CC;
+    line-height: 1.6;
+  }
+
+  .design-note-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #B78AFF;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* ─── 标签徽章 ─── */
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .badge-cyan { color: #00E5FF; border-color: rgba(0,229,255,0.35); background: rgba(0,229,255,0.06); }
+  .badge-orange { color: #FF6B2B; border-color: rgba(255,107,43,0.35); background: rgba(255,107,43,0.06); }
+  .badge-green { color: #39E07A; border-color: rgba(57,224,122,0.35); background: rgba(57,224,122,0.06); }
+  .badge-purple { color: #B78AFF; border-color: rgba(183,138,255,0.35); background: rgba(183,138,255,0.06); }
+
+  /* ─── 页码标记 ─── */
+  .slide-num {
+    position: absolute;
+    bottom: 40px;
+    left: 64px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #2A3A52;
+    letter-spacing: 0.1em;
+  }
+</style>
+
+<!-- ─────────────────────────────────────────────────
+  Slide 1 · 封面
+────────────────────────────────────────────────── -->
+<deck-stage>
+
+<section data-screen-label="封面">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+  <div class="bg-glow-br"></div>
+
+  <!-- 背景装饰：cron 时间线 -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.06;" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+    <line x1="0" y1="540" x2="1920" y2="540" stroke="#00E5FF" stroke-width="1"/>
+    <circle cx="240" cy="540" r="8" fill="#00E5FF"/>
+    <circle cx="480" cy="540" r="8" fill="#00E5FF"/>
+    <circle cx="720" cy="540" r="8" fill="#00E5FF"/>
+    <circle cx="960" cy="540" r="8" fill="#FF6B2B"/>
+    <circle cx="1200" cy="540" r="8" fill="#00E5FF"/>
+    <circle cx="1440" cy="540" r="8" fill="#00E5FF"/>
+    <circle cx="1680" cy="540" r="8" fill="#00E5FF"/>
+    <!-- 垂直触发线 -->
+    <line x1="240" y1="480" x2="240" y2="600" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="480" y1="480" x2="480" y2="600" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="720" y1="480" x2="720" y2="600" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="960" y1="480" x2="960" y2="600" stroke="#FF6B2B" stroke-width="2" stroke-dasharray="4 4"/>
+    <line x1="1200" y1="480" x2="1200" y2="600" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="1440" y1="480" x2="1440" y2="600" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="1680" y1="480" x2="1680" y2="600" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
+  </svg>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);text-align:center;">
+    <div class="chapter-tag" style="margin-bottom:32px;">
+      《从零构建你的 AI Agent》· 第 14 章
+    </div>
+
+    <h1 style="font-size:100px;font-weight:900;line-height:1.0;letter-spacing:-0.03em;color:#F0F4FF;margin-bottom:24px;">
+      Cron 与
+      <span style="
+        background: linear-gradient(135deg, #00E5FF 0%, #39E07A 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      ">Long-running Task</span>
+    </h1>
+
+    <p style="font-size:30px;color:#5A7090;font-weight:400;letter-spacing:0.02em;margin-bottom:48px;">
+      跨天任务不丢失：croniter + Checkpoint + content-hash 缓存
+    </p>
+
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+      <span class="badge badge-cyan">Long-horizon 执行</span>
+      <span class="badge badge-green">croniter</span>
+      <span class="badge badge-orange">Checkpoint 持久化</span>
+      <span class="badge badge-purple">崩溃恢复</span>
+    </div>
+  </div>
+
+  <!-- 产物标记 -->
+  <div style="position:absolute;bottom:56px;right:64px;text-align:right;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#2A3A52;">
+      lena-v1.3 → <span style="color:#00E5FF;">lena-v1.4</span>
+    </div>
+    <div style="font-size:13px;color:#2A3A52;margin-top:4px;">每小时抓新闻，凌晨总结</div>
+  </div>
+
+  <div class="slide-num">01 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 2 · 问题引入
+────────────────────────────────────────────────── -->
+<section data-screen-label="问题引入">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div class="chapter-tag" style="margin-bottom:28px;">问题引入</div>
+
+    <h2 style="font-size:68px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:48px;line-height:1.1;">
+      Heartbeat 是"定时说话"——<br>
+      <span class="accent-orange">但任务要跑 24 小时呢？</span>
+    </h2>
+
+    <!-- 对比卡片 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+
+      <!-- 左：Heartbeat 简单 -->
+      <div style="background:rgba(57,224,122,0.05);border:1px solid rgba(57,224,122,0.2);border-radius:16px;padding:40px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.15em;color:#39E07A;margin-bottom:16px;">CH 13 · lena-v1.3</div>
+        <div style="font-size:26px;font-weight:700;color:#39E07A;margin-bottom:20px;">Heartbeat（简单）</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:17px;color:#6A8A6A;line-height:1.8;">
+          每天 8 点 → 调一次 LLM<br>
+          → 发 Discord → 结束<br>
+          <span style="color:#39E07A;">✓ 几秒，状态无需持久化</span>
+        </div>
+      </div>
+
+      <!-- 右：长任务挑战 -->
+      <div style="background:rgba(255,107,43,0.05);border:1px solid rgba(255,107,43,0.3);border-radius:16px;padding:40px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.15em;color:#FF6B2B;margin-bottom:16px;">CH 14 · lena-v1.4</div>
+        <div style="font-size:26px;font-weight:700;color:#FF6B2B;margin-bottom:20px;">Long-running Task（挑战）</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:17px;color:#8A6A5A;line-height:1.8;">
+          每小时抓新闻 × 24 次<br>
+          → 攒一天 → 凌晨总结<br>
+          <span style="color:#FF6B2B;">⚠ 崩溃了怎么办？</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 核心问题 -->
+    <div style="margin-top:32px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:12px;padding:28px 36px;display:flex;align-items:center;gap:24px;">
+      <div style="font-size:40px;">💥</div>
+      <div>
+        <div style="font-size:22px;font-weight:600;color:#F0F4FF;margin-bottom:6px;">
+          没有 Checkpoint，进程一崩，24 次抓取全部归零
+        </div>
+        <div style="font-size:18px;color:#5A7090;">
+          本章核心：<span class="accent-cyan">save_checkpoint()</span> 每步落盘，从最近成功处恢复——不是从头重来
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">02 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 3 · cron 表达式速查
+────────────────────────────────────────────────── -->
+<section data-screen-label="cron 表达式">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div class="chapter-tag" style="margin-bottom:24px;">cron 表达式</div>
+    <h2 style="font-size:60px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:40px;">5 字段速查表</h2>
+
+    <!-- 5字段可视化 -->
+    <div style="display:flex;gap:8px;margin-bottom:40px;font-family:'JetBrains Mono',monospace;">
+      <div style="flex:1;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:42px;font-weight:700;color:#00E5FF;">*</div>
+        <div style="font-size:14px;color:#4A6A80;margin-top:8px;">分钟</div>
+        <div style="font-size:12px;color:#2A4060;margin-top:4px;">0 – 59</div>
+      </div>
+      <div style="flex:1;background:rgba(57,224,122,0.06);border:1px solid rgba(57,224,122,0.18);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:42px;font-weight:700;color:#39E07A;">*</div>
+        <div style="font-size:14px;color:#4A6A50;margin-top:8px;">小时</div>
+        <div style="font-size:12px;color:#2A4040;margin-top:4px;">0 – 23</div>
+      </div>
+      <div style="flex:1;background:rgba(183,138,255,0.06);border:1px solid rgba(183,138,255,0.18);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:42px;font-weight:700;color:#B78AFF;">*</div>
+        <div style="font-size:14px;color:#6A4A80;margin-top:8px;">日</div>
+        <div style="font-size:12px;color:#4A3060;margin-top:4px;">1 – 31</div>
+      </div>
+      <div style="flex:1;background:rgba(255,107,43,0.06);border:1px solid rgba(255,107,43,0.18);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:42px;font-weight:700;color:#FF6B2B;">*</div>
+        <div style="font-size:14px;color:#6A4A3A;margin-top:8px;">月</div>
+        <div style="font-size:12px;color:#4A3020;margin-top:4px;">1 – 12</div>
+      </div>
+      <div style="flex:1;background:rgba(255,200,80,0.06);border:1px solid rgba(255,200,80,0.18);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:42px;font-weight:700;color:#FFC850;">*</div>
+        <div style="font-size:14px;color:#6A5A3A;margin-top:8px;">星期</div>
+        <div style="font-size:12px;color:#4A4020;margin-top:4px;">0=周日</div>
+      </div>
+    </div>
+
+    <!-- 常用表达式表格 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.1em;color:#2A4060;text-transform:uppercase;margin-bottom:16px;">常用示例</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 20px;background:rgba(0,229,255,0.05);border-radius:8px;border-left:3px solid #00E5FF;">
+            <code style="font-family:'JetBrains Mono';font-size:18px;color:#00E5FF;flex-shrink:0;width:160px;">0 * * * *</code>
+            <span style="font-size:17px;color:#8AA0B8;">每小时整点 · Lena 抓新闻</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 20px;background:rgba(57,224,122,0.05);border-radius:8px;border-left:3px solid #39E07A;">
+            <code style="font-family:'JetBrains Mono';font-size:18px;color:#39E07A;flex-shrink:0;width:160px;">0 8 * * *</code>
+            <span style="font-size:17px;color:#8AA0B8;">每天早上 8 点 · Heartbeat 问候</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 20px;background:rgba(183,138,255,0.05);border-radius:8px;border-left:3px solid #B78AFF;">
+            <code style="font-family:'JetBrains Mono';font-size:18px;color:#B78AFF;flex-shrink:0;width:160px;">30 4 * * *</code>
+            <span style="font-size:17px;color:#8AA0B8;">凌晨 4:30 · 日报采集任务</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 20px;background:rgba(255,107,43,0.05);border-radius:8px;border-left:3px solid #FF6B2B;">
+            <code style="font-family:'JetBrains Mono';font-size:18px;color:#FF6B2B;flex-shrink:0;width:160px;">0 0 * * 0</code>
+            <span style="font-size:17px;color:#8AA0B8;">每周日零点 · GitHub Trending 周报</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- croniter 代码 -->
+      <div class="code-block" style="font-size:17px;">
+        <span class="code-comment"># pip install croniter</span><br>
+        <span class="code-keyword">from</span> croniter <span class="code-keyword">import</span> <span class="code-func">croniter</span><br>
+        <span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime<br>
+        <br>
+        cron = <span class="code-func">croniter</span>(<span class="code-string">"0 * * * *"</span>, datetime.<span class="code-func">now</span>())<br>
+        <br>
+        <span class="code-comment"># 下次触发时间</span><br>
+        next_time = cron.<span class="code-func">get_next</span>(datetime)<br>
+        <br>
+        <span class="code-comment"># 上次应该跑但没跑（崩溃恢复关键！）</span><br>
+        prev_time = cron.<span class="code-func">get_prev</span>(datetime)<br>
+        <br>
+        <span class="code-comment"># 遍历未来 5 次</span><br>
+        <span class="code-keyword">for</span> _ <span class="code-keyword">in</span> <span class="code-func">range</span>(<span class="code-num">5</span>):<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-func">print</span>(cron.<span class="code-func">get_next</span>(datetime))
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">03 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 4 · 长任务三大挑战
+────────────────────────────────────────────────── -->
+<section data-screen-label="三大挑战">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div class="chapter-tag" style="margin-bottom:24px;">Long-running Task</div>
+    <h2 style="font-size:60px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:48px;">三大挑战</h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;">
+
+      <!-- 挑战 1：进度可见 -->
+      <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-radius:16px;padding:40px;">
+        <div style="font-size:52px;margin-bottom:20px;">👁️</div>
+        <div style="font-size:28px;font-weight:700;color:#00E5FF;margin-bottom:16px;">进度可见</div>
+        <div style="font-size:18px;color:#6A8A9A;line-height:1.7;margin-bottom:24px;">
+          黑盒跑 24 小时，第 18 小时崩了——<br>你什么都不知道
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:#3A6070;background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;">
+          <span style="color:#FF6B2B;">反模式：</span> 整个跑完再落盘<br>
+          <span style="color:#39E07A;">正确：</span> 每步落一次 checkpoint
+        </div>
+      </div>
+
+      <!-- 挑战 2：崩溃恢复 -->
+      <div style="background:rgba(255,107,43,0.04);border:1px solid rgba(255,107,43,0.2);border-radius:16px;padding:40px;">
+        <div style="font-size:52px;margin-bottom:20px;">💥</div>
+        <div style="font-size:28px;font-weight:700;color:#FF6B2B;margin-bottom:16px;">崩溃恢复</div>
+        <div style="font-size:18px;color:#9A7A6A;line-height:1.7;margin-bottom:24px;">
+          网络断了、OOM、机器重启——<br>进程可能在任何地方崩溃
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:#6A4A3A;background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;">
+          <span style="color:#FF6B2B;">反模式：</span> 重启从 step 0 开始<br>
+          <span style="color:#39E07A;">正确：</span> 跳过已完成 step
+        </div>
+      </div>
+
+      <!-- 挑战 3：资源控制 -->
+      <div style="background:rgba(183,138,255,0.04);border:1px solid rgba(183,138,255,0.15);border-radius:16px;padding:40px;">
+        <div style="font-size:52px;margin-bottom:20px;">⚙️</div>
+        <div style="font-size:28px;font-weight:700;color:#B78AFF;margin-bottom:16px;">资源控制</div>
+        <div style="font-size:18px;color:#7A6A9A;line-height:1.7;margin-bottom:24px;">
+          内存泄漏每小时 +5MB，<br>24 小时 = 120MB
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:#5A4A70;background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;">
+          <span style="color:#FF6B2B;">反模式：</span> 无限积累状态<br>
+          <span style="color:#39E07A;">正确：</span> 每 checkpoint 周期清理
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Design Note -->
+    <div class="design-note" style="margin-top:32px;">
+      <div class="design-note-label">Design Note</div>
+      cron 解决「什么时候跑」·  checkpoint 解决「跑到哪了」· content-hash 解决「这个有没有跑过」
+      <span style="color:#B78AFF;font-weight:600;">三者组合，才是生产级长任务的完整解</span>
+    </div>
+  </div>
+
+  <div class="slide-num">04 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 5 · SQLite Checkpoint 设计
+────────────────────────────────────────────────── -->
+<section data-screen-label="Checkpoint 设计">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div class="chapter-tag" style="margin-bottom:24px;">持久化存储</div>
+    <h2 style="font-size:60px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:40px;">SQLite task_state 设计</h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;">
+
+      <!-- 左：SQL 结构 -->
+      <div class="code-block" style="font-size:16px;line-height:1.75;">
+        <span class="code-comment">-- task_state 表：任务完整状态</span><br>
+        <span class="code-keyword">CREATE TABLE</span> task_state (<br>
+        &nbsp;&nbsp;task_id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">TEXT</span> <span class="code-keyword">PRIMARY KEY</span>,<br>
+        &nbsp;&nbsp;status &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">TEXT</span> <span class="code-keyword">NOT NULL</span>, <span class="code-comment">-- 状态枚举</span><br>
+        &nbsp;&nbsp;checkpoint &nbsp;<span class="code-string">TEXT</span>, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">-- JSON</span><br>
+        &nbsp;&nbsp;progress &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">INTEGER</span>, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">-- 0-100</span><br>
+        &nbsp;&nbsp;total_steps &span class="code-string">INTEGER</span>,<br>
+        &nbsp;&nbsp;error_msg &nbsp;&nbsp;&nbsp;<span class="code-string">TEXT</span>,<br>
+        &nbsp;&nbsp;updated_at &nbsp;&nbsp;<span class="code-string">TEXT</span> <span class="code-keyword">NOT NULL</span><br>
+        );<br>
+        <br>
+        <span class="code-comment">-- task_results：每步骤结果（幂等）</span><br>
+        <span class="code-keyword">CREATE TABLE</span> task_results (<br>
+        &nbsp;&nbsp;task_id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">TEXT</span>,<br>
+        &nbsp;&nbsp;step_id &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">TEXT</span>,<br>
+        &nbsp;&nbsp;result_data &nbsp;<span class="code-string">TEXT</span>, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">-- JSON</span><br>
+        &nbsp;&nbsp;completed_at <span class="code-string">TEXT</span>,<br>
+        &nbsp;&nbsp;<span class="code-keyword">UNIQUE</span>(task_id, step_id) <span class="code-comment">-- 幂等保证</span><br>
+        );
+      </div>
+
+      <!-- 右：状态枚举 + 崩溃恢复逻辑 -->
+      <div>
+        <!-- 状态枚举 -->
+        <div style="margin-bottom:28px;">
+          <div style="font-size:16px;color:#3A5070;font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">status 枚举</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;background:rgba(255,200,80,0.06);border-radius:8px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#FFC850;flex-shrink:0;"></div>
+              <code style="font-family:'JetBrains Mono';font-size:16px;color:#FFC850;width:160px;">pending</code>
+              <span style="font-size:15px;color:#6A7080;">已创建，未开始</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;background:rgba(0,229,255,0.06);border-radius:8px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#00E5FF;flex-shrink:0;"></div>
+              <code style="font-family:'JetBrains Mono';font-size:16px;color:#00E5FF;width:160px;">running</code>
+              <span style="font-size:15px;color:#6A7080;">执行中</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;background:rgba(0,229,255,0.04);border-radius:8px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#0090AA;flex-shrink:0;"></div>
+              <code style="font-family:'JetBrains Mono';font-size:16px;color:#0090AA;width:160px;">checkpoint_saved</code>
+              <span style="font-size:15px;color:#6A7080;">步骤已落盘</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;background:rgba(57,224,122,0.06);border-radius:8px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#39E07A;flex-shrink:0;"></div>
+              <code style="font-family:'JetBrains Mono';font-size:16px;color:#39E07A;width:160px;">completed</code>
+              <span style="font-size:15px;color:#6A7080;">全部完成</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;background:rgba(255,107,43,0.06);border-radius:8px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:#FF6B2B;flex-shrink:0;"></div>
+              <code style="font-family:'JetBrains Mono';font-size:16px;color:#FF6B2B;width:160px;">failed</code>
+              <span style="font-size:15px;color:#6A7080;">执行失败</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 崩溃恢复关键代码 -->
+        <div class="code-block" style="font-size:16px;padding:20px 24px;">
+          <span class="code-comment"># 崩溃恢复关键函数</span><br>
+          <span class="code-keyword">def</span> <span class="code-func">load_completed_steps</span>(task_id):<br>
+          &nbsp;&nbsp;rows = db.<span class="code-func">execute</span>(<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"SELECT step_id FROM task_results WHERE task_id=?"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;(task_id,)<br>
+          &nbsp;&nbsp;).<span class="code-func">fetchall</span>()<br>
+          &nbsp;&nbsp;<span class="code-keyword">return</span> {row[<span class="code-num">0</span>] <span class="code-keyword">for</span> row <span class="code-keyword">in</span> rows}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-num">05 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 6 · 崩溃恢复演示
+────────────────────────────────────────────────── -->
+<section data-screen-label="崩溃恢复演示">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1500px;">
+    <div class="chapter-tag" style="margin-bottom:24px;">断点续传</div>
+    <h2 style="font-size:60px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:48px;">崩溃恢复：从哪崩从哪续</h2>
+
+    <!-- 时间线 -->
+    <div style="position:relative;padding:40px 0;margin-bottom:48px;">
+      <!-- 时间线主轴 -->
+      <div style="position:absolute;top:50%;left:0;right:0;height:2px;background:rgba(0,229,255,0.15);transform:translateY(-50%);"></div>
+
+      <div style="display:flex;justify-content:space-between;position:relative;">
+        <!-- Step 1 完成 -->
+        <div style="text-align:center;position:relative;">
+          <div style="width:56px;height:56px;border-radius:50%;background:#39E07A;border:2px solid rgba(57,224,122,0.5);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto;">✓</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:14px;color:#39E07A;">fetch_hn</div>
+          <div style="font-size:12px;color:#2A4030;margin-top:4px;">完成</div>
+        </div>
+
+        <!-- Step 2 完成 -->
+        <div style="text-align:center;">
+          <div style="width:56px;height:56px;border-radius:50%;background:#39E07A;border:2px solid rgba(57,224,122,0.5);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto;">✓</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:14px;color:#39E07A;">fetch_github</div>
+          <div style="font-size:12px;color:#2A4030;margin-top:4px;">完成</div>
+        </div>
+
+        <!-- Step 3 崩溃 -->
+        <div style="text-align:center;">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,107,43,0.2);border:2px solid #FF6B2B;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto;color:#FF6B2B;">✗</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:14px;color:#FF6B2B;">fetch_arxiv</div>
+          <div style="font-size:12px;color:#6A3020;margin-top:4px;">崩溃！</div>
+          <!-- 崩溃箭头 -->
+          <div style="position:absolute;top:-50px;left:50%;transform:translateX(-50%);font-size:13px;color:#FF6B2B;white-space:nowrap;font-family:'JetBrains Mono';">💥 kill -9</div>
+        </div>
+
+        <!-- 重启分隔线 -->
+        <div style="text-align:center;position:relative;">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(183,138,255,0.15);border:2px dashed #B78AFF;display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto;color:#B78AFF;">↺</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:13px;color:#B78AFF;">重启</div>
+          <div style="font-size:12px;color:#4A3060;margin-top:4px;">load_completed_steps()</div>
+        </div>
+
+        <!-- Step 3 恢复 -->
+        <div style="text-align:center;">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,229,255,0.12);border:2px solid #00E5FF;display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto;color:#00E5FF;">▶</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:14px;color:#00E5FF;">fetch_arxiv</div>
+          <div style="font-size:12px;color:#2A4060;margin-top:4px;">从这里继续</div>
+        </div>
+
+        <!-- Step 4 -->
+        <div style="text-align:center;">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto;color:#3A6080;">…</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:14px;color:#3A6080;">继续</div>
+          <div style="font-size:12px;color:#2A4050;margin-top:4px;">后续步骤</div>
+        </div>
+
+        <!-- 完成 -->
+        <div style="text-align:center;">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(57,224,122,0.15);border:2px solid #39E07A;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto;color:#39E07A;">🏁</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono';font-size:14px;color:#39E07A;">completed</div>
+          <div style="font-size:12px;color:#2A4030;margin-top:4px;">任务完成</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 关键代码：skip 已完成 -->
+    <div class="code-block" style="font-size:18px;line-height:1.8;">
+      <span class="code-keyword">def</span> <span class="code-func">run</span>(task_id: str):<br>
+      &nbsp;&nbsp;completed = <span class="code-func">load_completed_steps</span>(task_id) <span class="code-comment">&nbsp;# 重启后查哪些步已完成</span><br>
+      &nbsp;&nbsp;<br>
+      &nbsp;&nbsp;<span class="code-keyword">for</span> source <span class="code-keyword">in</span> NEWS_SOURCES:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;step_id = <span class="code-string">f"fetch_{source['id']}"</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> step_id <span class="code-keyword">in</span> completed:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 已完成，跳过</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">continue</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;articles = <span class="code-func">fetch_source</span>(source[<span class="code-string">"id"</span>])&nbsp;&nbsp;&nbsp;<span class="code-comment"># 未完成，执行</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-func">save_checkpoint</span>(task_id, step_id, ...)&nbsp;<span class="code-comment"># 立即落盘</span>
+    </div>
+
+  </div>
+
+  <div class="slide-num">06 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 7 · LangGraph Durable Execution 参考
+────────────────────────────────────────────────── -->
+<section data-screen-label="LangGraph Durable Execution">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div class="chapter-tag" style="margin-bottom:24px;">R3 LangGraph 参考</div>
+    <h2 style="font-size:60px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:40px;">
+      Durable Execution 思想
+    </h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+
+      <!-- 左：LangGraph 完整方案 -->
+      <div>
+        <div style="font-size:20px;font-weight:600;color:#B78AFF;margin-bottom:20px;">LangGraph（完整框架）</div>
+        <div style="background:rgba(183,138,255,0.06);border:1px solid rgba(183,138,255,0.2);border-radius:12px;padding:28px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;line-height:2;color:#8A7AB0;">
+            <span style="color:#B78AFF;">Graph Node A</span> → <span style="color:#B78AFF;">Checkpointer</span><br>
+            <span style="color:#B78AFF;">Graph Node B</span> → <span style="color:#B78AFF;">Checkpointer</span><br>
+            <span style="color:#B78AFF;">Graph Node C</span> → <span style="color:#B78AFF;">Checkpointer</span><br>
+            <br>
+            <span style="color:#5A4A70;">存储后端：</span><br>
+            <span style="color:#B78AFF;">SQLite</span> / <span style="color:#B78AFF;">Redis</span> / <span style="color:#B78AFF;">PostgreSQL</span><br>
+            <br>
+            <span style="color:#5A4A70;">崩溃后：</span><br>
+            <span style="color:#B78AFF;">resume_from_checkpoint(thread_id)</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;font-size:15px;color:#4A3A60;font-style:italic;">
+          每个 graph 节点执行后保存完整状态
+        </div>
+      </div>
+
+      <!-- 右：lena-v1.4 简化实现 -->
+      <div>
+        <div style="font-size:20px;font-weight:600;color:#00E5FF;margin-bottom:20px;">lena-v1.4（本章简化实现）</div>
+        <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:12px;padding:28px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;line-height:2;color:#7A9AB0;">
+            <span style="color:#00E5FF;">fetch_hn</span> → <span style="color:#39E07A;">save_checkpoint()</span><br>
+            <span style="color:#00E5FF;">fetch_github</span> → <span style="color:#39E07A;">save_checkpoint()</span><br>
+            <span style="color:#00E5FF;">fetch_arxiv</span> → <span style="color:#39E07A;">save_checkpoint()</span><br>
+            <br>
+            <span style="color:#3A5060;">存储后端：</span><br>
+            <span style="color:#00E5FF;">SQLite</span>（Python 标准库，零依赖）<br>
+            <br>
+            <span style="color:#3A5060;">崩溃后：</span><br>
+            <span style="color:#00E5FF;">load_completed_steps(task_id)</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;font-size:15px;color:#2A4050;font-style:italic;">
+          100 行 Python，同等的崩溃恢复能力
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 对比表格 -->
+    <div style="margin-top:36px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="padding:14px;font-size:15px;color:#3A4A5A;font-family:'JetBrains Mono',monospace;">能力</div>
+        <div style="padding:14px;font-size:15px;color:#B78AFF;font-family:'JetBrains Mono',monospace;">LangGraph</div>
+        <div style="padding:14px;font-size:15px;color:#00E5FF;font-family:'JetBrains Mono',monospace;">lena-v1.4</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;">
+        <div style="padding:12px 20px;font-size:15px;color:#5A6A7A;border-right:1px solid rgba(255,255,255,0.04);">步骤级 checkpoint</div>
+        <div style="padding:12px;font-size:18px;color:#39E07A;">✓</div>
+        <div style="padding:12px;font-size:18px;color:#39E07A;">✓</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;background:rgba(255,255,255,0.015);">
+        <div style="padding:12px 20px;font-size:15px;color:#5A6A7A;border-right:1px solid rgba(255,255,255,0.04);">崩溃恢复</div>
+        <div style="padding:12px;font-size:18px;color:#39E07A;">✓</div>
+        <div style="padding:12px;font-size:18px;color:#39E07A;">✓</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;">
+        <div style="padding:12px 20px;font-size:15px;color:#5A6A7A;border-right:1px solid rgba(255,255,255,0.04);">分布式 / 多租户</div>
+        <div style="padding:12px;font-size:18px;color:#39E07A;">✓</div>
+        <div style="padding:12px;font-size:18px;color:#FF6B2B;">—</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;background:rgba(255,255,255,0.015);">
+        <div style="padding:12px 20px;font-size:15px;color:#5A6A7A;border-right:1px solid rgba(255,255,255,0.04);">零依赖安装</div>
+        <div style="padding:12px;font-size:18px;color:#FF6B2B;">—</div>
+        <div style="padding:12px;font-size:18px;color:#39E07A;">✓</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">07 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 8 · content-hash 缓存（案例 14.2）
+────────────────────────────────────────────────── -->
+<section data-screen-label="content-hash 缓存">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="chapter-tag">案例 14.2</div>
+      <span class="badge badge-orange">生产真实案例</span>
+    </div>
+    <h2 style="font-size:58px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:32px;">
+      日报 TTS 断点续传：content-hash 缓存
+    </h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;">
+
+      <!-- 左：目录结构 -->
+      <div>
+        <div style="font-size:17px;color:#3A5070;font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">TTS 断点续传目录结构</div>
+        <div class="code-block" style="font-size:17px;line-height:2;">
+          data/<br>
+          ├── <span style="color:#00E5FF;">tts_cache/</span><br>
+          │&nbsp;&nbsp;&nbsp;└── <span style="color:#39E07A;">{sha256(voice+text)}.wav</span><br>
+          │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 跨天缓存，内容不变就命中</span><br>
+          └── current_episode/<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;├── <span style="color:#B78AFF;">_tts_chunks/</span><br>
+          │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── 0001.wav<br>
+          │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── 0002.wav<br>
+          │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── 0003.wav <span class="code-comment">&lt;-- 已合成 chunk</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <span style="color:#FF6B2B;">_progress.json</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">{"completed": [0,1,2], "total": 100}</span>
+        </div>
+
+        <!-- 数据 -->
+        <div style="margin-top:20px;display:flex;gap:16px;">
+          <div style="flex:1;background:rgba(255,107,43,0.06);border:1px solid rgba(255,107,43,0.2);border-radius:10px;padding:20px;text-align:center;">
+            <div style="font-size:36px;font-weight:800;color:#FF6B2B;">25-45<span style="font-size:20px;font-weight:400;">min</span></div>
+            <div style="font-size:14px;color:#6A4A3A;margin-top:4px;">每期 TTS 合成时间</div>
+          </div>
+          <div style="flex:1;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:20px;text-align:center;">
+            <div style="font-size:36px;font-weight:800;color:#00E5FF;">30k<span style="font-size:20px;font-weight:400;">字</span></div>
+            <div style="font-size:14px;color:#2A4060;margin-top:4px;">日报脚本体量</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：content-hash 代码 -->
+      <div>
+        <div class="code-block" style="font-size:17px;line-height:1.85;">
+          <span class="code-keyword">import</span> hashlib<br>
+          <br>
+          <span class="code-keyword">def</span> <span class="code-func">get_cache_key</span>(voice, text):<br>
+          &nbsp;&nbsp;<span class="code-comment">"""相同声音 + 相同文本 = 相同 key"""</span><br>
+          &nbsp;&nbsp;content = <span class="code-string">f"{voice}:{text}"</span><br>
+          &nbsp;&nbsp;<span class="code-keyword">return</span> hashlib.<span class="code-func">sha256</span>(<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;content.<span class="code-func">encode</span>()<br>
+          &nbsp;&nbsp;).<span class="code-func">hexdigest</span>()<br>
+          <br>
+          <span class="code-keyword">def</span> <span class="code-func">synthesize</span>(voice, text):<br>
+          &nbsp;&nbsp;key = <span class="code-func">get_cache_key</span>(voice, text)<br>
+          &nbsp;&nbsp;path = CACHE / <span class="code-string">f"{key}.wav"</span><br>
+          <br>
+          &nbsp;&nbsp;<span class="code-keyword">if</span> path.<span class="code-func">exists</span>():<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> path.<span class="code-func">read_bytes</span>() <span class="code-comment"># cache hit!</span><br>
+          <br>
+          &nbsp;&nbsp;audio = tts.<span class="code-func">synthesize</span>(voice, text)<br>
+          &nbsp;&nbsp;path.<span class="code-func">write_bytes</span>(audio)<br>
+          &nbsp;&nbsp;<span class="code-keyword">return</span> audio
+        </div>
+
+        <div class="design-note" style="margin-top:20px;font-size:17px;">
+          <div class="design-note-label">核心洞察</div>
+          content-hash 缓存同时解决两个问题：<br>
+          <span style="color:#B78AFF;">1. 跨天幂等</span> — 同一段文字明天和今天一样，不浪费 GPU<br>
+          <span style="color:#B78AFF;">2. 断点续传</span> — 重启后查缓存，已合成的直接复用
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-num">08 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 9 · Lena 新闻摘要完整流程图
+────────────────────────────────────────────────── -->
+<section data-screen-label="完整流程图">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1600px;">
+    <div class="chapter-tag" style="margin-bottom:24px;">lena-v1.4 完整流程</div>
+    <h2 style="font-size:58px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:40px;">
+      每小时抓取 → 攒一天 → 凌晨总结
+    </h2>
+
+    <!-- 24小时时间轴 -->
+    <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:16px;padding:32px;margin-bottom:28px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#2A4060;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;">24小时 cron 触发时序（0 * * * *）</div>
+      <div style="display:flex;align-items:center;gap:0;position:relative;">
+        <div style="position:absolute;top:24px;left:0;right:0;height:2px;background:rgba(0,229,255,0.15);"></div>
+        <div style="display:flex;gap:0;width:100%;justify-content:space-between;position:relative;">
+          <!-- 渲染代表性小时节点 -->
+          <div style="text-align:center;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#39E07A;border:2px solid rgba(57,224,122,0.5);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:11px;color:#000;margin:0 auto;font-weight:700;">00:00</div>
+            <div style="font-size:11px;color:#39E07A;margin-top:8px;">fetch</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:10px;color:#00E5FF;margin:0 auto;">01:00</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:10px;color:#00E5FF;margin:0 auto;">02:00</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,107,43,0.2);border:2px solid #FF6B2B;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto;">💥</div>
+            <div style="font-size:11px;color:#FF6B2B;margin-top:8px;">崩溃</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(183,138,255,0.15);border:2px dashed #B78AFF;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto;color:#B78AFF;">↺</div>
+            <div style="font-size:11px;color:#B78AFF;margin-top:8px;">恢复</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:10px;color:#00E5FF;margin:0 auto;">…</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:10px;color:#00E5FF;margin:0 auto;">22:00</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono';font-size:10px;color:#00E5FF;margin:0 auto;">23:00</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="width:48px;height:48px;border-radius:50%;background:rgba(183,138,255,0.2);border:2px solid #B78AFF;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto;">🌙</div>
+            <div style="font-size:11px;color:#B78AFF;margin-top:8px;">总结</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 架构三层 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+
+      <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:12px;padding:24px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#00E5FF;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">调度层 Scheduler</div>
+        <div style="font-size:17px;color:#7A9AB0;line-height:1.7;font-family:'JetBrains Mono',monospace;">
+          croniter<br>
+          "0 * * * *" → fetch<br>
+          "0 0 * * *" → summarize<br>
+          <span style="color:#3A5070;">每秒检查是否到期</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(183,138,255,0.04);border:1px solid rgba(183,138,255,0.12);border-radius:12px;padding:24px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#B78AFF;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">持久化层 Checkpoint</div>
+        <div style="font-size:17px;color:#8A7AB0;line-height:1.7;font-family:'JetBrains Mono',monospace;">
+          SQLite task_state<br>
+          save_checkpoint() 每步<br>
+          load_completed_steps()<br>
+          <span style="color:#4A3060;">崩溃精确恢复</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(57,224,122,0.04);border:1px solid rgba(57,224,122,0.12);border-radius:12px;padding:24px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#39E07A;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">缓存层 content-hash</div>
+        <div style="font-size:17px;color:#6A9A7A;line-height:1.7;font-family:'JetBrains Mono',monospace;">
+          sha256(source+day)<br>
+          已抓跳过重抓<br>
+          跨天 / 跨重启有效<br>
+          <span style="color:#2A5040;">幂等保证</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-num">09 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 10 · OpenClaw 深水区预告
+────────────────────────────────────────────────── -->
+<section data-screen-label="深水区预告">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1500px;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+      <div class="chapter-tag">附录预告</div>
+      <span class="badge badge-purple">R2 OpenClaw 深水区</span>
+    </div>
+    <h2 style="font-size:60px;font-weight:800;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:16px;">
+      CronIsolatedAgent：生产级 cron 的全貌
+    </h2>
+    <p style="font-size:22px;color:#5A7090;margin-bottom:40px;">本章教了核心原理。生产级还有哪些模块？</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;">
+
+      <!-- 左：功能对比表 -->
+      <div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;overflow:hidden;">
+          <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div style="padding:14px 20px;font-size:14px;color:#3A5070;font-family:'JetBrains Mono',monospace;">功能</div>
+            <div style="padding:14px;font-size:14px;color:#00E5FF;font-family:'JetBrains Mono',monospace;text-align:center;">lena-v1.4</div>
+            <div style="padding:14px;font-size:14px;color:#B78AFF;font-family:'JetBrains Mono',monospace;text-align:center;">CronIsolated</div>
+          </div>
+          <div id="feature-rows">
+            <!-- rows injected by script -->
+          </div>
+        </div>
+        <div style="margin-top:16px;font-size:14px;color:#2A3A4A;font-style:italic;font-family:'JetBrains Mono',monospace;">
+          cron/isolated-agent/run.ts · 30+ 模块
+        </div>
+      </div>
+
+      <!-- 右：设计原则 -->
+      <div>
+        <div class="design-note" style="margin-bottom:24px;">
+          <div class="design-note-label">为什么本章不展开</div>
+          CronIsolatedAgent 的 30+ 模块主要是<span style="color:#B78AFF;">运维复杂性</span>，不是设计复杂性。
+          本章教的 checkpoint/resume 思想已覆盖核心原理。
+        </div>
+
+        <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:12px;padding:28px;">
+          <div style="font-size:17px;color:#3A5070;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px;">核心路径</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:16px;line-height:2;color:#6A8090;">
+            cron 触发<br>
+            → isolated session 启动<br>
+            → model 选择（with fallback）<br>
+            → task 执行（with checkpoint）<br>
+            → delivery（Discord/Feishu/...）<br>
+            → session 清理
+          </div>
+        </div>
+
+        <div style="margin-top:20px;background:rgba(57,224,122,0.05);border:1px solid rgba(57,224,122,0.15);border-radius:10px;padding:20px;font-size:17px;color:#5A8060;line-height:1.6;">
+          <span style="color:#39E07A;font-weight:600;">附录 C</span> 将完整解析 CronIsolatedAgent 30+ 模块。
+          本章的 lena-v1.4 是理解附录的最佳前置。
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="slide-num">10 / 11</div>
+</section>
+
+
+<!-- ─────────────────────────────────────────────────
+  Slide 11 · 本章小结
+────────────────────────────────────────────────── -->
+<section data-screen-label="本章小结">
+  <div class="bg-grid"></div>
+  <div class="bg-glow-tl"></div>
+  <div class="bg-glow-br"></div>
+
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1560px;">
+    <div class="chapter-tag" style="margin-bottom:28px;">本章小结 · lena-v1.4 达成</div>
+
+    <h2 style="font-size:70px;font-weight:900;letter-spacing:-0.02em;color:#F0F4FF;margin-bottom:48px;line-height:1.1;">
+      三句话，一个 Agent
+    </h2>
+
+    <div style="display:flex;flex-direction:column;gap:20px;margin-bottom:48px;">
+      <div style="display:flex;align-items:center;gap:28px;padding:28px 36px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;color:#00E5FF;font-weight:700;flex-shrink:0;width:32px;">1</div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#F0F4FF;margin-bottom:6px;">cron 解决"<span class="accent-cyan">什么时候跑</span>"</div>
+          <div style="font-size:17px;color:#4A6A80;">croniter 计算精确触发时间，不漂移，进程重启不丢调度</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:28px;padding:28px 36px;background:rgba(183,138,255,0.05);border:1px solid rgba(183,138,255,0.15);border-radius:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;color:#B78AFF;font-weight:700;flex-shrink:0;width:32px;">2</div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#F0F4FF;margin-bottom:6px;">checkpoint 解决"<span class="accent-purple">跑到哪了</span>"</div>
+          <div style="font-size:17px;color:#6A5A80;">SQLite task_state，每步落盘，崩溃后精确到步恢复——不是从头重来</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:28px;padding:28px 36px;background:rgba(57,224,122,0.05);border:1px solid rgba(57,224,122,0.15);border-radius:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;color:#39E07A;font-weight:700;flex-shrink:0;width:32px;">3</div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#F0F4FF;margin-bottom:6px;">content-hash 解决"<span class="accent-green">这个有没有跑过</span>"</div>
+          <div style="font-size:17px;color:#3A6050;">sha256 缓存，跨天幂等，重复内容零成本——从日报 TTS 断点续传实践中提炼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- lena 版本进化 -->
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#2A3A4A;">版本进化：</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-family:'JetBrains Mono';font-size:14px;color:#3A5060;background:rgba(255,255,255,0.04);padding:6px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);">v1.0 Hello Agent</span>
+        <span style="color:#2A3A4A;">→</span>
+        <span style="font-family:'JetBrains Mono';font-size:14px;color:#3A5060;background:rgba(255,255,255,0.04);padding:6px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);">v1.1 Gateway</span>
+        <span style="color:#2A3A4A;">→</span>
+        <span style="font-family:'JetBrains Mono';font-size:14px;color:#3A5060;background:rgba(255,255,255,0.04);padding:6px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);">v1.2 Memory</span>
+        <span style="color:#2A3A4A;">→</span>
+        <span style="font-family:'JetBrains Mono';font-size:14px;color:#3A5060;background:rgba(255,255,255,0.04);padding:6px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);">v1.3 Heartbeat</span>
+        <span style="color:#2A3A4A;">→</span>
+        <span style="font-family:'JetBrains Mono';font-size:15px;color:#00E5FF;background:rgba(0,229,255,0.08);padding:6px 20px;border-radius:999px;border:1px solid rgba(0,229,255,0.25);font-weight:600;">v1.4 Cron + Checkpoint ✓</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="slide-num">11 / 11</div>
+</section>
+
+</deck-stage>
+
+<script>
+// ─── 功能对比表数据（Slide 10）
+const features = [
+  ["cron 调度", "✓", "✓"],
+  ["崩溃恢复", "✓", "✓"],
+  ["Model fallback", "—", "✓"],
+  ["Auth profile", "—", "✓"],
+  ["Delivery channel", "—", "✓"],
+  ["分布式幂等", "—", "✓"],
+  ["超时控制", "—", "✓"],
+];
+
+const rowsContainer = document.getElementById('feature-rows');
+if (rowsContainer) {
+  features.forEach((row, idx) => {
+    const div = document.createElement('div');
+    div.style.cssText = `display:grid;grid-template-columns:1.2fr 1fr 1fr;${idx%2===0?'':'background:rgba(255,255,255,0.015);'}border-bottom:1px solid rgba(255,255,255,0.04);`;
+    div.innerHTML = `
+      <div style="padding:12px 20px;font-size:15px;color:#5A6A7A;">${row[0]}</div>
+      <div style="padding:12px;font-size:18px;color:${row[1]==='✓'?'#39E07A':'#3A4A5A'};text-align:center;">${row[1]}</div>
+      <div style="padding:12px;font-size:18px;color:${row[2]==='✓'?'#39E07A':'#3A4A5A'};text-align:center;">${row[2]}</div>
+    `;
+    rowsContainer.appendChild(div);
+  });
+}
+</script>
+
+<!-- deck_stage.js (inline from assets) -->
+<script>
+(function() {
+  const STORAGE_KEY_PREFIX = 'deck-stage-slide-';
+
+  class DeckStage extends HTMLElement {
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      this._currentSlide = 0;
+      this._slides = [];
+      this._storageKey = STORAGE_KEY_PREFIX + (location.pathname || 'default');
+    }
+
+    connectedCallback() {
+      this._width = parseInt(this.getAttribute('width')) || 1920;
+      this._height = parseInt(this.getAttribute('height')) || 1080;
+      this._render();
+      const init = () => {
+        this._collectSlides();
+        this._setupEventListeners();
+        this._restoreSlide();
+        this._updateDisplay();
+        this._setupPrintStyles();
+      };
+      if (this.ownerDocument.readyState === 'loading') {
+        this.ownerDocument.addEventListener('DOMContentLoaded', init, { once: true });
+      } else {
+        requestAnimationFrame(init);
+      }
+    }
+
+    _render() {
+      this.shadowRoot.innerHTML = `
+        <style>
+          :host { display:block;position:fixed;inset:0;background:#000;overflow:hidden;font-family:-apple-system,sans-serif; }
+          :host([noscale]) .stage { transform:none !important;top:0 !important;left:0 !important; }
+          .stage { position:absolute;top:50%;left:50%;transform-origin:top left;will-change:transform;background:#070B14; }
+          .slide-wrapper { width:100%;height:100%;position:relative; }
+          ::slotted(section) { display:none;width:100%;height:100%;position:absolute;top:0;left:0;overflow:hidden; }
+          ::slotted(section.active) { display:block; }
+          .counter { position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,0.6);color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;font-variant-numeric:tabular-nums;z-index:100;user-select:none;opacity:0.5;transition:opacity 0.2s; }
+          .counter:hover { opacity:1; }
+          .nav-zone { position:fixed;top:0;bottom:0;width:15%;cursor:pointer;z-index:50; }
+          .nav-zone.left { left:0; }
+          .nav-zone.right { right:0; }
+          .nav-hint { position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:24px;opacity:0;transition:opacity 0.2s; }
+          .nav-zone.left .nav-hint { left:20px; }
+          .nav-zone.right .nav-hint { right:20px; }
+          .nav-zone:hover .nav-hint { opacity:1; }
+          @media print {
+            :host { position:static;background:#000; }
+            .counter, .nav-zone { display:none !important; }
+            .stage { position:static;transform:none !important;page-break-after:always; }
+            ::slotted(section) { display:block !important;position:relative !important;page-break-after:always;width:100%;height:100%; }
+          }
+        </style>
+        <div class="stage" id="stage" style="width:${this._width}px;height:${this._height}px;">
+          <div class="slide-wrapper"><slot></slot></div>
+        </div>
+        <div class="nav-zone left" id="navLeft"><div class="nav-hint">‹</div></div>
+        <div class="nav-zone right" id="navRight"><div class="nav-hint">›</div></div>
+        <div class="counter" id="counter">1 / 1</div>
+      `;
+    }
+
+    _collectSlides() {
+      this._slides = Array.from(this.querySelectorAll(':scope > section'));
+      this._slides.forEach((slide, idx) => {
+        if (!slide.hasAttribute('data-screen-label')) slide.setAttribute('data-screen-label', String(idx+1).padStart(2,'0'));
+      });
+    }
+
+    _setupEventListeners() {
+      window.addEventListener('resize', () => this._updateScale());
+      document.addEventListener('keydown', (e) => {
+        if (e.target.matches('input,textarea,[contenteditable]')) return;
+        switch(e.key) {
+          case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); this.next(); break;
+          case 'ArrowLeft': case 'PageUp': e.preventDefault(); this.prev(); break;
+          case 'Home': e.preventDefault(); this.goTo(0); break;
+          case 'End': e.preventDefault(); this.goTo(this._slides.length-1); break;
+        }
+      });
+      this.shadowRoot.getElementById('navLeft').addEventListener('click', () => this.prev());
+      this.shadowRoot.getElementById('navRight').addEventListener('click', () => this.next());
+      window.addEventListener('hashchange', () => this._handleHash());
+      if (location.hash) setTimeout(() => this._handleHash(), 0);
+    }
+
+    _handleHash() {
+      const match = location.hash.match(/^#slide-(\d+)$/);
+      if (match) { const idx = parseInt(match[1])-1; if (idx>=0 && idx<this._slides.length) this.goTo(idx); }
+    }
+
+    _restoreSlide() {
+      try { const stored = localStorage.getItem(this._storageKey); if (stored!==null) { const idx=parseInt(stored); if (idx>=0&&idx<this._slides.length) this._currentSlide=idx; } } catch(e) {}
+    }
+
+    _saveSlide() { try { localStorage.setItem(this._storageKey, String(this._currentSlide)); } catch(e) {} }
+
+    _updateScale() {
+      const stage = this.shadowRoot.getElementById('stage'); if (!stage) return;
+      const vw=window.innerWidth, vh=window.innerHeight;
+      const scale=Math.min(vw/this._width, vh/this._height);
+      const ox=(vw-this._width*scale)/2, oy=(vh-this._height*scale)/2;
+      stage.style.transform=`translate(${ox}px,${oy}px) scale(${scale})`;
+      stage.style.top='0'; stage.style.left='0';
+    }
+
+    _updateDisplay() {
+      this._slides.forEach((s,i) => s.classList.toggle('active', i===this._currentSlide));
+      const c=this.shadowRoot.getElementById('counter'); if(c) c.textContent=`${this._currentSlide+1} / ${this._slides.length}`;
+      this._updateScale();
+      try { window.postMessage({slideIndexChanged:this._currentSlide,totalSlides:this._slides.length},'*'); } catch(e){}
+    }
+
+    _setupPrintStyles() {
+      const s=document.createElement('style');
+      s.textContent=`@media print{@page{size:${this._width}px ${this._height}px;margin:0;}body{margin:0;padding:0;}deck-stage{position:static!important;}deck-stage>section{display:block!important;position:relative!important;width:${this._width}px!important;height:${this._height}px!important;page-break-after:always;}deck-stage>section:last-child{page-break-after:auto;}}`;
+      document.head.appendChild(s);
+    }
+
+    next() { if (this._currentSlide<this._slides.length-1) { this._currentSlide++; this._saveSlide(); this._updateDisplay(); } }
+    prev() { if (this._currentSlide>0) { this._currentSlide--; this._saveSlide(); this._updateDisplay(); } }
+    goTo(idx) { if (idx>=0&&idx<this._slides.length) { this._currentSlide=idx; this._saveSlide(); this._updateDisplay(); } }
+  }
+
+  customElements.define('deck-stage', DeckStage);
+})();
+</script>
+
+</html>

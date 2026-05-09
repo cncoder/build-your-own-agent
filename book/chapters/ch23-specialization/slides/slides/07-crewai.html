@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+.stars { position: absolute; top: 130px; right: 100px; font-size: 14px; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; }
+
+.vs-layout { position: absolute; top: 230px; left: 100px; right: 100px; display: flex; gap: 60px; }
+.vs-col { flex: 1; }
+.vs-header {
+  font-size: 28px; font-weight: 800; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 12px;
+}
+.vs-badge {
+  font-size: 11px; padding: 3px 10px; border-radius: 4px; letter-spacing: 0.15em;
+}
+.crew-badge { background: rgba(0,200,100,0.12); border: 1px solid rgba(0,200,100,0.3); color: #00cc66; }
+.flow-badge { background: rgba(100,150,255,0.12); border: 1px solid rgba(100,150,255,0.3); color: #6699ff; }
+.vs-sub { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 20px; }
+
+.code-box {
+  background: #0c0e18; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px; padding: 20px 22px; font-family: 'SF Mono','Fira Code',monospace;
+  font-size: 11px; line-height: 1.8; color: #9099b0;
+  height: 340px; overflow: hidden;
+}
+.k { color: #cc88ff; } .f { color: #66aaff; } .s { color: #88ddaa; } .c { color: #555577; }
+
+.use-when {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: 6px; font-size: 13px; line-height: 1.7;
+}
+.use-when.crew { background: rgba(0,200,100,0.04); border: 1px solid rgba(0,200,100,0.15); color: rgba(180,255,200,0.7); }
+.use-when.flow { background: rgba(100,150,255,0.04); border: 1px solid rgba(100,150,255,0.15); color: rgba(180,200,255,0.7); }
+.use-when strong { font-weight: 600; }
+.use-when.crew strong { color: #00cc66; }
+.use-when.flow strong { color: #6699ff; }
+
+.vs-divider {
+  width: 2px; background: rgba(153,102,255,0.15); flex-shrink: 0;
+  position: relative;
+}
+.vs-divider::after {
+  content: 'VS'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: #08090f; padding: 8px 4px;
+  font-size: 14px; color: rgba(153,102,255,0.5); letter-spacing: 0.2em; font-weight: 700;
+}
+
+.one-liner {
+  position: absolute; bottom: 60px; left: 100px; right: 100px;
+  border: 1px solid rgba(153,102,255,0.2); background: rgba(153,102,255,0.04);
+  border-radius: 6px; padding: 20px 32px;
+  font-size: 20px; color: rgba(255,255,255,0.6);
+  display: flex; gap: 60px;
+}
+.one-liner span { color: #cc88ff; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="title">CrewAI · 51k stars · crewAIInc/crewAI</div>
+<div class="heading">Crew vs Flow 双范式，一句话选型</div>
+<div class="stars">⭐ 51,000+ stars</div>
+
+<div class="vs-layout">
+  <div class="vs-col">
+    <div class="vs-header">Crew <span class="vs-badge crew-badge">自主协作</span></div>
+    <div class="vs-sub">一次性任务，多角色协作完成</div>
+    <div class="code-box">
+<span class="c"># 四层 agent 协作（对应 TradingAgents）</span>
+<span class="k">analyst</span> = Agent(<span class="s">role=</span><span class="s">"市场分析师"</span>,
+    <span class="s">goal=</span><span class="s">"识别交易信号"</span>, <span class="s">tools=</span>[price, indicator])
+
+<span class="k">researcher</span> = Agent(<span class="s">role=</span><span class="s">"基本面研究员"</span>,
+    <span class="s">goal=</span><span class="s">"收集新闻情绪"</span>, <span class="s">tools=</span>[news, onchain])
+
+<span class="k">trader</span> = Agent(<span class="s">role=</span><span class="s">"交易执行员"</span>,
+    <span class="s">goal=</span><span class="s">"综合信号执行策略"</span>, <span class="s">tools=</span>[order, pos],
+    <span class="s">llm=</span><span class="s">"us.anthropic.claude-opus-4-7"</span>)
+
+<span class="k">crew</span> = Crew(
+    <span class="s">agents=</span>[analyst, researcher, trader, risk],
+    <span class="s">tasks=</span>[analysis_task, research_task,
+           trade_task, risk_task],
+    <span class="s">process=</span>Process.sequential
+)
+result = crew.kickoff()
+    </div>
+    <div class="use-when crew">
+      <strong>Crew 适用：</strong>一次性分析报告、有自然专业分工的任务、需要 agent 互相传递上下文
+    </div>
+  </div>
+
+  <div class="vs-divider"></div>
+
+  <div class="vs-col">
+    <div class="vs-header">Flow <span class="vs-badge flow-badge">事件驱动</span></div>
+    <div class="vs-sub">持续运行 pipeline，状态机 + 动态分支</div>
+    <div class="code-box">
+<span class="c"># 量化交易持续监控 Flow</span>
+<span class="k">class</span> TradingFlow(Flow[TradingState]):
+
+    <span class="f">@start()</span>
+    <span class="k">def</span> scan_market(<span class="k">self</span>):
+        signal = scanner.scan()
+        <span class="k">self</span>.state.signal = signal
+        <span class="k">return</span> signal
+
+    <span class="f">@listen</span>(scan_market)
+    <span class="f">@router</span>(<span class="k">lambda</span> s: <span class="s">"high"</span> <span class="k">if</span> s.conf > 0.8 <span class="k">else</span> <span class="s">"low"</span>)
+    <span class="k">def</span> route_signal(<span class="k">self</span>, s): <span class="k">pass</span>
+
+    <span class="f">@listen</span>(<span class="s">"high"</span>)
+    <span class="k">def</span> check_risk(<span class="k">self</span>, s):
+        approved = risk.check(s)
+        <span class="k">return</span> <span class="s">"approved"</span> <span class="k">if</span> approved <span class="k">else</span> <span class="s">"rejected"</span>
+
+    <span class="f">@listen</span>(<span class="s">"approved"</span>)
+    <span class="k">def</span> execute_trade(<span class="k">self</span>):
+        trade.execute(<span class="k">self</span>.state.signal)
+
+TradingFlow().kickoff()
+    </div>
+    <div class="use-when flow">
+      <strong>Flow 适用：</strong>持续运行监控、需要动态分支（高置信度/低置信度走不同路径）、长期 pipeline（播客生产/每日任务）
+    </div>
+  </div>
+</div>
+
+<div class="one-liner">
+  <div><span>Crew</span> = 项目制（一次性，协作完成一个任务）</div>
+  <div><span>Flow</span> = 产品制（持续运行，事件驱动，状态机）</div>
+</div>
+</body>
+</html>

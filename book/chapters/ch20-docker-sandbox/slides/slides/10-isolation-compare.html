@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 52px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+.content { position: absolute; top: 240px; left: 80px; right: 80px; bottom: 80px; }
+
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 2px solid rgba(255,255,255,0.1); }
+th { font-size: 13px; letter-spacing: 0.15em; text-align: left; padding: 14px 20px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+td { font-size: 15px; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.65); }
+td:first-child { color: #fff; font-weight: 700; font-size: 16px; }
+
+tr.row-regex td { }
+tr.row-docker td { background: rgba(0,204,85,0.03); }
+tr.row-docker td:first-child { color: #00cc55; }
+tr.row-vm td { }
+tr.row-wasm td { }
+tr.row-gvisor td { background: rgba(51,170,255,0.03); }
+tr.row-gvisor td:first-child { color: #55aaff; }
+
+.tag { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 3px; }
+.tag-green { background: rgba(0,204,85,0.15); color: #00cc55; }
+.tag-orange { background: rgba(255,150,0,0.12); color: #ff9966; }
+.tag-red { background: rgba(255,50,50,0.12); color: #ff6666; }
+.tag-blue { background: rgba(51,170,255,0.12); color: #55aaff; }
+.tag-gray { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); }
+
+.recommend-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,204,85,0.06); border: 1px solid rgba(0,204,85,0.15);
+  padding: 14px 24px; border-radius: 4px;
+  display: flex; align-items: center; gap: 20px;
+}
+.rb-title { font-size: 12px; letter-spacing: 0.2em; color: rgba(0,204,85,0.7); }
+.rb-text { font-size: 14px; color: rgba(255,255,255,0.6); }
+.rb-text strong { color: #fff; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">Design Note</div>
+<div class="page-num">10 / 11</div>
+
+<div class="title-area">
+  <h2>真沙箱 vs VM vs Wasm</h2>
+  <div class="sub">三种隔离方案对比——选 Docker 的理由</div>
+</div>
+
+<div class="content">
+  <table>
+    <thead>
+      <tr>
+        <th>方案</th>
+        <th>隔离强度</th>
+        <th>启动时间</th>
+        <th>资源开销</th>
+        <th>适用场景</th>
+        <th>lena-v1.x</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-regex">
+        <td>正则黑名单</td>
+        <td><span class="tag tag-red">低（可绕过）</span></td>
+        <td><span class="tag tag-green">0ms</span></td>
+        <td><span class="tag tag-green">极低</span></td>
+        <td>本地开发 / 信任代码</td>
+        <td>v1.0 ShellSandbox</td>
+      </tr>
+      <tr class="row-docker">
+        <td>Docker 容器 ⭐</td>
+        <td><span class="tag tag-green">高</span></td>
+        <td><span class="tag tag-orange">0.3s - 2s</span></td>
+        <td><span class="tag tag-orange">中</span></td>
+        <td>生产代码执行 / 多租户</td>
+        <td>v1.6（本章）</td>
+      </tr>
+      <tr class="row-vm">
+        <td>虚拟机 (VM)</td>
+        <td><span class="tag tag-green">极高</span></td>
+        <td><span class="tag tag-red">3s - 30s</span></td>
+        <td><span class="tag tag-red">高</span></td>
+        <td>金融级隔离 / 高安全要求</td>
+        <td>—</td>
+      </tr>
+      <tr class="row-wasm">
+        <td>WebAssembly</td>
+        <td><span class="tag tag-orange">中-高</span></td>
+        <td><span class="tag tag-green">&lt; 10ms</span></td>
+        <td><span class="tag tag-green">低</span></td>
+        <td>浏览器 / 边缘计算</td>
+        <td>—</td>
+      </tr>
+      <tr class="row-gvisor">
+        <td>gVisor (runsc)</td>
+        <td><span class="tag tag-blue">很高</span></td>
+        <td><span class="tag tag-orange">500ms</span></td>
+        <td><span class="tag tag-orange">中</span></td>
+        <td>兼顾安全与性能</td>
+        <td>--runtime=runsc 切换</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="recommend-bar">
+    <div class="rb-title">升级路径</div>
+    <div class="rb-text">
+      lena-v1.6 用 Docker（<strong>docker run</strong>）→ 升级到 gVisor 只需加 <strong>--runtime=runsc</strong>，代码不变，隔离强度大幅提升。
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1587" height="1123" viewBox="0 0 1587 1123" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'PingFang SC','Helvetica Neue',sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#08090f"/>
+      <stop offset="100%" stop-color="#0c0a16"/>
+    </linearGradient>
+    <linearGradient id="purpleGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9966ff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#cc88ff" stop-opacity="0.6"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9966ff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#9966ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#9966ff" opacity="0.7"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00cc66" opacity="0.7"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4499ff" opacity="0.7"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff9966" opacity="0.7"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1587" height="1123" fill="url(#bg)"/>
+
+  <!-- Grid lines -->
+  <g opacity="0.03" stroke="#9966ff" stroke-width="1">
+    <line x1="0" y1="100" x2="1587" y2="100"/>
+    <line x1="0" y1="200" x2="1587" y2="200"/>
+    <line x1="0" y1="300" x2="1587" y2="300"/>
+    <line x1="0" y1="400" x2="1587" y2="400"/>
+    <line x1="0" y1="500" x2="1587" y2="500"/>
+    <line x1="0" y1="600" x2="1587" y2="600"/>
+    <line x1="0" y1="700" x2="1587" y2="700"/>
+    <line x1="0" y1="800" x2="1587" y2="800"/>
+    <line x1="0" y1="900" x2="1587" y2="900"/>
+    <line x1="0" y1="1000" x2="1587" y2="1000"/>
+    <line x1="200" y1="0" x2="200" y2="1123"/>
+    <line x1="400" y1="0" x2="400" y2="1123"/>
+    <line x1="600" y1="0" x2="600" y2="1123"/>
+    <line x1="800" y1="0" x2="800" y2="1123"/>
+    <line x1="1000" y1="0" x2="1000" y2="1123"/>
+    <line x1="1200" y1="0" x2="1200" y2="1123"/>
+    <line x1="1400" y1="0" x2="1400" y2="1123"/>
+  </g>
+
+  <!-- Title area -->
+  <text x="60" y="58" fill="#9966ff" font-size="11" letter-spacing="4" opacity="0.7">CH 19 · SPECIALIZATION PATTERN</text>
+  <text x="60" y="92" fill="white" font-size="38" font-weight="900" letter-spacing="-1">通用 Runtime 派生 N 个专用 Agent</text>
+  <line x1="60" y1="106" x2="700" y2="106" stroke="#9966ff" stroke-width="1" opacity="0.3"/>
+  <text x="1400" y="58" fill="rgba(255,255,255,0.2)" font-size="11" letter-spacing="2" text-anchor="end">LENA-SPECKIT v1.9 · 六大支柱第 6 支</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SECTION 1: 中央通用 Runtime -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Center glow -->
+  <ellipse cx="794" cy="340" rx="280" ry="200" fill="url(#centerGlow)"/>
+
+  <!-- Central Runtime box -->
+  <rect x="624" y="130" width="340" height="420" rx="16" fill="#0d0f1e" stroke="#9966ff" stroke-width="1.5" opacity="0.9"/>
+  <rect x="624" y="130" width="340" height="420" rx="16" fill="none" stroke="url(#purpleGlow)" stroke-width="1" opacity="0.4"/>
+
+  <text x="794" y="162" text-anchor="middle" fill="#9966ff" font-size="10" letter-spacing="3" font-weight="600">UNIVERSAL RUNTIME</text>
+  <text x="794" y="190" text-anchor="middle" fill="white" font-size="24" font-weight="900">通用 Lena</text>
+  <line x1="650" y1="202" x2="938" y2="202" stroke="#9966ff" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Runtime modules -->
+  <g fill="rgba(153,102,255,0.08)" stroke="rgba(153,102,255,0.2)" stroke-width="1">
+    <rect x="644" y="214" width="300" height="38" rx="4"/>
+    <rect x="644" y="260" width="300" height="38" rx="4"/>
+    <rect x="644" y="306" width="300" height="38" rx="4"/>
+    <rect x="644" y="352" width="300" height="38" rx="4"/>
+    <rect x="644" y="398" width="300" height="38" rx="4"/>
+    <rect x="644" y="444" width="300" height="38" rx="4"/>
+  </g>
+
+  <text x="660" y="238" fill="#cc88ff" font-size="11" font-family="monospace">🧠</text>
+  <text x="680" y="238" fill="rgba(255,255,255,0.7)" font-size="12">LLM Provider</text>
+  <text x="930" y="238" text-anchor="end" fill="rgba(153,102,255,0.5)" font-size="10" font-family="monospace">Bedrock / API</text>
+
+  <text x="660" y="284" fill="#cc88ff" font-size="11">🔧</text>
+  <text x="680" y="284" fill="rgba(255,255,255,0.7)" font-size="12">Tool Registry</text>
+  <text x="930" y="284" text-anchor="end" fill="rgba(153,102,255,0.5)" font-size="10" font-family="monospace">30+ 工具</text>
+
+  <text x="660" y="330" fill="#cc88ff" font-size="11">💾</text>
+  <text x="680" y="330" fill="rgba(255,255,255,0.7)" font-size="12">Memory</text>
+  <text x="930" y="330" text-anchor="end" fill="rgba(153,102,255,0.5)" font-size="10" font-family="monospace">三层记忆</text>
+
+  <text x="660" y="376" fill="#cc88ff" font-size="11">🔄</text>
+  <text x="680" y="376" fill="rgba(255,255,255,0.7)" font-size="12">AgentLoop</text>
+  <text x="930" y="376" text-anchor="end" fill="rgba(153,102,255,0.5)" font-size="10" font-family="monospace">ReAct</text>
+
+  <text x="660" y="422" fill="#cc88ff" font-size="11">📚</text>
+  <text x="680" y="422" fill="rgba(255,255,255,0.7)" font-size="12">Skills</text>
+  <text x="930" y="422" text-anchor="end" fill="rgba(153,102,255,0.5)" font-size="10" font-family="monospace">SOP 文档</text>
+
+  <text x="660" y="468" fill="#cc88ff" font-size="11">📡</text>
+  <text x="680" y="468" fill="rgba(255,255,255,0.7)" font-size="12">Channel</text>
+  <text x="930" y="468" text-anchor="end" fill="rgba(153,102,255,0.5)" font-size="10" font-family="monospace">Discord / 飞书</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SECTION 2: 三条派生路径 + 专用 Agent -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- ── 路径 1：System Prompt 特化 → TradingBot ── -->
+  <!-- Arrow from runtime -->
+  <path d="M624 240 L420 240 L420 340" stroke="#9966ff" stroke-width="1.5" fill="none" stroke-dasharray="6,3" opacity="0.5" marker-end="url(#arrowPurple)"/>
+
+  <!-- Method tag -->
+  <rect x="280" y="222" width="180" height="28" rx="4" fill="rgba(153,102,255,0.08)" stroke="rgba(153,102,255,0.25)" stroke-width="1"/>
+  <text x="370" y="241" text-anchor="middle" fill="#cc88ff" font-size="11" letter-spacing="1">① System Prompt 特化</text>
+
+  <!-- TradingBot card -->
+  <rect x="60" y="350" width="280" height="180" rx="10" fill="rgba(0,200,100,0.05)" stroke="rgba(0,200,100,0.3)" stroke-width="1.5"/>
+  <text x="200" y="382" text-anchor="middle" fill="rgba(0,200,100,0.6)" font-size="9" letter-spacing="3">DERIVED AGENT</text>
+  <text x="200" y="410" text-anchor="middle" fill="#00cc66" font-size="28" font-weight="900" filter="url(#glow)">TradingBot</text>
+  <line x1="80" y1="422" x2="320" y2="422" stroke="rgba(0,200,100,0.15)" stroke-width="1"/>
+  <text x="80" y="446" fill="rgba(255,255,255,0.4)" font-size="10" font-family="monospace">工具 × 7</text>
+  <text x="80" y="464" fill="rgba(0,200,100,0.5)" font-size="10" font-family="monospace">get_price · indicators · place_order</text>
+  <text x="80" y="482" fill="rgba(255,255,255,0.4)" font-size="10" font-family="monospace">Skills: trading-sop.md</text>
+  <text x="80" y="500" fill="rgba(255,255,255,0.3)" font-size="10" font-family="monospace">案例 19.1: hermesbot</text>
+
+  <!-- ── 路径 2：工具集裁剪 → PodcastBot ── -->
+  <!-- Arrow -->
+  <path d="M624 340 L480 340" stroke="#4499ff" stroke-width="1.5" fill="none" stroke-dasharray="6,3" opacity="0.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- Method tag -->
+  <rect x="284" y="322" width="180" height="28" rx="4" fill="rgba(68,153,255,0.08)" stroke="rgba(68,153,255,0.25)" stroke-width="1"/>
+  <text x="374" y="341" text-anchor="middle" fill="#66aaff" font-size="11" letter-spacing="1">② 工具集裁剪</text>
+
+  <!-- PodcastBot card -->
+  <rect x="60" y="560" width="280" height="180" rx="10" fill="rgba(0,150,255,0.05)" stroke="rgba(0,150,255,0.3)" stroke-width="1.5"/>
+  <text x="200" y="592" text-anchor="middle" fill="rgba(0,150,255,0.6)" font-size="9" letter-spacing="3">DERIVED AGENT</text>
+  <text x="200" y="620" text-anchor="middle" fill="#3399ff" font-size="28" font-weight="900" filter="url(#glow)">PodcastBot</text>
+  <line x1="80" y1="632" x2="320" y2="632" stroke="rgba(0,150,255,0.15)" stroke-width="1"/>
+  <text x="80" y="656" fill="rgba(255,255,255,0.4)" font-size="10" font-family="monospace">工具 × 4</text>
+  <text x="80" y="674" fill="rgba(0,150,255,0.5)" font-size="10" font-family="monospace">collect_news · tts_synthesize</text>
+  <text x="80" y="692" fill="rgba(255,255,255,0.4)" font-size="10" font-family="monospace">Skills: podcast-sop.md</text>
+  <text x="80" y="710" fill="rgba(255,255,255,0.3)" font-size="10" font-family="monospace">案例 19.2: local-mactts</text>
+
+  <!-- Arrow from runtime to podcast path -->
+  <path d="M624 390 L540 390 L540 430" stroke="#4499ff" stroke-width="1.5" fill="none" stroke-dasharray="6,3" opacity="0.3"/>
+  <line x1="420" y1="530" x2="420" y2="560" stroke="#4499ff" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.5" marker-end="url(#arrowBlue)"/>
+
+  <!-- ── 路径 3：Skills 注入 → DevOpsBot ── -->
+  <path d="M624 440 L420 440 L420 530" stroke="#ff9966" stroke-width="1.5" fill="none" stroke-dasharray="6,3" opacity="0.5"/>
+
+  <!-- Method tag skills -->
+  <rect x="284" y="498" width="140" height="28" rx="4" fill="rgba(255,153,102,0.08)" stroke="rgba(255,153,102,0.25)" stroke-width="1"/>
+  <text x="354" y="517" text-anchor="middle" fill="#ffaa77" font-size="11" letter-spacing="1">③ Skills 注入</text>
+
+  <!-- DevOpsBot card -->
+  <rect x="60" y="770" width="280" height="180" rx="10" fill="rgba(255,150,0,0.05)" stroke="rgba(255,150,0,0.3)" stroke-width="1.5"/>
+  <text x="200" y="802" text-anchor="middle" fill="rgba(255,150,0,0.6)" font-size="9" letter-spacing="3">DERIVED AGENT</text>
+  <text x="200" y="830" text-anchor="middle" fill="#ff9900" font-size="28" font-weight="900" filter="url(#glow)">DevOpsBot</text>
+  <line x1="80" y1="842" x2="320" y2="842" stroke="rgba(255,150,0,0.15)" stroke-width="1"/>
+  <text x="80" y="866" fill="rgba(255,255,255,0.4)" font-size="10" font-family="monospace">工具 × 3</text>
+  <text x="80" y="884" fill="rgba(255,150,0,0.5)" font-size="10" font-family="monospace">list_alarms · restart_service</text>
+  <text x="80" y="902" fill="rgba(255,255,255,0.4)" font-size="10" font-family="monospace">Skills: devops-sop.md</text>
+  <text x="80" y="920" fill="rgba(255,255,255,0.3)" font-size="10" font-family="monospace">自动告警恢复</text>
+
+  <!-- Arrow devops -->
+  <path d="M420 530 L420 770" stroke="#ff9966" stroke-width="1.5" fill="none" stroke-dasharray="6,3" opacity="0.5" marker-end="url(#arrowOrange)"/>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SECTION 3: 右上 CrewAI Crew vs Flow -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Section header -->
+  <text x="1000" y="148" fill="#9966ff" font-size="10" letter-spacing="3" opacity="0.7">CREWAI · 51K STARS</text>
+
+  <!-- Crew box -->
+  <rect x="1000" y="160" width="260" height="220" rx="10" fill="rgba(0,200,100,0.04)" stroke="rgba(0,200,100,0.25)" stroke-width="1.5"/>
+  <text x="1130" y="188" text-anchor="middle" fill="#00cc66" font-size="18" font-weight="800">Crew</text>
+  <text x="1130" y="208" text-anchor="middle" fill="rgba(0,200,100,0.5)" font-size="10">自主协作 · 项目制</text>
+  <line x1="1016" y1="218" x2="1244" y2="218" stroke="rgba(0,200,100,0.1)" stroke-width="1"/>
+  <text x="1016" y="240" fill="rgba(255,255,255,0.45)" font-size="11">• 任务有自然专业分工</text>
+  <text x="1016" y="260" fill="rgba(255,255,255,0.45)" font-size="11">• 一次性任务完成即止</text>
+  <text x="1016" y="280" fill="rgba(255,255,255,0.45)" font-size="11">• agent 互传上下文</text>
+  <text x="1016" y="300" fill="rgba(255,255,255,0.45)" font-size="11">• TradingAgents 四层案例</text>
+  <rect x="1016" y="318" width="228" height="44" rx="4" fill="rgba(0,200,100,0.06)"/>
+  <text x="1130" y="337" text-anchor="middle" fill="rgba(0,200,100,0.5)" font-size="9" font-family="monospace">crew = Crew(agents=[...], tasks=[...])</text>
+  <text x="1130" y="353" text-anchor="middle" fill="rgba(0,200,100,0.5)" font-size="9" font-family="monospace">result = crew.kickoff()</text>
+
+  <!-- Flow box -->
+  <rect x="1280" y="160" width="260" height="220" rx="10" fill="rgba(100,150,255,0.04)" stroke="rgba(100,150,255,0.25)" stroke-width="1.5"/>
+  <text x="1410" y="188" text-anchor="middle" fill="#6699ff" font-size="18" font-weight="800">Flow</text>
+  <text x="1410" y="208" text-anchor="middle" fill="rgba(100,150,255,0.5)" font-size="10">事件驱动 · 产品制</text>
+  <line x1="1296" y1="218" x2="1524" y2="218" stroke="rgba(100,150,255,0.1)" stroke-width="1"/>
+  <text x="1296" y="240" fill="rgba(255,255,255,0.45)" font-size="11">• 持续运行 pipeline</text>
+  <text x="1296" y="260" fill="rgba(255,255,255,0.45)" font-size="11">• 状态机 + 动态分支</text>
+  <text x="1296" y="280" fill="rgba(255,255,255,0.45)" font-size="11">• @start @listen @router</text>
+  <text x="1296" y="300" fill="rgba(255,255,255,0.45)" font-size="11">• hermesbot / local-mactts</text>
+  <rect x="1296" y="318" width="228" height="44" rx="4" fill="rgba(100,150,255,0.06)"/>
+  <text x="1410" y="337" text-anchor="middle" fill="rgba(100,150,255,0.5)" font-size="9" font-family="monospace">class TradingFlow(Flow[State]):</text>
+  <text x="1410" y="353" text-anchor="middle" fill="rgba(100,150,255,0.5)" font-size="9" font-family="monospace">    @start() @listen() @router()</text>
+
+  <!-- VS divider -->
+  <line x1="1270" y1="180" x2="1270" y2="360" stroke="rgba(153,102,255,0.2)" stroke-width="1"/>
+  <rect x="1253" y="252" width="34" height="24" rx="3" fill="#08090f"/>
+  <text x="1270" y="268" text-anchor="middle" fill="rgba(153,102,255,0.5)" font-size="12" font-weight="700">VS</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SECTION 4: SupervisorAgent -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <text x="1000" y="420" fill="#9966ff" font-size="10" letter-spacing="3" opacity="0.7">AGENT SQUAD · SUPERVISOR AGENT</text>
+  <rect x="1000" y="430" width="540" height="180" rx="10" fill="rgba(153,102,255,0.04)" stroke="rgba(153,102,255,0.2)" stroke-width="1.5"/>
+
+  <text x="1270" y="458" text-anchor="middle" fill="#cc88ff" font-size="18" font-weight="800">SupervisorAgent（agent-as-tools）</text>
+  <line x1="1016" y1="466" x2="1524" y2="466" stroke="rgba(153,102,255,0.1)" stroke-width="1"/>
+
+  <!-- Flow diagram inside -->
+  <text x="1016" y="490" fill="rgba(255,255,255,0.5)" font-size="11" font-family="monospace">用户: "BTC 现在该买吗？"</text>
+  <text x="1140" y="508" fill="rgba(153,102,255,0.4)" font-size="11" font-family="monospace">↓ LLM 意图推理</text>
+  <text x="1016" y="526" fill="#cc88ff" font-size="11" font-family="monospace">Supervisor: delegate_to_trader("BTC 分析")</text>
+  <text x="1140" y="544" fill="rgba(153,102,255,0.4)" font-size="11" font-family="monospace">↓ 专用 agent 执行</text>
+  <text x="1016" y="562" fill="rgba(255,255,255,0.5)" font-size="11" font-family="monospace">TradingBot: RSI=42, MACD 金叉, 建议多头</text>
+  <text x="1140" y="580" fill="rgba(153,102,255,0.4)" font-size="11" font-family="monospace">↓ 汇总回复</text>
+  <text x="1016" y="598" fill="rgba(0,200,100,0.6)" font-size="11" font-family="monospace">→ 用户收到综合分析报告</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SECTION 5: TradingAgents 四层 -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <text x="1000" y="660" fill="#9966ff" font-size="10" letter-spacing="3" opacity="0.7">TRADINGAGENTS 四层 AGENT 层级</text>
+
+  <!-- Four layers -->
+  <rect x="1000" y="670" width="120" height="120" rx="8" fill="rgba(68,102,255,0.06)" stroke="rgba(68,102,255,0.3)" stroke-width="1.5"/>
+  <text x="1060" y="698" text-anchor="middle" fill="#6688ff" font-size="9" letter-spacing="2">L1</text>
+  <text x="1060" y="720" text-anchor="middle" fill="#8899ff" font-size="16" font-weight="800">分析师</text>
+  <text x="1060" y="740" text-anchor="middle" fill="rgba(136,153,255,0.5)" font-size="9">技术指标</text>
+  <text x="1060" y="758" text-anchor="middle" fill="rgba(136,153,255,0.4)" font-size="9">RSI/MACD/BB</text>
+  <text x="1060" y="778" text-anchor="middle" fill="rgba(68,102,255,0.5)" font-size="9">→</text>
+
+  <line x1="1122" y1="730" x2="1138" y2="730" stroke="#9966ff" stroke-width="1.5" marker-end="url(#arrowPurple)" opacity="0.5"/>
+
+  <rect x="1140" y="670" width="120" height="120" rx="8" fill="rgba(0,150,255,0.06)" stroke="rgba(0,150,255,0.3)" stroke-width="1.5"/>
+  <text x="1200" y="698" text-anchor="middle" fill="#44aaff" font-size="9" letter-spacing="2">L2</text>
+  <text x="1200" y="720" text-anchor="middle" fill="#66ccff" font-size="16" font-weight="800">研究员</text>
+  <text x="1200" y="740" text-anchor="middle" fill="rgba(102,204,255,0.5)" font-size="9">新闻情绪</text>
+  <text x="1200" y="758" text-anchor="middle" fill="rgba(102,204,255,0.4)" font-size="9">链上数据</text>
+
+  <line x1="1262" y1="730" x2="1278" y2="730" stroke="#9966ff" stroke-width="1.5" marker-end="url(#arrowPurple)" opacity="0.5"/>
+
+  <rect x="1280" y="670" width="120" height="120" rx="8" fill="rgba(0,200,100,0.06)" stroke="rgba(0,200,100,0.3)" stroke-width="1.5"/>
+  <text x="1340" y="698" text-anchor="middle" fill="#00cc66" font-size="9" letter-spacing="2">L3</text>
+  <text x="1340" y="720" text-anchor="middle" fill="#55ddaa" font-size="16" font-weight="800">交易员</text>
+  <text x="1340" y="740" text-anchor="middle" fill="rgba(85,221,170,0.5)" font-size="9">综合决策</text>
+  <text x="1340" y="758" text-anchor="middle" fill="rgba(85,221,170,0.4)" font-size="9">策略执行</text>
+
+  <line x1="1402" y1="730" x2="1418" y2="730" stroke="#9966ff" stroke-width="1.5" marker-end="url(#arrowPurple)" opacity="0.5"/>
+
+  <rect x="1420" y="670" width="120" height="120" rx="8" fill="rgba(255,80,80,0.06)" stroke="rgba(255,80,80,0.3)" stroke-width="1.5"/>
+  <text x="1480" y="698" text-anchor="middle" fill="#ff6666" font-size="9" letter-spacing="2">L4</text>
+  <text x="1480" y="720" text-anchor="middle" fill="#ff8888" font-size="16" font-weight="800">风控官</text>
+  <text x="1480" y="740" text-anchor="middle" fill="rgba(255,136,136,0.5)" font-size="9">硬编码门控</text>
+  <text x="1480" y="758" text-anchor="middle" fill="rgba(255,80,80,0.6)" font-size="9" font-weight="700">不可绕过</text>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SECTION 6: 底部决策树 -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <line x1="60" y1="980" x2="1527" y2="980" stroke="rgba(153,102,255,0.15)" stroke-width="1"/>
+  <text x="60" y="1006" fill="#9966ff" font-size="10" letter-spacing="3" opacity="0.7">三种派生姿势 · 适用场景决策树</text>
+
+  <!-- Decision boxes -->
+  <rect x="60" y="1020" width="360" height="72" rx="6" fill="rgba(153,102,255,0.04)" stroke="rgba(153,102,255,0.15)" stroke-width="1"/>
+  <text x="240" y="1044" text-anchor="middle" fill="#cc88ff" font-size="12" font-weight="600">① System Prompt 特化</text>
+  <text x="240" y="1062" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">改性格 / 调重点 / 5 分钟完成</text>
+  <text x="240" y="1080" text-anchor="middle" fill="rgba(153,102,255,0.5)" font-size="10">适合：快速人格注入，不改代码</text>
+
+  <rect x="454" y="1020" width="360" height="72" rx="6" fill="rgba(68,153,255,0.04)" stroke="rgba(68,153,255,0.15)" stroke-width="1"/>
+  <text x="634" y="1044" text-anchor="middle" fill="#66aaff" font-size="12" font-weight="600">② 工具集裁剪</text>
+  <text x="634" y="1062" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">减少幻觉 / 安全隔离 / 30 分钟</text>
+  <text x="634" y="1080" text-anchor="middle" fill="rgba(68,153,255,0.5)" font-size="10">适合：专职角色，工具越少越专注</text>
+
+  <rect x="848" y="1020" width="360" height="72" rx="6" fill="rgba(255,153,102,0.04)" stroke="rgba(255,153,102,0.15)" stroke-width="1"/>
+  <text x="1028" y="1044" text-anchor="middle" fill="#ffaa77" font-size="12" font-weight="600">③ Skills 注入</text>
+  <text x="1028" y="1062" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">领域专家化 / SOP 文档 / 1-2 小时</text>
+  <text x="1028" y="1080" text-anchor="middle" fill="rgba(255,153,102,0.5)" font-size="10">适合：需要精确操作流程的专业角色</text>
+
+  <rect x="1242" y="1020" width="285" height="72" rx="6" fill="rgba(0,200,100,0.04)" stroke="rgba(0,200,100,0.15)" stroke-width="1"/>
+  <text x="1385" y="1044" text-anchor="middle" fill="#00cc66" font-size="12" font-weight="600">Lena-SpecKit</text>
+  <text x="1385" y="1062" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">三种姿势全部应用 / 一行命令</text>
+  <text x="1385" y="1080" text-anchor="middle" fill="rgba(0,200,100,0.5)" font-size="10">lena-spec create [role] --template</text>
+
+  <!-- Copyright -->
+  <text x="1527" y="1108" text-anchor="end" fill="rgba(255,255,255,0.15)" font-size="10">Ch 19 Specialization Pattern · 《从零构建你的 AI Agent》</text>
+</svg>

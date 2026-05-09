@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 05 Token Budget</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .header {
+    grid-column: 1 / -1; padding: 50px 100px 32px;
+    border-bottom: 1px solid rgba(48,54,61,0.6);
+  }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #d29922; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 46px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #d29922; }
+  .subtitle { font-size: 18px; color: #8b949e; margin-top: 8px; }
+
+  .panel { padding: 40px 80px 40px 100px; display: flex; flex-direction: column; gap: 24px; }
+  .panel.right { padding: 40px 100px 40px 80px; border-left: 1px solid rgba(48,54,61,0.6); }
+
+  /* 状态机 */
+  .state-machine {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .state {
+    flex: 1; border-radius: 10px; padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 8px; text-align: center;
+  }
+  .state.normal { background: rgba(31,111,235,0.15); border: 1.5px solid rgba(56,139,253,0.4); }
+  .state.warning { background: rgba(158,106,3,0.15); border: 1.5px solid rgba(210,153,34,0.4); }
+  .state.throttle { background: rgba(110,44,0,0.25); border: 1.5px solid rgba(240,136,62,0.5); }
+  .state.stopped { background: rgba(61,28,28,0.3); border: 1.5px solid rgba(248,81,73,0.5); }
+  .state-name { font-size: 16px; font-weight: 700; }
+  .state.normal .state-name { color: #58a6ff; }
+  .state.warning .state-name { color: #d29922; }
+  .state.throttle .state-name { color: #f0883e; }
+  .state.stopped .state-name { color: #f85149; }
+  .state-pct { font-size: 12px; color: #8b949e; }
+  .state-action { font-size: 11px; color: #6e7681; margin-top: 4px; }
+  .arrow {
+    font-size: 24px; color: #30363d; flex-shrink: 0;
+  }
+
+  /* 预算进度条 */
+  .budget-bar {
+    background: #161b22; border-radius: 100px; height: 20px; overflow: hidden;
+    position: relative;
+  }
+  .budget-fill {
+    height: 100%; border-radius: 100px;
+    background: linear-gradient(90deg, #1f6feb 0%, #d29922 80%, #f85149 100%);
+    width: 82%;
+    position: relative;
+  }
+  .budget-marker {
+    position: absolute; top: 0; height: 100%;
+    width: 2px; background: rgba(255,255,255,0.5);
+  }
+  .budget-labels {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: #6e7681; margin-top: 6px;
+  }
+  .budget-status {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .budget-pct { font-size: 32px; font-weight: 700; color: #d29922; }
+  .budget-usd { font-size: 14px; color: #8b949e; }
+
+  .code {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+    padding: 20px 24px; font-family: 'SF Mono', monospace;
+    font-size: 13px; line-height: 1.75; flex: 1;
+  }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .st { color: #a5d6ff; }
+  .cm { color: #6e7681; font-style: italic; }
+  .nu { color: #f2cc60; }
+
+  .story-box {
+    background: rgba(248,81,73,0.07); border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 8px; padding: 16px 20px;
+    font-size: 14px; color: #8b949e; line-height: 1.6;
+  }
+  .story-box strong { color: #f85149; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">Token Budget · nanoClaw budget 模块</div>
+    <h1>防止账单爆炸<span>的四状态熔断器</span></h1>
+    <p class="subtitle">80%→告警 · 90%→限速 · 100%→停止 · 次日 00:00 自动重置</p>
+  </div>
+
+  <div class="panel">
+    <div class="state-machine">
+      <div class="state normal">
+        <div class="state-name">NORMAL</div>
+        <div class="state-pct">0 – 80%</div>
+        <div class="state-action">正常执行</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="state warning">
+        <div class="state-name">WARNING</div>
+        <div class="state-pct">80 – 90%</div>
+        <div class="state-action">发 Discord 告警</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="state throttle">
+        <div class="state-name">THROTTLE</div>
+        <div class="state-pct">90 – 100%</div>
+        <div class="state-action">每次调用延迟 2s</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="state stopped">
+        <div class="state-name">STOPPED</div>
+        <div class="state-pct">≥ 100%</div>
+        <div class="state-action">拒绝新任务</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="budget-status">
+        <span class="budget-pct">82%</span>
+        <span class="budget-usd">$4.10 / $5.00 今日预算</span>
+      </div>
+      <div class="budget-bar">
+        <div class="budget-fill">
+          <div class="budget-marker" style="left: calc(80% / 82% * 100%)"></div>
+          <div class="budget-marker" style="left: calc(90% / 82% * 100%)"></div>
+        </div>
+      </div>
+      <div class="budget-labels">
+        <span>$0</span><span>告警 80%</span><span>限速 90%</span><span>$5</span>
+      </div>
+    </div>
+
+    <div class="story-box">
+      <strong>真实教训</strong>：hermesbot 熔断器触发后 <code>consecutive_losses</code> 没清零，
+      bot 永久停止交易，无限重试 24 小时，账单 $47 全是同一条错误。
+      <br>→ <strong>预算熔断是必须的，不是可选的</strong>。
+    </div>
+  </div>
+
+  <div class="panel right">
+    <div class="code">
+<span class="cm"># src/budget/budget_controller.py</span>
+
+<span class="kw">async def</span> <span class="fn">check_and_wait</span>(self) -> bool:
+    <span class="cm">"""LLM 调用前的预算门控"""</span>
+    s = self.state
+    <span class="kw">if</span> s == BudgetState.STOPPED:
+        log.<span class="fn">warning</span>(<span class="st">"budget_blocked"</span>,
+                    spent=self._spent_usd,
+                    limit=self.config.daily_usd)
+        <span class="kw">return False</span>   <span class="cm"># 拒绝执行</span>
+
+    <span class="kw">if</span> s == BudgetState.THROTTLE:
+        log.<span class="fn">info</span>(<span class="st">"budget_throttling"</span>,
+                  delay=self.config.throttle_delay_sec)
+        <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(
+            self.config.throttle_delay_sec)
+
+    <span class="kw">return True</span>   <span class="cm"># 继续执行</span>
+
+<span class="kw">def</span> <span class="fn">record_cost</span>(self, usd: float) -> None:
+    <span class="cm">"""每次 LLM 调用后记录实际花费"""</span>
+    prev = self.state
+    self._spent_usd += usd
+    <span class="kw">if</span> self.state != prev:
+        <span class="cm"># 状态变更 → 触发告警回调</span>
+        <span class="kw">for</span> cb <span class="kw">in</span> self._on_state_change:
+            <span class="fn">cb</span>(self.state)
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · Token Budget</div>
+</body>
+</html>

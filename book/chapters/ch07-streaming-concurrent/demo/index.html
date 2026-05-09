@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 07 · SSE 流式输出可视化</title>
+<style>
+/* ── 深空霓虹 · neon-cyan accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #38bdf8;       /* neon-cyan */
+  --accent2: #34d399;
+  --amber: #fbbf24;
+  --violet: #a78bfa;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 60px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 80% -10%, rgba(56,189,248,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(52,211,153,0.04) 0%, transparent 50%);
+}
+.wrap { max-width: 1100px; margin: 0 auto; }
+
+/* 标题 */
+header { text-align: center; margin-bottom: 28px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 13px; color: var(--dim); max-width: 520px; margin: 0 auto; line-height: 1.65; }
+
+/* 模式切换 */
+.mode-row {
+  display: flex; align-items: center; justify-content: center; gap: 0;
+  margin-bottom: 24px;
+}
+.mode-btn {
+  padding: 9px 28px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--dim);
+  font-family: var(--sans); font-size: 14px; cursor: pointer; transition: all 0.2s;
+}
+.mode-btn:first-child { border-radius: 8px 0 0 8px; }
+.mode-btn:last-child  { border-radius: 0 8px 8px 0; }
+.mode-btn.active { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.4); color: var(--accent); }
+
+/* 主布局 */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+@media (max-width: 680px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* 面板通用 */
+.panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; overflow: hidden;
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.panel-title { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; }
+.panel-badge { font-family: var(--mono); font-size: 11px; }
+
+/* 打字区 */
+.typing-area {
+  padding: 20px; min-height: 200px; font-size: 14px; line-height: 1.75;
+  color: rgba(255,255,255,0.82);
+  white-space: pre-wrap; word-break: break-word;
+  position: relative;
+}
+.cursor-blink {
+  display: inline-block; width: 2px; height: 1.1em;
+  background: var(--accent); vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* chunk 柱状图 */
+.chart-area { padding: 16px; min-height: 200px; display: flex; align-items: flex-end; gap: 3px; flex-wrap: wrap; overflow: hidden; }
+.chunk-bar {
+  flex-shrink: 0; width: 14px; border-radius: 3px 3px 0 0;
+  background: var(--accent); opacity: 0.8;
+  transition: height 0.15s ease;
+  position: relative;
+}
+.chunk-bar:hover .tooltip { display: block; }
+.tooltip {
+  display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.85); border: 1px solid var(--border);
+  border-radius: 5px; padding: 4px 8px; font-family: var(--mono); font-size: 10px;
+  white-space: nowrap; color: var(--text); pointer-events: none; z-index: 10;
+}
+
+/* 统计行 */
+.stats-row {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 16px 24px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  margin-bottom: 18px;
+}
+@media (max-width: 500px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
+.stat { text-align: center; }
+.stat .value { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--accent); line-height: 1.2; }
+.stat .label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+/* 对比区 */
+.compare-row {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 16px 20px;
+  margin-bottom: 18px;
+}
+.compare-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; }
+.compare-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.compare-label { font-size: 13px; color: var(--dim); width: 110px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; width: 0; }
+.bar-fill.stream { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.bar-fill.batch  { background: linear-gradient(90deg, var(--amber), #f97316); }
+.compare-time { font-family: var(--mono); font-size: 12px; color: var(--text); width: 56px; text-align: right; flex-shrink: 0; }
+
+/* 控制栏 */
+.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.btn-run {
+  padding: 10px 24px; border-radius: 9px;
+  background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.4);
+  color: var(--accent); font-size: 14px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-run:hover { background: rgba(56,189,248,0.22); }
+.btn-run:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-ghost {
+  padding: 10px 16px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--dim); font-size: 14px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.speed-wrap { display: flex; align-items: center; gap: 10px; }
+.speed-wrap label { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+input[type=range] { accent-color: var(--accent); cursor: pointer; }
+.speed-val { font-family: var(--mono); font-size: 12px; color: var(--accent); width: 28px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.status-dot.running { background: var(--accent); animation: pulse 1s ease infinite; }
+.status-dot.done { background: var(--accent2); animation: none; }
+@keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(56,189,248,0.5); } 50% { box-shadow: 0 0 0 6px rgba(56,189,248,0); } }
+
+/* 教学提示 */
+.insight {
+  background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 10px; padding: 12px 16px; font-size: 13px; color: rgba(253,230,138,0.85);
+  line-height: 1.65;
+}
+.insight .label { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+
+footer { text-align: center; margin-top: 40px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Ch 07 · SSE 流式输出</div>
+  <h1>流式 vs 批量：你在等什么？</h1>
+  <p>Server-Sent Events 让 token 逐字到达浏览器，用户几乎立刻看到第一个字——而批量模式要等全部计算完才显示。</p>
+</header>
+
+<!-- 模式切换 -->
+<div class="mode-row">
+  <button class="mode-btn active" id="btn-stream" onclick="setMode('stream')">流式模式（SSE）</button>
+  <button class="mode-btn" id="btn-batch" onclick="setMode('batch')">批量模式（一次性）</button>
+</div>
+
+<!-- 统计 -->
+<div class="stats-row">
+  <div class="stat"><div class="value" id="stat-ttft">—</div><div class="label">首 token 延迟 (ms)</div></div>
+  <div class="stat"><div class="value" id="stat-total">—</div><div class="label">总 Token 数</div></div>
+  <div class="stat"><div class="value" id="stat-elapsed">—</div><div class="label">总耗时 (s)</div></div>
+  <div class="stat"><div class="value" id="stat-tps">—</div><div class="label">Token/s</div></div>
+</div>
+
+<!-- 主双栏 -->
+<div class="grid2">
+  <!-- 左：打字区 -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">模型输出</span>
+      <span class="panel-badge" id="panel-badge" style="color:var(--muted)">待运行</span>
+    </div>
+    <div class="typing-area" id="typing-area"></div>
+  </div>
+  <!-- 右：chunk 柱状图 -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Chunk 时序图</span>
+      <span class="panel-badge" style="color:var(--muted)">高度=字符数 / 颜色深=延迟高</span>
+    </div>
+    <div class="chart-area" id="chart-area"></div>
+  </div>
+</div>
+
+<!-- 对比条 -->
+<div class="compare-row">
+  <div class="compare-title">延迟对比：首字节感知时间</div>
+  <div class="compare-bar-wrap">
+    <span class="compare-label">流式 (SSE)</span>
+    <div class="bar-track"><div class="bar-fill stream" id="bar-stream"></div></div>
+    <span class="compare-time" id="bar-stream-t">—</span>
+  </div>
+  <div class="compare-bar-wrap">
+    <span class="compare-label">批量模式</span>
+    <div class="bar-track"><div class="bar-fill batch" id="bar-batch"></div></div>
+    <span class="compare-time" id="bar-batch-t">—</span>
+  </div>
+</div>
+
+<!-- 控制栏 -->
+<div class="controls">
+  <div class="status-dot" id="status-dot"></div>
+  <button class="btn-run" id="btn-run" onclick="runDemo()">▶ 开始演示</button>
+  <button class="btn-ghost" onclick="resetDemo()">重置</button>
+  <div class="speed-wrap">
+    <label>速度</label>
+    <input type="range" min="1" max="4" step="0.5" value="2" id="speed-slider" oninput="updateSpeed()">
+    <span class="speed-val" id="speed-val">1×</span>
+  </div>
+</div>
+
+<!-- 教学提示 -->
+<div class="insight">
+  <div class="label">读者学到什么</div>
+  流式输出的本质是 HTTP 长连接中 Content-Type: text/event-stream——服务器持续 push「data: {...}\n\n」事件，浏览器 EventSource API 监听并逐片追加。用户感知的等待时间从「全部生成完毕」缩短为「第一个 token」到达，通常从 3-8 秒缩短到 150-400ms。
+</div>
+
+<footer>《从零构建你的 AI Agent》第 07 章 · SSE 流式并发 · 交互式 Demo</footer>
+</div><!-- .wrap -->
+
+<script>
+/* ── 示例文本（约 300 token 中文）── */
+const SAMPLE = `向量数据库是 RAG 系统的存储核心。它的工作原理是把文本转换为高维浮点向量，再基于余弦相似度或内积进行近似最近邻搜索。
+
+常见选型：
+• Chroma — 轻量级，进程内运行，适合原型开发
+• Qdrant — Rust 实现，支持 payload 过滤，生产级可靠
+• Milvus — 分布式架构，亿级向量查询毫秒级响应
+• pgvector — PostgreSQL 扩展，无需额外基础设施
+
+选型建议：原型阶段用 Chroma，单机生产用 Qdrant，超大规模用 Milvus。如果团队已深度使用 PostgreSQL，pgvector 是最省运维的选择。
+
+embedding 模型的选择直接决定检索质量。通用场景推荐 text-embedding-3-small（1536 维，成本极低）；中文专项场景可考虑 BGE-M3（支持多语言，开源可私有化部署）。
+
+检索质量的核心指标是 Recall@K：在前 K 个结果中，相关文档被找到的比例。实际系统中通常 K=20，再用 reranker 精选 top-5 送给 LLM，这样既保证召回率，也控制了 context 长度。`;
+
+/* ── 模拟 chunk 数据 ── */
+// 将文本拆分为随机大小的 chunk，模拟真实 SSE 流
+function buildChunks(text) {
+  const chunks = [];
+  let i = 0;
+  while (i < text.length) {
+    // 每个 chunk 1-8 个字符，有随机延迟
+    const size = Math.floor(Math.random() * 6) + 1;
+    const delay = 20 + Math.random() * 80; // 20-100ms
+    chunks.push({ text: text.substring(i, i + size), delay });
+    i += size;
+  }
+  return chunks;
+}
+
+let mode = 'stream';
+let running = false;
+let runTimer = null;
+let speedMultiplier = 1;
+let chunks = [];
+let chunkIdx = 0;
+let startTime = 0;
+let firstTokenTime = 0;
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-stream').classList.toggle('active', m === 'stream');
+  document.getElementById('btn-batch').classList.toggle('active', m === 'batch');
+}
+
+function updateSpeed() {
+  const v = +document.getElementById('speed-slider').value;
+  speedMultiplier = v;
+  document.getElementById('speed-val').textContent = v + '×';
+}
+updateSpeed();
+
+function resetDemo() {
+  if (runTimer) { clearTimeout(runTimer); runTimer = null; }
+  running = false;
+  document.getElementById('typing-area').innerHTML = '';
+  document.getElementById('chart-area').innerHTML = '';
+  document.getElementById('stat-ttft').textContent = '—';
+  document.getElementById('stat-total').textContent = '—';
+  document.getElementById('stat-elapsed').textContent = '—';
+  document.getElementById('stat-tps').textContent = '—';
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('status-dot').className = 'status-dot';
+  document.getElementById('panel-badge').textContent = '待运行';
+  document.getElementById('panel-badge').style.color = 'var(--muted)';
+  document.getElementById('bar-stream').style.width = '0';
+  document.getElementById('bar-batch').style.width = '0';
+  document.getElementById('bar-stream-t').textContent = '—';
+  document.getElementById('bar-batch-t').textContent = '—';
+  chunkIdx = 0;
+}
+
+function runDemo() {
+  if (running) return;
+  resetDemo();
+  running = true;
+  chunks = buildChunks(SAMPLE);
+  startTime = performance.now();
+  firstTokenTime = 0;
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('status-dot').className = 'status-dot running';
+  document.getElementById('panel-badge').textContent = '生成中...';
+  document.getElementById('panel-badge').style.color = 'var(--accent)';
+
+  if (mode === 'stream') {
+    runStreamMode();
+  } else {
+    runBatchMode();
+  }
+}
+
+/* 流式：逐 chunk 显示 */
+function runStreamMode() {
+  if (chunkIdx >= chunks.length) {
+    finishDemo(true);
+    return;
+  }
+  const chunk = chunks[chunkIdx];
+  const delay = chunk.delay / speedMultiplier;
+
+  if (chunkIdx === 0) {
+    // 首 token 延迟 ~150ms 模拟网络
+    setTimeout(() => {
+      firstTokenTime = performance.now() - startTime;
+      appendToken(chunk.text, chunk.delay);
+      addChunkBar(chunk.text.length, chunk.delay);
+      chunkIdx++;
+      runStreamMode();
+    }, 150 / speedMultiplier);
+  } else {
+    runTimer = setTimeout(() => {
+      appendToken(chunk.text, chunk.delay);
+      addChunkBar(chunk.text.length, chunk.delay);
+      chunkIdx++;
+      updateStats();
+      runStreamMode();
+    }, delay);
+  }
+}
+
+/* 批量：等待所有 chunk 完成后一次性显示 */
+function runBatchMode() {
+  const totalDelay = chunks.reduce((s, c) => s + c.delay, 0);
+  const fakeDelay = totalDelay / speedMultiplier;
+
+  // 动画：批量模式用进度条而非逐字
+  let elapsed = 0;
+  const step = 80;
+  const interval = setInterval(() => {
+    elapsed += step;
+    const pct = Math.min(elapsed / fakeDelay * 100, 99);
+    document.getElementById('panel-badge').textContent = `计算中 ${pct.toFixed(0)}%...`;
+    if (elapsed >= fakeDelay) {
+      clearInterval(interval);
+      // 一次性显示全文
+      document.getElementById('typing-area').textContent = SAMPLE;
+      firstTokenTime = fakeDelay; // 批量模式首字就是全部
+      finishDemo(false);
+    }
+  }, step);
+}
+
+function appendToken(text, delay) {
+  const area = document.getElementById('typing-area');
+  // 移除旧游标
+  const old = area.querySelector('.cursor-blink');
+  if (old) old.remove();
+  // 追加文本
+  area.appendChild(document.createTextNode(text));
+  // 添加新游标
+  const cur = document.createElement('span');
+  cur.className = 'cursor-blink';
+  area.appendChild(cur);
+}
+
+function addChunkBar(size, delay) {
+  const chart = document.getElementById('chart-area');
+  const maxH = 140;
+  const h = Math.max(6, Math.min(maxH, size * 10));
+  // 延迟映射到透明度（延迟越高越深）
+  const alpha = 0.4 + Math.min(0.55, delay / 150);
+  const bar = document.createElement('div');
+  bar.className = 'chunk-bar';
+  bar.style.height = h + 'px';
+  bar.style.opacity = alpha;
+  bar.title = `${size} 字符 / ${delay.toFixed(0)}ms`;
+  bar.innerHTML = `<div class="tooltip">${size}字 / ${delay.toFixed(0)}ms</div>`;
+  chart.appendChild(bar);
+  chart.scrollLeft = chart.scrollWidth;
+}
+
+function updateStats() {
+  const now = performance.now();
+  const elapsed = (now - startTime) / 1000;
+  const totalChars = SAMPLE.substring(0, chunks.slice(0, chunkIdx).reduce((s, c) => s + c.text.length, 0)).length;
+  // token ≈ 字符数 / 1.5 (中文)
+  const tokens = Math.round(totalChars / 1.3);
+  const tps = elapsed > 0 ? (tokens / elapsed).toFixed(0) : '—';
+  document.getElementById('stat-total').textContent = tokens;
+  document.getElementById('stat-elapsed').textContent = elapsed.toFixed(1);
+  document.getElementById('stat-tps').textContent = tps;
+  if (firstTokenTime > 0) {
+    document.getElementById('stat-ttft').textContent = firstTokenTime.toFixed(0);
+  }
+}
+
+function finishDemo(isStream) {
+  const elapsed = (performance.now() - startTime);
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('status-dot').className = 'status-dot done';
+  const area = document.getElementById('typing-area');
+  const old = area.querySelector('.cursor-blink');
+  if (old) old.remove();
+
+  const totalTokens = Math.round(SAMPLE.length / 1.3);
+  const tps = (totalTokens / (elapsed / 1000)).toFixed(0);
+
+  document.getElementById('stat-total').textContent = totalTokens;
+  document.getElementById('stat-elapsed').textContent = (elapsed / 1000).toFixed(1);
+  document.getElementById('stat-tps').textContent = tps;
+  document.getElementById('panel-badge').textContent = '✓ 完成';
+  document.getElementById('panel-badge').style.color = 'var(--accent2)';
+
+  if (isStream) {
+    document.getElementById('stat-ttft').textContent = firstTokenTime.toFixed(0);
+    // 对比条：流式 TTFT
+    const ttft = firstTokenTime;
+    const totalTime = elapsed;
+    document.getElementById('bar-stream').style.width = Math.min(90, ttft / totalTime * 100 + 10) + '%';
+    document.getElementById('bar-stream-t').textContent = ttft.toFixed(0) + 'ms';
+    document.getElementById('bar-batch').style.width = '95%';
+    document.getElementById('bar-batch-t').textContent = (elapsed / 1000).toFixed(1) + 's';
+  } else {
+    document.getElementById('stat-ttft').textContent = elapsed.toFixed(0);
+    document.getElementById('bar-batch').style.width = '95%';
+    document.getElementById('bar-batch-t').textContent = (elapsed / 1000).toFixed(1) + 's';
+    document.getElementById('bar-stream').style.width = '8%';
+    document.getElementById('bar-stream-t').textContent = '~200ms';
+  }
+  running = false;
+}
+
+// 键盘
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') runDemo();
+  if (e.key === 'r' || e.key === 'R') resetDemo();
+});
+</script>
+</body>
+</html>

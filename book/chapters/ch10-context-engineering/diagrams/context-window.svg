@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <defs>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 11px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .token { font-size: 11px; fill: #00d4ff; }
+      .cached { font-size: 10px; fill: #00ff88; }
+    </style>
+  </defs>
+
+  <rect width="800" height="400" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">Context Window 分层结构（Ch10）</text>
+
+  <!-- Total window bar outline -->
+  <rect x="160" y="44" width="480" height="320" rx="10" fill="none" stroke="#1a3050" stroke-width="2"/>
+
+  <!-- Layer 1: System Prompt — 2K tokens (~15%) -->
+  <rect x="160" y="44" width="480" height="50" rx="10" fill="#0c1e38" stroke="#1a4070" stroke-width="1.5"/>
+  <rect x="160" y="54" width="480" height="40" fill="#0c1e38"/>
+  <text x="340" y="66" text-anchor="middle" class="label">System Prompt</text>
+  <text x="340" y="82" text-anchor="middle" class="sublabel">角色设定 · 行为约束 · 工具列表</text>
+  <text x="625" y="66" text-anchor="end" class="token">~2K tokens</text>
+  <text x="625" y="82" text-anchor="end" class="cached">● 缓存命中</text>
+
+  <!-- Layer 2: Tool Schemas — 5K tokens (~22%) -->
+  <rect x="160" y="94" width="480" height="60" rx="0" fill="#0c1a30" stroke="#1a3860" stroke-width="1" stroke-dasharray="none"/>
+  <text x="340" y="116" text-anchor="middle" class="label">Tool Schemas</text>
+  <text x="340" y="133" text-anchor="middle" class="sublabel">工具 JSON Schema · 参数说明 · 使用示例</text>
+  <text x="625" y="116" text-anchor="end" class="token">~5K tokens</text>
+  <text x="625" y="133" text-anchor="end" class="cached">● 缓存命中</text>
+
+  <!-- Layer 3: Conversation History — 50K tokens (~50%) -->
+  <rect x="160" y="154" width="480" height="90" rx="0" fill="#0c1628" stroke="#1a3060" stroke-width="1"/>
+  <text x="340" y="188" text-anchor="middle" class="label">Conversation History</text>
+  <text x="340" y="205" text-anchor="middle" class="sublabel">用户/模型多轮对话 · tool_use / tool_result</text>
+  <text x="340" y="222" text-anchor="middle" class="sublabel">滑动窗口截断（保留最近 N 轮）</text>
+  <text x="625" y="188" text-anchor="end" class="token">~50K tokens</text>
+  <text x="625" y="205" text-anchor="end" class="sublabel">动态增长</text>
+
+  <!-- Layer 4: Memory / RAG Results — 10K tokens (~18%) -->
+  <rect x="160" y="244" width="480" height="60" rx="0" fill="#0c1a28" stroke="#2a3a50" stroke-width="1"/>
+  <text x="340" y="268" text-anchor="middle" class="label">Memory / RAG 召回</text>
+  <text x="340" y="285" text-anchor="middle" class="sublabel">向量相似度检索 · 摘要压缩 · 按需注入</text>
+  <text x="625" y="268" text-anchor="end" class="token">~10K tokens</text>
+  <text x="625" y="285" text-anchor="end" class="sublabel">按需加载</text>
+
+  <!-- Layer 5: Current Query — 1K tokens (~5%) -->
+  <rect x="160" y="304" width="480" height="60" rx="0" fill="#0c1820" stroke="#1a2840" stroke-width="1"/>
+  <rect x="160" y="324" width="480" height="40" rx="0" fill="#0c1820"/>
+  <!-- Bottom corners rounded -->
+  <rect x="160" y="344" width="480" height="20" rx="0" fill="#0c1820"/>
+  <rect x="160" y="354" width="480" height="10" rx="10" fill="#0c1820" stroke="#1a2840" stroke-width="1"/>
+  <text x="340" y="322" text-anchor="middle" class="label">Current Query</text>
+  <text x="340" y="340" text-anchor="middle" class="sublabel">当前用户输入 · 实时上下文</text>
+  <text x="625" y="322" text-anchor="end" class="token">~1K tokens</text>
+
+  <!-- Left bar: percentage visual -->
+  <rect x="130" y="44" width="20" height="50" rx="0" fill="#1a4070" opacity="0.5"/>
+  <rect x="130" y="94" width="20" height="60" rx="0" fill="#1a3860" opacity="0.5"/>
+  <rect x="130" y="154" width="20" height="90" rx="0" fill="#1a3060" opacity="0.6"/>
+  <rect x="130" y="244" width="20" height="60" rx="0" fill="#2a3a50" opacity="0.5"/>
+  <rect x="130" y="304" width="20" height="60" rx="0" fill="#1a2840" opacity="0.4"/>
+
+  <!-- Arrow pointing down on left bar -->
+  <text x="120" y="50" text-anchor="end" class="sublabel">TOP</text>
+  <text x="120" y="360" text-anchor="end" class="sublabel">BOT</text>
+  <line x1="130" y1="44" x2="130" y2="364" stroke="#1a3050" stroke-width="1"/>
+
+  <!-- Total tokens label -->
+  <text x="690" y="200" text-anchor="start" class="title" fill="#00d4ff">~68K</text>
+  <text x="690" y="218" text-anchor="start" class="sublabel">tokens</text>
+  <text x="690" y="234" text-anchor="start" class="sublabel">总计</text>
+
+  <!-- Context engineering hint -->
+  <rect x="40" y="370" width="720" height="22" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="400" y="385" text-anchor="middle" class="sublabel">Context Engineering：精控每层 token 用量，让模型"看到"最有价值的信息</text>
+</svg>

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="3508" height="2480" viewBox="0 0 3508 2480" xmlns="http://www.w3.org/2000/svg">
+  <!-- A3 印刷级信息图 — MessageBus 解耦前后对比 + safeHandlerCall 流程 -->
+  <defs>
+    <style>
+      text { font-family: 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+      .t-header { font-size: 96px; font-weight: 800; fill: #f1f5f9; }
+      .t-sub { font-size: 48px; fill: #94a3b8; }
+      .t-section { font-size: 72px; font-weight: 700; }
+      .t-label { font-size: 44px; font-weight: 600; fill: #f1f5f9; }
+      .t-body { font-size: 38px; fill: #94a3b8; }
+      .t-code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 36px; }
+      .t-small { font-size: 32px; fill: #64748b; }
+      .t-note { font-size: 40px; fill: #cbd5e1; }
+    </style>
+    <filter id="glow-p">
+      <feGaussianBlur stdDeviation="12" result="c"/>
+      <feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-c">
+      <feGaussianBlur stdDeviation="8" result="c"/>
+      <feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arr-r" markerWidth="14" markerHeight="10" refX="14" refY="5" orient="auto">
+      <polygon points="0 0, 14 5, 0 10" fill="#ef4444"/>
+    </marker>
+    <marker id="arr-c" markerWidth="14" markerHeight="10" refX="14" refY="5" orient="auto">
+      <polygon points="0 0, 14 5, 0 10" fill="#22d3ee"/>
+    </marker>
+    <marker id="arr-g" markerWidth="14" markerHeight="10" refX="14" refY="5" orient="auto">
+      <polygon points="0 0, 14 5, 0 10" fill="#4ade80"/>
+    </marker>
+    <marker id="arr-y" markerWidth="14" markerHeight="10" refX="14" refY="5" orient="auto">
+      <polygon points="0 0, 14 5, 0 10" fill="#facc15"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="3508" height="2480" fill="#060612"/>
+  <radialGradient id="bg1" cx="25%" cy="25%" r="50%">
+    <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.08"/>
+    <stop offset="100%" stop-color="#060612" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bg2" cx="75%" cy="75%" r="50%">
+    <stop offset="0%" stop-color="#0e7490" stop-opacity="0.06"/>
+    <stop offset="100%" stop-color="#060612" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="3508" height="2480" fill="url(#bg1)"/>
+  <rect width="3508" height="2480" fill="url(#bg2)"/>
+
+  <!-- Header -->
+  <text x="1754" y="130" class="t-header" text-anchor="middle">MessageBus 与事件驱动</text>
+  <text x="1754" y="200" class="t-sub" text-anchor="middle">Ch 12 · 解耦 Channel 与 Agent · 热插拔 · safeHandlerCall 错误隔离</text>
+
+  <!-- Divider line top -->
+  <line x1="100" y1="240" x2="3408" y2="240" stroke="#1e293b" stroke-width="2"/>
+
+  <!-- ══════════════════════════════════════════════
+       TOP HALF: Before / After 对比
+       ══════════════════════════════════════════════ -->
+
+  <!-- LEFT SECTION: 紧耦合 -->
+  <text x="850" y="310" class="t-section" text-anchor="middle" fill="#ef4444">❌ 紧耦合</text>
+  <text x="850" y="368" class="t-body" text-anchor="middle">N×M 条连线，任何一端改动触碰所有代码</text>
+
+  <!-- Vertical divider center -->
+  <line x1="1754" y1="260" x2="1754" y2="1340" stroke="#1e293b" stroke-width="3" stroke-dasharray="12,8"/>
+
+  <!-- RIGHT SECTION: MessageBus -->
+  <text x="2654" y="310" class="t-section" text-anchor="middle" fill="#4ade80">✅ MessageBus 解耦</text>
+  <text x="2654" y="368" class="t-body" text-anchor="middle">N+M 条连线，Publisher 与 Subscriber 互不知晓</text>
+
+  <!-- ── LEFT Publishers ── -->
+  <!-- Telegram -->
+  <rect x="100" y="420" width="300" height="120" rx="16" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="2"/>
+  <text x="250" y="470" class="t-label" text-anchor="middle">Telegram</text>
+  <text x="250" y="516" class="t-body" text-anchor="middle" font-size="36px">Publisher</text>
+
+  <!-- Discord -->
+  <rect x="100" y="580" width="300" height="120" rx="16" fill="rgba(99,102,241,0.12)" stroke="#6366f1" stroke-width="2"/>
+  <text x="250" y="630" class="t-label" text-anchor="middle">Discord</text>
+  <text x="250" y="676" class="t-body" text-anchor="middle" font-size="36px">Publisher</text>
+
+  <!-- WebSocket -->
+  <rect x="100" y="740" width="300" height="120" rx="16" fill="rgba(234,179,8,0.12)" stroke="#eab308" stroke-width="2"/>
+  <text x="250" y="790" class="t-label" text-anchor="middle">WebSocket</text>
+  <text x="250" y="836" class="t-body" text-anchor="middle" font-size="36px">Publisher</text>
+
+  <!-- HTTP -->
+  <rect x="100" y="900" width="300" height="120" rx="16" fill="rgba(249,115,22,0.12)" stroke="#f97316" stroke-width="2"/>
+  <text x="250" y="950" class="t-label" text-anchor="middle">HTTP</text>
+  <text x="250" y="996" class="t-body" text-anchor="middle" font-size="36px">Publisher</text>
+
+  <!-- ── LEFT Subscribers ── -->
+  <!-- AgentLoop L -->
+  <rect x="1100" y="440" width="300" height="120" rx="16" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2"/>
+  <text x="1250" y="490" class="t-label" text-anchor="middle" fill="#c084fc">AgentLoop</text>
+  <text x="1250" y="536" class="t-body" text-anchor="middle" font-size="36px">Subscriber</text>
+
+  <!-- Logger L -->
+  <rect x="1100" y="620" width="300" height="120" rx="16" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="2"/>
+  <text x="1250" y="670" class="t-label" text-anchor="middle" fill="#67e8f9">Logger</text>
+  <text x="1250" y="716" class="t-body" text-anchor="middle" font-size="36px">Subscriber</text>
+
+  <!-- Notification L -->
+  <rect x="1100" y="800" width="300" height="120" rx="16" fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-width="2"/>
+  <text x="1250" y="850" class="t-label" text-anchor="middle" fill="#fde68a">Notification</text>
+  <text x="1250" y="896" class="t-body" text-anchor="middle" font-size="36px">Subscriber</text>
+
+  <!-- ── LEFT N×M arrows (chaotic) ── -->
+  <line x1="400" y1="480" x2="1100" y2="500" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.9"/>
+  <line x1="400" y1="490" x2="1100" y2="680" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.6"/>
+  <line x1="400" y1="500" x2="1100" y2="860" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.4"/>
+  <line x1="400" y1="640" x2="1100" y2="510" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.6"/>
+  <line x1="400" y1="650" x2="1100" y2="690" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.9"/>
+  <line x1="400" y1="660" x2="1100" y2="870" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.5"/>
+  <line x1="400" y1="800" x2="1100" y2="520" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.4"/>
+  <line x1="400" y1="810" x2="1100" y2="700" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.6"/>
+  <line x1="400" y1="820" x2="1100" y2="870" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.8"/>
+  <line x1="400" y1="960" x2="1100" y2="530" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.4"/>
+  <line x1="400" y1="970" x2="1100" y2="710" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.5"/>
+  <line x1="400" y1="980" x2="1100" y2="880" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.7"/>
+
+  <!-- N×M badge -->
+  <rect x="640" y="1060" width="280" height="80" rx="12" fill="rgba(239,68,68,0.15)" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="780" y="1095" class="t-label" text-anchor="middle" fill="#ef4444">N×M = 12 条连线</text>
+  <text x="780" y="1130" class="t-body" text-anchor="middle" font-size="34px">4 Publisher × 3 Subscriber</text>
+
+  <!-- ── RIGHT Publishers ── -->
+  <!-- Telegram R -->
+  <rect x="1820" y="380" width="280" height="110" rx="16" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="2"/>
+  <text x="1960" y="428" class="t-label" text-anchor="middle">Telegram</text>
+  <text x="1960" y="472" class="t-body" text-anchor="middle" font-size="34px">Publisher</text>
+
+  <!-- Discord R -->
+  <rect x="1820" y="530" width="280" height="110" rx="16" fill="rgba(99,102,241,0.12)" stroke="#6366f1" stroke-width="2"/>
+  <text x="1960" y="578" class="t-label" text-anchor="middle">Discord</text>
+  <text x="1960" y="622" class="t-body" text-anchor="middle" font-size="34px">Publisher</text>
+
+  <!-- WebSocket R -->
+  <rect x="1820" y="680" width="280" height="110" rx="16" fill="rgba(234,179,8,0.12)" stroke="#eab308" stroke-width="2"/>
+  <text x="1960" y="728" class="t-label" text-anchor="middle">WebSocket</text>
+  <text x="1960" y="772" class="t-body" text-anchor="middle" font-size="34px">Publisher</text>
+
+  <!-- HTTP R -->
+  <rect x="1820" y="830" width="280" height="110" rx="16" fill="rgba(249,115,22,0.12)" stroke="#f97316" stroke-width="2"/>
+  <text x="1960" y="878" class="t-label" text-anchor="middle">HTTP</text>
+  <text x="1960" y="922" class="t-body" text-anchor="middle" font-size="34px">Publisher</text>
+
+  <!-- MessageBus CENTER RIGHT -->
+  <rect x="2240" y="480" width="320" height="440" rx="24" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="3" filter="url(#glow-p)"/>
+  <text x="2400" y="548" class="t-section" text-anchor="middle" fill="#c084fc">Message</text>
+  <text x="2400" y="620" class="t-section" text-anchor="middle" fill="#c084fc">Bus</text>
+  <line x1="2260" y1="648" x2="2540" y2="648" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="2400" y="700" class="t-body" text-anchor="middle" font-size="34px">topic → handlers</text>
+  <text x="2400" y="752" class="t-body" text-anchor="middle" font-size="34px">globalHandlers</text>
+  <text x="2400" y="810" class="t-code" text-anchor="middle" fill="#86efac">safeHandlerCall</text>
+  <text x="2400" y="868" class="t-small" text-anchor="middle" font-size="30px">134 行 · 甜点级</text>
+  <text x="2400" y="908" class="t-small" text-anchor="middle" font-size="28px">nano-claw bus/index.ts</text>
+
+  <!-- RIGHT Subscribers -->
+  <!-- AgentLoop R -->
+  <rect x="2680" y="400" width="280" height="110" rx="16" fill="rgba(168,85,247,0.15)" stroke="#a855f7" stroke-width="2"/>
+  <text x="2820" y="448" class="t-label" text-anchor="middle" fill="#c084fc">AgentLoop</text>
+  <text x="2820" y="492" class="t-body" text-anchor="middle" font-size="34px">channel-specific</text>
+
+  <!-- Logger R -->
+  <rect x="2680" y="570" width="280" height="110" rx="16" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="2"/>
+  <text x="2820" y="618" class="t-label" text-anchor="middle" fill="#67e8f9">Logger</text>
+  <text x="2820" y="662" class="t-body" text-anchor="middle" font-size="34px">global handler</text>
+
+  <!-- Notification R -->
+  <rect x="2680" y="740" width="280" height="110" rx="16" fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-width="2"/>
+  <text x="2820" y="788" class="t-label" text-anchor="middle" fill="#fde68a">Notification</text>
+  <text x="2820" y="832" class="t-body" text-anchor="middle" font-size="34px">global handler</text>
+
+  <!-- Analytics R -->
+  <rect x="2680" y="900" width="280" height="110" rx="16" fill="rgba(16,185,129,0.12)" stroke="#10b981" stroke-width="2"/>
+  <text x="2820" y="948" class="t-label" text-anchor="middle" fill="#6ee7b7">Analytics</text>
+  <text x="2820" y="992" class="t-body" text-anchor="middle" font-size="34px">global handler</text>
+
+  <!-- RIGHT: Publisher → Bus arrows -->
+  <line x1="2100" y1="435" x2="2240" y2="580" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr-c)" opacity="0.9"/>
+  <line x1="2100" y1="585" x2="2240" y2="630" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr-c)" opacity="0.9"/>
+  <line x1="2100" y1="735" x2="2240" y2="680" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr-c)" opacity="0.9"/>
+  <line x1="2100" y1="885" x2="2240" y2="730" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr-c)" opacity="0.9"/>
+
+  <!-- RIGHT: Bus → Subscriber arrows -->
+  <line x1="2560" y1="580" x2="2680" y2="455" stroke="#4ade80" stroke-width="3" marker-end="url(#arr-g)" opacity="0.9"/>
+  <line x1="2560" y1="640" x2="2680" y2="625" stroke="#4ade80" stroke-width="3" marker-end="url(#arr-g)" opacity="0.9"/>
+  <line x1="2560" y1="700" x2="2680" y2="795" stroke="#4ade80" stroke-width="3" marker-end="url(#arr-g)" opacity="0.9"/>
+  <line x1="2560" y1="750" x2="2680" y2="955" stroke="#4ade80" stroke-width="3" marker-end="url(#arr-g)" opacity="0.9"/>
+
+  <!-- N+M badge -->
+  <rect x="2160" y="1080" width="480" height="80" rx="12" fill="rgba(74,222,128,0.15)" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="2400" y="1115" class="t-label" text-anchor="middle" fill="#4ade80">N+M = 8 条连线</text>
+  <text x="2400" y="1154" class="t-body" text-anchor="middle" font-size="34px">4 Publisher + 4 Subscriber，复杂度降 50%</text>
+
+  <!-- Hot-swap badge -->
+  <rect x="2020" y="1200" width="760" height="100" rx="14" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.3)" stroke-width="1.5"/>
+  <text x="2400" y="1246" class="t-label" text-anchor="middle" fill="#c084fc">🔌 热插拔</text>
+  <text x="2400" y="1288" class="t-code" text-anchor="middle" fill="#86efac" font-size="32px">bus.subscribe("http", handler)  # 运行中接入，不重启</text>
+
+  <!-- ══════════════════════════════════════════════
+       BOTTOM HALF: safeHandlerCall 流程图
+       ══════════════════════════════════════════════ -->
+
+  <!-- Divider -->
+  <line x1="100" y1="1360" x2="3408" y2="1360" stroke="#1e293b" stroke-width="2"/>
+
+  <text x="1754" y="1450" class="t-header" text-anchor="middle">safeHandlerCall 错误隔离机制</text>
+  <text x="1754" y="1520" class="t-sub" text-anchor="middle">隔仓设计（Bulkhead Pattern）— 单个 handler 崩溃不影响其他 handler 继续执行</text>
+
+  <!-- Flow diagram -->
+  <!-- publish() -->
+  <rect x="200" y="1580" width="400" height="140" rx="16" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="2.5"/>
+  <text x="400" y="1636" class="t-label" text-anchor="middle" fill="#67e8f9">bus.publish(msg)</text>
+  <text x="400" y="1680" class="t-body" text-anchor="middle" font-size="34px">发布消息</text>
+
+  <!-- Arrow: publish → Promise.all -->
+  <line x1="600" y1="1650" x2="760" y2="1650" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr-c)"/>
+
+  <!-- Promise.all -->
+  <rect x="760" y="1580" width="400" height="140" rx="16" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="2.5"/>
+  <text x="960" y="1636" class="t-label" text-anchor="middle" fill="#c084fc">Promise.all()</text>
+  <text x="960" y="1680" class="t-body" text-anchor="middle" font-size="34px">并发执行所有 handler</text>
+
+  <!-- Arrow down: Promise.all → handlers -->
+  <line x1="960" y1="1720" x2="960" y2="1820" stroke="#a855f7" stroke-width="3" stroke-dasharray="8,5"/>
+
+  <!-- Handler A -->
+  <rect x="500" y="1820" width="300" height="120" rx="14" fill="rgba(74,222,128,0.12)" stroke="#4ade80" stroke-width="2"/>
+  <text x="650" y="1868" class="t-label" text-anchor="middle" fill="#4ade80">AgentLoop</text>
+  <text x="650" y="1908" class="t-body" text-anchor="middle" font-size="34px">handler A</text>
+
+  <!-- Handler B (broken) -->
+  <rect x="840" y="1820" width="300" height="120" rx="14" fill="rgba(239,68,68,0.12)" stroke="#ef4444" stroke-width="2"/>
+  <text x="990" y="1868" class="t-label" text-anchor="middle" fill="#ef4444">broken</text>
+  <text x="990" y="1908" class="t-body" text-anchor="middle" font-size="34px">handler B ⚡</text>
+
+  <!-- Handler C -->
+  <rect x="1180" y="1820" width="300" height="120" rx="14" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="2"/>
+  <text x="1330" y="1868" class="t-label" text-anchor="middle" fill="#67e8f9">Logger</text>
+  <text x="1330" y="1908" class="t-body" text-anchor="middle" font-size="34px">handler C</text>
+
+  <!-- Arrows from Promise.all to handlers -->
+  <line x1="890" y1="1760" x2="650" y2="1820" stroke="#a855f7" stroke-width="2" marker-end="url(#arr-r)" opacity="0.7"/>
+  <line x1="960" y1="1760" x2="990" y2="1820" stroke="#ef4444" stroke-width="2" marker-end="url(#arr-r)" opacity="0.9"/>
+  <line x1="1030" y1="1760" x2="1330" y2="1820" stroke="#a855f7" stroke-width="2" marker-end="url(#arr-c)" opacity="0.7"/>
+
+  <!-- Handler A result: success -->
+  <line x1="650" y1="1940" x2="650" y2="2060" stroke="#4ade80" stroke-width="2" marker-end="url(#arr-g)"/>
+  <rect x="480" y="2060" width="340" height="80" rx="10" fill="rgba(74,222,128,0.12)" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="650" y="2108" class="t-label" text-anchor="middle" fill="#4ade80">✓ 正常执行</text>
+
+  <!-- Handler B result: error → catch → continue -->
+  <line x1="990" y1="1940" x2="990" y2="2000" stroke="#ef4444" stroke-width="2"/>
+  <!-- safeHandlerCall box -->
+  <rect x="740" y="2000" width="500" height="160" rx="14" fill="rgba(239,68,68,0.08)" stroke="#ef4444" stroke-width="2"/>
+  <text x="990" y="2048" class="t-label" text-anchor="middle" fill="#ef4444">try/catch</text>
+  <text x="990" y="2092" class="t-body" text-anchor="middle" font-size="34px">safeHandlerCall</text>
+  <text x="990" y="2136" class="t-code" text-anchor="middle" fill="#86efac" font-size="30px">logger.error(err) // 不 rethrow</text>
+
+  <!-- Handler C result: success -->
+  <line x1="1330" y1="1940" x2="1330" y2="2060" stroke="#22d3ee" stroke-width="2" marker-end="url(#arr-c)"/>
+  <rect x="1160" y="2060" width="340" height="80" rx="10" fill="rgba(34,211,238,0.12)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="1330" y="2108" class="t-label" text-anchor="middle" fill="#67e8f9">✓ 正常执行</text>
+
+  <!-- Key insight callout -->
+  <rect x="1600" y="1580" width="1720" height="700" rx="24" fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.25)" stroke-width="2"/>
+  <text x="2460" y="1660" class="t-section" text-anchor="middle" fill="#c084fc">核心代码（8行）</text>
+  <!-- Code block -->
+  <rect x="1660" y="1700" width="1600" height="400" rx="14" fill="rgba(0,0,0,0.5)" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="1700" y="1760" class="t-code" fill="#94a3b8">// nano-claw bus/index.ts:92-99</text>
+  <text x="1700" y="1820" class="t-code" fill="#c084fc">private async</text>
+  <text x="1970" y="1820" class="t-code" fill="#67e8f9">safeHandlerCall</text>
+  <text x="2380" y="1820" class="t-code" fill="#f1f5f9">(handler, message) {</text>
+  <text x="1740" y="1880" class="t-code" fill="#c084fc">  try</text>
+  <text x="1830" y="1880" class="t-code" fill="#f1f5f9">{ </text>
+  <text x="1880" y="1880" class="t-code" fill="#c084fc">await</text>
+  <text x="2000" y="1880" class="t-code" fill="#67e8f9">handler</text>
+  <text x="2160" y="1880" class="t-code" fill="#f1f5f9">(message); }</text>
+  <text x="1740" y="1940" class="t-code" fill="#c084fc">  catch</text>
+  <text x="1880" y="1940" class="t-code" fill="#f1f5f9">(error) {</text>
+  <text x="1780" y="2000" class="t-code" fill="#67e8f9">    logger</text>
+  <text x="2030" y="2000" class="t-code" fill="#f1f5f9">.</text>
+  <text x="2060" y="2000" class="t-code" fill="#67e8f9">error</text>
+  <text x="2200" y="2000" class="t-code" fill="#f1f5f9">(</text>
+  <text x="2240" y="2000" class="t-code" fill="#86efac">'Error in handler'</text>
+  <text x="2680" y="2000" class="t-code" fill="#f1f5f9">, error);</text>
+  <text x="1780" y="2060" class="t-code" fill="#64748b">    // 没有 rethrow ← 关键！</text>
+  <text x="1740" y="2120" class="t-code" fill="#f1f5f9">  }</text>
+  <text x="1700" y="2160" class="t-code" fill="#f1f5f9">}</text>
+
+  <!-- Key insight text -->
+  <text x="2460" y="2230" class="t-note" text-anchor="middle">不 rethrow = 其他 handler 继续执行</text>
+  <text x="2460" y="2280" class="t-body" text-anchor="middle" font-size="36px">Bulkhead Pattern（隔仓设计）</text>
+
+  <!-- Footer -->
+  <line x1="100" y1="2420" x2="3408" y2="2420" stroke="#1e293b" stroke-width="2"/>
+  <text x="1754" y="2460" class="t-small" text-anchor="middle">《从零构建你的 AI Agent》Ch 12 · nano-claw bus/index.ts（134行）· lena-v1.2</text>
+</svg>

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 06 · 记忆与上下文 — 让 Agent 有昨天</title>
+<style>
+:root {
+  --bg: #060612;
+  --surface: #0c0c1f;
+  --glass: rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.1);
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --green: #4ade80;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --yellow: #fbbf24;
+  --text: #f1f5f9;
+  --dim: #64748b;
+  --accent: #7c3aed;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,'SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif}
+.deck{width:1920px;height:1080px;transform-origin:top left;position:absolute;top:0;left:0;}
+.slide{
+  width:1920px;height:1080px;position:absolute;top:0;left:0;
+  background:var(--bg);overflow:hidden;
+  display:flex;flex-direction:column;
+  transition:opacity .4s;
+  opacity:0;pointer-events:none;
+}
+.slide.active{opacity:1;pointer-events:all}
+.slide::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 100% 60% at 15% 15%, rgba(168,85,247,.08) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 85% 85%, rgba(34,211,238,.06) 0%, transparent 55%);
+  pointer-events:none;z-index:0;
+}
+.slide-inner{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;padding:80px 100px;}
+.ch-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:999px;padding:8px 22px;font-size:14px;
+  color:var(--cyan);backdrop-filter:blur(10px);letter-spacing:.05em;
+  width:fit-content;margin-bottom:28px;
+}
+.ch-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.main-title{
+  font-size:86px;font-weight:800;line-height:1.05;
+  background:linear-gradient(135deg,#a855f7 0%,#22d3ee 50%,#4ade80 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:24px;
+}
+.main-sub{font-size:28px;color:rgba(241,245,249,.6);font-weight:300;margin-bottom:40px}
+.sec-title{font-size:52px;font-weight:700;color:var(--text);margin-bottom:16px}
+.sec-sub{font-size:22px;color:var(--dim);margin-bottom:40px;font-weight:400}
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 18px;border-radius:999px;font-size:14px;font-weight:600;
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);
+  color:var(--purple);margin-bottom:40px;
+}
+.glass-card{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:20px;padding:32px 36px;backdrop-filter:blur(12px);
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px}
+.code-block{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:24px 28px;
+  font-family:'SF Mono','Fira Code',monospace;font-size:18px;
+  color:#e2e8f0;line-height:1.7;white-space:pre;overflow:hidden;
+}
+.highlight{color:var(--cyan)}
+.hl-green{color:var(--green)}
+.hl-yellow{color:var(--yellow)}
+.hl-purple{color:var(--purple)}
+.hl-pink{color:var(--pink)}
+.hl-orange{color:var(--orange)}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 14px;border-radius:999px;font-size:13px;font-weight:600;
+}
+.pill-cyan{background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.3);color:var(--cyan)}
+.pill-green{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:var(--green)}
+.pill-purple{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:var(--purple)}
+.pill-orange{background:rgba(251,146,60,.15);border:1px solid rgba(251,146,60,.3);color:var(--orange)}
+.pill-red{background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171}
+.design-note{
+  background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.3);
+  border-left:4px solid var(--orange);
+  border-radius:12px;padding:20px 24px;margin-top:24px;
+}
+.design-note-title{font-size:13px;font-weight:700;color:var(--orange);letter-spacing:.1em;margin-bottom:8px}
+.body-text{font-size:22px;color:var(--text);line-height:1.7}
+.body-text-sm{font-size:18px;color:rgba(241,245,249,.8);line-height:1.7}
+.num-big{font-size:72px;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.slide-num{position:absolute;bottom:36px;right:60px;font-size:14px;color:var(--dim);}
+
+/* Nav buttons */
+#nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:16px;z-index:100}
+.nav-btn{
+  background:var(--glass);border:1px solid var(--glass-border);
+  color:var(--text);border-radius:999px;padding:10px 28px;
+  font-size:15px;cursor:pointer;backdrop-filter:blur(12px);
+  transition:all .2s;
+}
+.nav-btn:hover{background:rgba(255,255,255,.1);border-color:var(--cyan);color:var(--cyan)}
+#slide-counter{
+  background:var(--glass);border:1px solid var(--glass-border);
+  color:var(--dim);border-radius:999px;padding:10px 20px;
+  font-size:15px;backdrop-filter:blur(12px);line-height:1;display:flex;align-items:center;
+}
+
+/* Manus quote box */
+.quote-box{
+  background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(168,85,247,.08));
+  border:1px solid rgba(251,191,36,.3);border-radius:16px;
+  padding:28px 36px;margin-top:24px;
+}
+.quote-text{font-size:26px;font-weight:600;color:var(--yellow);line-height:1.5;margin-bottom:8px}
+.quote-src{font-size:15px;color:var(--dim)}
+
+/* Memory layer diagram */
+.mem-layer{
+  border-radius:16px;padding:28px 32px;margin-bottom:16px;
+}
+.mem-short{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2)}
+.mem-long{background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.2)}
+.mem-title{font-size:24px;font-weight:700;margin-bottom:8px}
+.mem-title-short{color:var(--cyan)}
+.mem-title-long{color:var(--purple)}
+
+/* Arch arrow */
+.arrow{
+  text-align:center;font-size:28px;color:var(--dim);padding:4px 0;
+}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ====== SLIDE 1: Title ====== -->
+<div class="slide active" id="s1">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>Ch 06 · Memory &amp; Context</div>
+    <div class="main-title">记忆与上下文<br>让 Agent 有昨天</div>
+    <div class="main-sub">短期记忆 · 长期记忆 · 自动加载 — lena-v0.6</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <span class="pill pill-cyan">🧱 Memory / 世界模型</span>
+      <span class="pill pill-purple">📦 SQLite 零依赖</span>
+      <span class="pill pill-green">📂 文件系统外部记忆</span>
+      <span class="pill pill-orange">🎙️ 可交互 Demo</span>
+    </div>
+    <div style="flex:1"></div>
+    <div class="body-text-sm" style="color:var(--dim)">
+      上章结尾：lena-v0.5（流式 + 并发）&nbsp;&nbsp;→&nbsp;&nbsp;本章产物：lena-v0.6（跨会话记忆）
+    </div>
+  </div>
+  <div class="slide-num">1 / 10</div>
+</div>
+
+<!-- ====== SLIDE 2: 问题引入 ====== -->
+<div class="slide" id="s2">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>问题引入</div>
+    <div class="sec-title">没有记忆的 agent，每次都是陌生人</div>
+    <div class="grid2" style="margin-top:32px">
+      <div class="glass-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04)">
+        <div style="font-size:16px;color:#f87171;font-weight:700;letter-spacing:.1em;margin-bottom:16px">❌ 无记忆版（当前 lena-v0.5）</div>
+        <div class="code-block" style="font-size:16px">会话 1：
+用户: 我喜欢用 Python 写代码
+Lena: 好的，我记住了！（撒谎）
+
+# —— 重启 ——
+
+会话 2：
+用户: 帮我写个 hello world
+Lena: <span class="hl-pink">请问您想用哪种语言？
+      Python、JS、还是其他？</span></div>
+        <div style="margin-top:16px;font-size:16px;color:#f87171">根因：preferences 存在 context window 里，重启即消失</div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.04)">
+        <div style="font-size:16px;color:var(--green);font-weight:700;letter-spacing:.1em;margin-bottom:16px">✅ 有记忆版（lena-v0.6 目标）</div>
+        <div class="code-block" style="font-size:16px">会话 1：
+用户: 我喜欢用 Python 写代码
+Lena: 好的！已保存到长期记忆。
+      <span class="hl-green">[save_memory: language=Python]</span>
+
+# —— 重启 ——
+
+会话 2：
+用户: 帮我写个 hello world
+Lena: <span class="hl-green">好的，Python 版本：
+
+      print("Hello, World!")</span></div>
+        <div style="margin-top:16px;font-size:16px;color:var(--green)">解法：持久化到文件系统，session 启动时自动注入</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">2 / 10</div>
+</div>
+
+<!-- ====== SLIDE 3: 两层架构 ====== -->
+<div class="slide" id="s3">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>核心架构</div>
+    <div class="sec-title">记忆的两层架构</div>
+    <div class="grid2" style="margin-top:32px;gap:40px">
+      <div>
+        <div class="mem-layer mem-short">
+          <div class="mem-title mem-title-short">⚡ 短期记忆（会话级）</div>
+          <div class="body-text-sm">messages[] in-memory + <strong>SQLite</strong> 持久化</div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="pill pill-cyan">会话内全量历史</span>
+            <span class="pill pill-orange">autoCompact 触发风险</span>
+          </div>
+        </div>
+        <div class="arrow">↓ compaction 触发时持久化 / 会话结束</div>
+        <div class="mem-layer mem-long">
+          <div class="mem-title mem-title-long">🗄️ 长期记忆（跨会话）</div>
+          <div class="body-text-sm">文件系统 + <strong>MEMORY.md 索引</strong><br>每记忆一个 .md + YAML frontmatter</div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="pill pill-purple">跨 restart 永久有效</span>
+            <span class="pill pill-green">可检查 可编辑</span>
+          </div>
+        </div>
+        <div class="arrow">↓ session 启动时自动加载注入 system prompt</div>
+        <div class="glass-card" style="padding:16px 20px">
+          <div style="font-size:15px;color:var(--dim)">CLAUDE.md-like 自动加载</div>
+          <div class="body-text-sm">format_for_prompt() → system prompt</div>
+        </div>
+      </div>
+      <div class="glass-card" style="background:rgba(0,0,0,.4)">
+        <div style="font-size:16px;color:var(--dim);font-weight:700;letter-spacing:.08em;margin-bottom:16px">SQLite 表结构</div>
+        <div class="code-block" style="font-size:15px">sessions
+  id       TEXT  PRIMARY KEY
+  created  TEXT
+  updated  TEXT
+  summary  TEXT  -- ⚠️ 不可信
+
+messages
+  id         INTEGER  AUTOINCREMENT
+  session_id TEXT  → sessions.id
+  role       TEXT  -- user/assistant
+  content    TEXT  -- JSON-encoded
+  created    TEXT
+
+INDEX idx_msg_session (session_id, id)</div>
+        <div style="margin-top:16px;font-size:15px;color:var(--dim)">Python stdlib sqlite3，<strong style="color:var(--green)">零额外依赖</strong></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">3 / 10</div>
+</div>
+
+<!-- ====== SLIDE 4: SQLite 实现 ====== -->
+<div class="slide" id="s4">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>短期记忆实现</div>
+    <div class="sec-title">SQLite 会话历史 — memory/store.py</div>
+    <div class="grid2" style="margin-top:28px">
+      <div class="code-block" style="font-size:16px">class <span class="hl-cyan">MemoryStore</span>:
+  def __init__(self, db_path):
+    self.db_path = Path(db_path).expanduser()
+    self._init_db()
+
+  def append_message(self, session_id,
+                     role, content):
+    <span class="hl-green">"""存 user/assistant/tool_result"""</span>
+    now = datetime.utcnow().isoformat()
+    content_json = json.dumps(content)
+    with self._conn() as conn:
+      conn.execute(
+        <span class="hl-yellow">"INSERT INTO messages ..."</span>,
+        (session_id, role, content_json, now)
+      )
+
+  def load_messages(self, session_id):
+    <span class="hl-green">"""按顺序读取整段历史"""</span>
+    rows = conn.execute(
+      <span class="hl-yellow">"SELECT role, content FROM messages
+       WHERE session_id=? ORDER BY id"</span>
+    ).fetchall()
+    return [{"role": r,
+             "content": json.loads(c)}
+            for r, c in rows]</div>
+      <div>
+        <div class="glass-card" style="margin-bottom:24px">
+          <div style="font-size:15px;color:var(--cyan);font-weight:700;margin-bottom:12px">关键设计决策</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+            <li class="body-text-sm">📦 <strong>content 存 JSON</strong>：文本或 tool_use blocks 统一格式</li>
+            <li class="body-text-sm">⚠️ <strong>summary 字段</strong>：compaction 摘要存这里——仅调试，不信任</li>
+            <li class="body-text-sm">🔢 <strong>INTEGER AUTOINCREMENT</strong>：保证顺序，不用 timestamp 排序</li>
+            <li class="body-text-sm">🔒 <strong>WAL 模式隐式启用</strong>：多进程安全</li>
+          </ul>
+        </div>
+        <div class="design-note">
+          <div class="design-note-title">⚠️ COMPACTION TRAP</div>
+          <div class="body-text-sm">autoCompact 生成的摘要 = LLM 输出 = 可以幻觉。<br>
+          案例 6.2：Lena 把已否决方案当待办重新推进。<br>
+          <strong style="color:var(--orange)">铁律：重要决策永远写进 MemDir，不依赖 compaction summary。</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">4 / 10</div>
+</div>
+
+<!-- ====== SLIDE 5: 文件系统记忆 ====== -->
+<div class="slide" id="s5">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>长期记忆实现</div>
+    <div class="sec-title">文件系统 memory — MEMORY.md 索引</div>
+    <div class="grid2" style="margin-top:28px">
+      <div>
+        <div style="font-size:16px;color:var(--dim);font-weight:700;letter-spacing:.08em;margin-bottom:12px">MEMORY.md 索引（快速扫描）</div>
+        <div class="code-block" style="font-size:14px"># MEMORY.md — Long-term Memory Index
+
+| 文件                             | 类型        | 主题                  |
+|----------------------------------|-------------|-----------------------|
+| <span class="hl-cyan">mem_20240115_102300_a3f2b1.md</span> | preference  | programming_language  |
+| <span class="hl-cyan">mem_20240115_102315_c8d9e2.md</span> | fact        | user_name             |
+| <span class="hl-cyan">mem_20240116_094500_f1a2b3.md</span> | instruction | response_style        |</div>
+        <div style="margin-top:20px;font-size:16px;color:var(--dim);font-weight:700;letter-spacing:.08em;margin-bottom:12px">单个记忆文件（.md + YAML frontmatter）</div>
+        <div class="code-block" style="font-size:14px">---
+id: mem_20240115_102300_a3f2b1
+type: <span class="hl-purple">preference</span>
+subject: <span class="hl-yellow">programming_language</span>
+created: 2024-01-15T10:23:00
+confidence: <span class="hl-green">0.95</span>
+---
+
+<span class="hl-green">用户偏好 Python 写后端，拒绝 Node.js。
+理由是生态更完整、库更丰富。</span></div>
+      </div>
+      <div>
+        <div class="code-block" style="font-size:15px">class <span class="hl-cyan">MemDir</span>:
+  def save(self, content, subject,
+           mem_type="preference",
+           max_chars=<span class="hl-yellow">2000</span>):  <span class="hl-green"># 截断保护</span>
+    mem_id = f"mem_{datetime.now()
+                   .strftime('%Y%m%d_%H%M%S')
+                   }_{uuid.hex[:6]}"
+
+    <span class="hl-green"># 截断保护（参考 memdir.ts）</span>
+    if len(content) > max_chars:
+      content = content[:max_chars]
+                + "\n...[truncated]"
+
+    <span class="hl-green"># YAML frontmatter + 正文</span>
+    mem_file.write_text(
+      f"---\n{yaml.dump(fm)}---\n\n
+       {content}"
+    )
+    self._append_index(mem_id, ...)
+
+  def format_for_prompt(self) -> str:
+    <span class="hl-green">"""CLAUDE.md-like 注入格式"""</span>
+    memories = self.load_all()
+    return "## 已知信息（长期记忆）\n" +
+      "\n".join(f"- **{m['subject']}**:
+       {m['content']}"
+        for m in memories)</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">5 / 10</div>
+</div>
+
+<!-- ====== SLIDE 6: 自动加载机制 ====== -->
+<div class="slide" id="s6">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>自动加载机制</div>
+    <div class="sec-title">CLAUDE.md-like：system prompt 自动注入</div>
+    <div class="grid2" style="margin-top:32px">
+      <div>
+        <div class="body-text-sm" style="margin-bottom:20px">CC 的 system prompt 拼合顺序（<code style="color:var(--cyan)">prompts.ts:492</code>）：</div>
+        <div class="glass-card" style="margin-bottom:20px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="padding:10px 16px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:8px;font-size:16px"><span style="color:var(--dim)">1.</span> session_guidance</div>
+            <div style="padding:10px 16px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.4);border-radius:8px;font-size:16px"><span style="color:var(--dim)">2.</span> <strong style="color:var(--purple)">memory (CLAUDE.md + memdir)</strong> ← 长期记忆在这里</div>
+            <div style="padding:10px 16px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:8px;font-size:16px"><span style="color:var(--dim)">3.</span> env_info_simple</div>
+            <div style="padding:10px 16px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:8px;font-size:16px"><span style="color:var(--dim)">4.</span> language</div>
+            <div style="padding:10px 16px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:8px;font-size:16px"><span style="color:var(--dim)">5.</span> 工具 prompt</div>
+            <div style="padding:10px 16px;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:8px;font-size:16px"><span style="color:var(--dim)">6.</span> <span style="color:var(--orange)">Recitation（末尾重申）</span></div>
+          </div>
+        </div>
+        <div class="design-note">
+          <div class="design-note-title">🔁 RECITATION 技术（Manus）</div>
+          <div class="body-text-sm">把关键记忆写在 system prompt <strong style="color:var(--orange)">末尾</strong>，不只放开头。<br>
+          LLM 对 context 末尾注意力更强（lost-in-the-middle）。<br>
+          → 长会话中偏好不会"漂移消失"。</div>
+        </div>
+      </div>
+      <div class="code-block" style="font-size:16px">def <span class="hl-cyan">_build_system_prompt</span>(self) -> str:
+  base = <span class="hl-yellow">"你是 Lena，用户的 AI 助手..."</span>
+
+  <span class="hl-green"># 从文件系统加载长期记忆</span>
+  long_term = self.memdir.format_for_prompt()
+
+  if not long_term:
+    return base
+
+  <span class="hl-green"># Recitation：开头 + 末尾双注入</span>
+  return (
+    f"{base}\n\n"
+    f"{long_term}\n\n"         <span class="hl-green"># 开头注入</span>
+    f"<!-- 记忆重申 -->\n"
+    f"{long_term}"             <span class="hl-green"># 末尾重申</span>
+  )
+
+<span class="hl-green"># 注入效果</span>
+system_prompt = """
+你是 Lena，用户的 AI 助手...
+
+## 已知信息（长期记忆）
+- <span class="hl-purple">programming_language</span> (preference): 用户偏好 Python
+- <span class="hl-purple">user_name</span> (fact): 用户叫 Bob
+
+<!-- 记忆重申 -->
+- <span class="hl-purple">programming_language</span> (preference): 用户偏好 Python
+- <span class="hl-purple">user_name</span> (fact): 用户叫 Bob
+"""</div>
+    </div>
+  </div>
+  <div class="slide-num">6 / 10</div>
+</div>
+
+<!-- ====== SLIDE 7: 为什么不用向量库 ====== -->
+<div class="slide" id="s7">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>设计决策</div>
+    <div class="sec-title">为什么文件系统，不用向量数据库？</div>
+    <div class="grid2" style="margin-top:32px;gap:40px">
+      <div>
+        <div class="glass-card" style="border-color:rgba(248,113,113,.2);background:rgba(248,113,113,.03);margin-bottom:24px">
+          <div style="font-size:16px;color:#f87171;font-weight:700;margin-bottom:16px">向量库的代价（个人 agent 场景）</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+            <li class="body-text-sm">❌ 嵌入模型依赖（OpenAI embedding / local model）</li>
+            <li class="body-text-sm">❌ 索引更新延迟（写后不能立即搜到）</li>
+            <li class="body-text-sm">❌ 相似度阈值调参地狱</li>
+            <li class="body-text-sm">❌ 召回结果不可解释（为什么召回这条？）</li>
+            <li class="body-text-sm">❌ 额外存储服务（Pinecone / Chroma / Weaviate）</li>
+          </ul>
+        </div>
+        <div class="glass-card" style="border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03)">
+          <div style="font-size:16px;color:var(--green);font-weight:700;margin-bottom:16px">文件系统的优势</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+            <li class="body-text-sm">✅ 零依赖（ls + cat 就能检查）</li>
+            <li class="body-text-sm">✅ 可编辑（vim 直接改记忆）</li>
+            <li class="body-text-sm">✅ 精确检索（关键词匹配，不是相似度）</li>
+            <li class="body-text-sm">✅ git 版本管理记忆变化</li>
+            <li class="body-text-sm">✅ 个人 agent 记忆量 &lt; 1000 条，遍历够用</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="quote-box">
+          <div class="quote-text">"文件系统是无限外部记忆"</div>
+          <div class="quote-src">— Manus 团队，Context Engineering Lessons（HN 120 points）</div>
+        </div>
+        <div style="margin-top:24px" class="glass-card">
+          <div style="font-size:16px;color:var(--cyan);font-weight:700;margin-bottom:16px">向量库真正适合的场景</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+            <li class="body-text-sm">📚 大规模语料（10万+ 文档）</li>
+            <li class="body-text-sm">🔍 语义相似度（"找类似的文档"）</li>
+            <li class="body-text-sm">🤖 RAG 知识库（外部知识检索）</li>
+          </ul>
+          <div style="margin-top:16px;padding:12px 16px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:8px">
+            <div style="font-size:15px;color:var(--purple)">个人 agent 偏好/知识记忆 → 文件系统 ✓<br>企业知识库 RAG → 向量库 ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">7 / 10</div>
+</div>
+
+<!-- ====== SLIDE 8: 案例 Lena 三层架构 ====== -->
+<div class="slide" id="s8">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>案例 6.1</div>
+    <div class="sec-title">Lena 三层记忆架构（真实运行）</div>
+    <div class="grid3" style="margin-top:32px">
+      <div class="glass-card" style="border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.04)">
+        <div style="font-size:15px;color:var(--cyan);font-weight:700;letter-spacing:.1em;margin-bottom:16px">语义记忆<br>memory/semantic/</div>
+        <div class="body-text-sm" style="margin-bottom:16px">永恒事实<br>会话启动全量加载</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          <li class="body-text-sm">📄 user-profile.md</li>
+          <li class="body-text-sm">📄 tech-stack.md</li>
+          <li class="body-text-sm">📄 finance.md</li>
+          <li class="body-text-sm">📄 wedding.md</li>
+        </ul>
+        <div style="margin-top:16px;padding:10px 14px;background:rgba(34,211,238,.1);border-radius:8px;font-size:14px;color:var(--cyan)">用户画像、工作设备、偏好、股票 watchlist…</div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.04)">
+        <div style="font-size:15px;color:var(--purple);font-weight:700;letter-spacing:.1em;margin-bottom:16px">程序记忆<br>memory/procedural/</div>
+        <div class="body-text-sm" style="margin-bottom:16px">操作流程<br>按需加载（关键词匹配）</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          <li class="body-text-sm">📄 daily-digest.md</li>
+          <li class="body-text-sm">📄 self-evolve-loop.md</li>
+          <li class="body-text-sm">📄 openclaw-ops.md</li>
+          <li class="body-text-sm">📄 lessons-learned.md</li>
+        </ul>
+        <div style="margin-top:16px;padding:10px 14px;background:rgba(168,85,247,.1);border-radius:8px;font-size:14px;color:var(--purple)">日报 pipeline、部署 SOP、血泪教训…</div>
+      </div>
+      <div class="glass-card" style="border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.04)">
+        <div style="font-size:15px;color:var(--yellow);font-weight:700;letter-spacing:.1em;margin-bottom:16px">情景记忆<br>memory/YYYY-MM-DD.md</div>
+        <div class="body-text-sm" style="margin-bottom:16px">每日事件日志<br>QMD 向量检索</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+          <li class="body-text-sm">📅 44 个日志文件</li>
+          <li class="body-text-sm">📅 2026-03-08 ~ 05-03</li>
+          <li class="body-text-sm">🔄 memoryFlush 自动写入</li>
+        </ul>
+        <div style="margin-top:16px;padding:10px 14px;background:rgba(251,191,36,.1);border-radius:8px;font-size:14px;color:var(--yellow)">30 天半衰期自动衰减旧记忆</div>
+      </div>
+    </div>
+    <div class="glass-card" style="margin-top:24px;background:rgba(0,0,0,.4)">
+      <div class="body-text-sm"><strong style="color:var(--cyan)">MEMORY.md 是索引</strong>：Session Startup 只读索引（几 KB），判断本次任务需要哪些文件，再按需深入。不全量加载防止 context 爆炸。</div>
+    </div>
+  </div>
+  <div class="slide-num">8 / 10</div>
+</div>
+
+<!-- ====== SLIDE 9: 案例 6.2 + Demo ====== -->
+<div class="slide" id="s9">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>案例 6.2 + 终端演示</div>
+    <div class="sec-title">Compaction 不可信事故 &amp; Demo</div>
+    <div class="grid2" style="margin-top:28px">
+      <div>
+        <div class="glass-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04);margin-bottom:20px">
+          <div style="font-size:16px;color:#f87171;font-weight:700;margin-bottom:16px">⚠️ 事故经过</div>
+          <div class="body-text-sm" style="line-height:1.8">
+            1. 用户明确否决"用 LangChain 重写 agent loop"<br>
+            2. 会话继续，context 触发 <strong style="color:#f87171">autoCompact</strong><br>
+            3. LLM 生成摘要，把<strong style="color:#f87171">已否决方案</strong>写成"待评估候选方案"<br>
+            4. Lena 看到摘要，开始<strong style="color:#f87171">重新推进已否决方案</strong><br>
+            5. 用户发现并叫停
+          </div>
+        </div>
+        <div class="glass-card" style="border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.04)">
+          <div style="font-size:16px;color:var(--green);font-weight:700;margin-bottom:12px">✅ 解法：外部持久化 + 不信摘要</div>
+          <div class="body-text-sm"><strong style="color:var(--green)">铁律</strong>：compaction 后第一件事——逐项对照 MEMORY.md，不信 compaction 的 summary。<br><br>
+          重要决策写 MemDir，不依赖会话摘要。</div>
+        </div>
+      </div>
+      <div>
+        <div class="body-text-sm" style="color:var(--dim);margin-bottom:12px">终端演示 —— python3 main.py --demo</div>
+        <div class="code-block" style="font-size:14px">$ python3 main.py --demo
+
+<span class="hl-cyan">【会话 1】</span>
+用户: 我叫 Bob，我喜欢用 Python。
+Lena: 你好 Bob！
+      <span class="hl-green">[save_memory: user_name=Bob]</span>
+      <span class="hl-green">[save_memory: lang=Python]</span>
+      已保存到长期记忆。
+
+<span class="hl-cyan">会话 1 结束，MEMORY.md 已更新</span>
+
+<span class="hl-purple">【会话 2（重启后）】</span>
+新会话 ID: sess_20240116_...
+（无会话历史，但长期记忆已加载）
+
+用户: 帮我写个 hello world。
+Lena: <span class="hl-green">好的 Bob，Python 版本：
+
+      print("Hello, World!")</span>
+
+【对比】无记忆版会问：请问用什么语言？</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">9 / 10</div>
+</div>
+
+<!-- ====== SLIDE 10: 小结 ====== -->
+<div class="slide" id="s10">
+  <div class="slide-inner">
+    <div class="ch-badge"><div class="ch-dot"></div>本章小结</div>
+    <div class="sec-title">让 Agent 有昨天 — 六个关键点</div>
+    <div class="grid2" style="margin-top:28px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="glass-card" style="display:flex;gap:20px;align-items:center">
+          <div class="num-big" style="font-size:40px;min-width:56px">01</div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--cyan);margin-bottom:6px">SQLite 短期记忆</div><div class="body-text-sm">messages 表 + JSON content，Python 标准库，零依赖</div></div>
+        </div>
+        <div class="glass-card" style="display:flex;gap:20px;align-items:center">
+          <div class="num-big" style="font-size:40px;min-width:56px">02</div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--purple);margin-bottom:6px">文件系统长期记忆</div><div class="body-text-sm">每记忆一个 .md + YAML frontmatter，MEMORY.md 索引</div></div>
+        </div>
+        <div class="glass-card" style="display:flex;gap:20px;align-items:center">
+          <div class="num-big" style="font-size:40px;min-width:56px">03</div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--green);margin-bottom:6px">CLAUDE.md-like 自动加载</div><div class="body-text-sm">format_for_prompt() 注入 system prompt，每次启动自动生效</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="glass-card" style="display:flex;gap:20px;align-items:center">
+          <div class="num-big" style="font-size:40px;min-width:56px">04</div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--orange);margin-bottom:6px">save_memory 工具</div><div class="body-text-sm">Lena 自主判断什么值得记，LLM 调用工具写入 MemDir</div></div>
+        </div>
+        <div class="glass-card" style="display:flex;gap:20px;align-items:center">
+          <div class="num-big" style="font-size:40px;min-width:56px">05</div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--pink);margin-bottom:6px">Compaction 陷阱</div><div class="body-text-sm">LLM 摘要可以幻觉，重要决策必须在外部文件，不信 summary</div></div>
+        </div>
+        <div class="glass-card" style="display:flex;gap:20px;align-items:center">
+          <div class="num-big" style="font-size:40px;min-width:56px">06</div>
+          <div><div style="font-size:18px;font-weight:700;color:var(--yellow);margin-bottom:6px">文件系统 &gt; 向量库</div><div class="body-text-sm">个人 agent 记忆量少，可检查可编辑，零依赖，够用就好</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;text-align:center">
+      <div class="body-text-sm" style="color:var(--dim)">下一章 → <strong style="color:var(--cyan)">Context Engineering：Token 经济学</strong> — 如何用最少 token 传递最多信息</div>
+    </div>
+  </div>
+  <div class="slide-num">10 / 10</div>
+</div>
+
+</div><!-- deck end -->
+
+<div id="nav">
+  <button class="nav-btn" onclick="go(-1)">← 上一页</button>
+  <div id="slide-counter">1 / 10</div>
+  <button class="nav-btn" onclick="go(1)">下一页 →</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let cur = 0;
+function show(i) {
+  slides[cur].classList.remove('active');
+  cur = (i + slides.length) % slides.length;
+  slides[cur].classList.add('active');
+  document.getElementById('slide-counter').textContent = `${cur+1} / ${slides.length}`;
+}
+function go(d) { show(cur + d); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') go(1);
+  if (e.key === 'ArrowLeft') go(-1);
+});
+// Auto-scale to window
+function scale() {
+  const s = Math.min(window.innerWidth/1920, window.innerHeight/1080);
+  document.getElementById('deck').style.transform = `scale(${s})`;
+  document.getElementById('deck').style.left = `${(window.innerWidth-1920*s)/2}px`;
+  document.getElementById('deck').style.top = `${(window.innerHeight-1080*s)/2}px`;
+}
+window.addEventListener('resize', scale);
+scale();
+</script>
+</body>
+</html>

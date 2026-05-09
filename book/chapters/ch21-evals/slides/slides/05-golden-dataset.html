@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','PingFang SC',monospace; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(68,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(68,255,136,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #44ff88; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+.cols { display: flex; gap: 40px; flex: 1; }
+.left { flex: 1; }
+.right { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 17px; }
+th { font-size: 13px; letter-spacing: 0.15em; color: #44ff88; font-weight: 600; text-transform: uppercase; }
+td:first-child { color: #64b4ff; }
+td:last-child { color: rgba(255,255,255,0.5); }
+.step-card { background: rgba(68,255,136,0.05); border: 1px solid rgba(68,255,136,0.15); border-radius: 12px; padding: 22px 26px; display: flex; gap: 16px; align-items: flex-start; }
+.step-num { font-size: 36px; font-weight: 900; color: rgba(68,255,136,0.3); line-height: 1; flex-shrink: 0; }
+.step-content { flex: 1; }
+.step-title { font-size: 18px; font-weight: 700; color: #44ff88; margin-bottom: 6px; }
+.step-body { font-size: 16px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+.step-time { font-size: 13px; color: rgba(68,255,136,0.5); margin-top: 6px; }
+pre { background: #060d14; border: 1px solid rgba(68,255,136,0.15); border-radius: 8px; padding: 20px; font-size: 14px; color: #c8d8f0; line-height: 1.6; }
+.cm { color: #445566; }
+.str { color: #88ddaa; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1><em>Golden Dataset</em>：构建 100 个高质量测试用例</h1>
+  <p class="sub">100 个随机问题 ≠ 100 个好的测试用例。分层采样 + 种子变体 + 人工审核。</p>
+  <div class="cols">
+    <div class="left">
+      <table>
+        <thead><tr><th>能力维度</th><th>测试数</th><th>来源</th></tr></thead>
+        <tbody>
+          <tr><td>工具调用</td><td>25</td><td>历史对话采样</td></tr>
+          <tr><td>Planning（多步）</td><td>20</td><td>手工设计</td></tr>
+          <tr><td>Safety 规则</td><td>15</td><td>攻击用例库</td></tr>
+          <tr><td>内容生成</td><td>20</td><td>历史对话采样</td></tr>
+          <tr><td>边界情况</td><td>10</td><td>手工设计</td></tr>
+          <tr><td>跨语言理解</td><td>10</td><td>自动生成</td></tr>
+        </tbody>
+      </table>
+      <pre style="margin-top:20px"><span class="cm"># 用例结构</span>
+{
+  <span class="str">"id"</span>: <span class="str">"tool-call-001"</span>,
+  <span class="str">"tags"</span>: [<span class="str">"tool-call"</span>, <span class="str">"planning"</span>],
+  <span class="str">"expected_behavior"</span>: <span class="str">"..."</span>,
+  <span class="str">"expected_contains"</span>: [<span class="str">"AAPL"</span>],
+  <span class="str">"expected_not_contains"</span>: [<span class="str">"抱歉"</span>]
+}</pre>
+    </div>
+    <div class="right">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">能力树分析</div>
+          <div class="step-body">列出 agent 所有能力维度，按重要性分配测试预算</div>
+          <div class="step-time">约 2 小时</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">种子 + 变体生成</div>
+          <div class="step-body">20 个种子用例，用 LLM 生成 5 个措辞变体，100 条完成</div>
+          <div class="step-time">约 4 小时</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">人工审核</div>
+          <div class="step-body">每条确认 expected_behavior 是否合理，不合理的删掉</div>
+          <div class="step-time">约 4 小时</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','PingFang SC',monospace; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(170,136,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(170,136,255,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #aa88ff; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+.cols { display: flex; gap: 48px; flex: 1; }
+.left { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.right { flex: 1; display: flex; align-items: center; justify-content: center; }
+.dim-card { background: rgba(170,136,255,0.05); border: 1px solid rgba(170,136,255,0.15); border-radius: 12px; padding: 22px 26px; }
+.dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.dim-name { font-size: 20px; font-weight: 700; }
+.dim-weight { font-size: 14px; color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; }
+.dim-desc { font-size: 16px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+.dim-q { color: #64b4ff; }
+.dim-l { color: #ff9944; }
+.dim-c { color: #44ff88; }
+.radar-wrap { width: 500px; height: 500px; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>Cost / Latency / <em>Quality</em> 三维度评分</h1>
+  <p class="sub">只看质量是危险的。功能增加时，Latency 和 Cost 会悄悄上升。</p>
+  <div class="cols">
+    <div class="left">
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-name dim-q">Quality（质量）</div>
+          <div class="dim-weight">权重 50%</div>
+        </div>
+        <div class="dim-desc">来自 LLM-as-judge 或 Golden dataset 评分<br>反映 agent 输出的正确性、完整性、格式</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-name dim-l">Latency（延迟）</div>
+          <div class="dim-weight">权重 25%</div>
+        </div>
+        <div class="dim-desc">归一化：baseline_ms / actual_ms<br>越快分越高。超过基准 2x → 分数减半</div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-header">
+          <div class="dim-name dim-c">Cost（成本）</div>
+          <div class="dim-weight">权重 25%</div>
+        </div>
+        <div class="dim-desc">归一化：baseline_usd / actual_usd<br>越便宜分越高。成本 20x → score = 0.05</div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="radar-wrap">
+        <canvas id="radar"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+new Chart(document.getElementById('radar'), {
+  type: 'radar',
+  data: {
+    labels: ['Quality', 'Latency', 'Cost'],
+    datasets: [
+      { label: 'v1.7', data: [0.82, 0.73, 0.77], borderColor: '#64b4ff', backgroundColor: 'rgba(100,180,255,0.1)', pointBackgroundColor: '#64b4ff', borderWidth: 3 },
+      { label: 'v1.5', data: [0.75, 0.72, 0.76], borderColor: '#ff9944', backgroundColor: 'rgba(255,153,68,0.06)', pointBackgroundColor: '#ff9944', borderWidth: 2, borderDash: [6,3] },
+      { label: 'v1.0', data: [0.52, 0.90, 0.95], borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.03)', pointBackgroundColor: 'rgba(255,255,255,0.3)', borderWidth: 1.5, borderDash: [3,3] },
+    ]
+  },
+  options: {
+    scales: { r: { min: 0, max: 1, ticks: { display: false, stepSize: 0.25 }, grid: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { font: { size: 20 }, color: '#e0e8ff' } } },
+    plugins: { legend: { labels: { color: '#e0e8ff', font: { size: 16 }, boxWidth: 20 } } }
+  }
+});
+</script>
+</body></html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','PingFang SC',monospace; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(100,180,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(100,180,255,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #64b4ff; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+.cols { display: flex; gap: 48px; flex: 1; }
+.left { flex: 1.4; }
+.right { flex: 0.6; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+.chart-wrap { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 24px; height: 100%; }
+.insight { background: rgba(100,180,255,0.05); border: 1px solid rgba(100,180,255,0.15); border-radius: 10px; padding: 18px 22px; }
+.insight-title { font-size: 14px; letter-spacing: 0.15em; color: #64b4ff; margin-bottom: 8px; text-transform: uppercase; }
+.insight-body { font-size: 17px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+.insight-body strong { color: #e0e8ff; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>版本回归：v1.0 → v1.7 <em>评分曲线</em></h1>
+  <p class="sub">Quality 一路上升，但 Composite 从 v1.5 开始趋于平稳——这是功能增加的隐性成本</p>
+  <div class="cols">
+    <div class="left">
+      <div class="chart-wrap">
+        <canvas id="line"></canvas>
+      </div>
+    </div>
+    <div class="right">
+      <div class="insight">
+        <div class="insight-title">v1.0 → v1.3</div>
+        <div class="insight-body">功能少，<strong>Latency 高</strong>，Cost 低<br>Quality 提升明显</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">v1.3 → v1.6</div>
+        <div class="insight-body">加 Planning / Docker<br>Quality↑，但 Latency 和 Cost <strong>同步下滑</strong></div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">v1.7 — 本章</div>
+        <div class="insight-body">加 Eval + CI<br>Composite <strong>+0.03</strong>，来自 quality 提升</div>
+      </div>
+      <div class="insight">
+        <div class="insight-title">关键洞察</div>
+        <div class="insight-body">只看 Quality 会以为 v1.7 大幅领先<br>三维度 Composite 告诉你<strong>真相</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const versions = ['v1.0','v1.1','v1.2','v1.3','v1.4','v1.5','v1.6','v1.7'];
+const quality   = [0.52, 0.61, 0.64, 0.68, 0.71, 0.75, 0.78, 0.82];
+const latency   = [0.90, 0.85, 0.83, 0.80, 0.77, 0.72, 0.70, 0.73];
+const cost      = [0.95, 0.88, 0.85, 0.82, 0.79, 0.76, 0.75, 0.77];
+const composite = [0.72, 0.74, 0.74, 0.75, 0.75, 0.75, 0.75, 0.78];
+
+new Chart(document.getElementById('line'), {
+  type: 'line',
+  data: {
+    labels: versions,
+    datasets: [
+      { label: 'Quality',   data: quality,   borderColor: '#64b4ff', tension: 0.4, fill: false, borderWidth: 2.5, pointRadius: 5 },
+      { label: 'Latency',   data: latency,   borderColor: '#ff9944', tension: 0.4, fill: false, borderWidth: 2, borderDash: [6,3], pointRadius: 4 },
+      { label: 'Cost',      data: cost,      borderColor: '#44ff88', tension: 0.4, fill: false, borderWidth: 2, borderDash: [4,4], pointRadius: 4 },
+      { label: 'Composite', data: composite, borderColor: '#ffffff', tension: 0.2, fill: false, borderWidth: 3, pointRadius: 6 },
+    ]
+  },
+  options: {
+    scales: {
+      y: { min: 0.4, max: 1.0, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#8899aa', stepSize: 0.1 } },
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8899aa' } }
+    },
+    plugins: { legend: { labels: { color: '#e0e8ff', font: { size: 14 }, boxWidth: 20 } } }
+  }
+});
+</script>
+</body></html>

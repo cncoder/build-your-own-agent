@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="400" viewBox="0 0 900 400">
+  <defs>
+    <style>
+      text { font-family: 'PingFang SC', 'Noto Sans SC', sans-serif; }
+    </style>
+    <filter id="glow-red" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ef4444" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow-orange" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f97316" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow-yellow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#eab308" flood-opacity="0.35"/>
+    </filter>
+    <filter id="glow-cyan2" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#06b6d4" flood-opacity="0.35"/>
+    </filter>
+    <filter id="glow-emerald2" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#10b981" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="400" fill="#0f172a" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="28" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="16" font-weight="700" fill="#e2e8f0">执行安全沙箱分层 · Execution Safety Sandbox Layers</text>
+  <text x="450" y="46" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="11" fill="#64748b">从外到内逐层收紧 · Defence in Depth — from coarse to fine</text>
+
+  <!-- ============================================================ -->
+  <!-- Layer 1: OS 进程隔离 (outermost) -->
+  <!-- ============================================================ -->
+  <rect x="30" y="58" width="840" height="310" rx="16" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="8,4" filter="url(#glow-red)"/>
+  <!-- Layer 1 label top-left -->
+  <rect x="42" y="52" width="220" height="22" rx="4" fill="#0f172a"/>
+  <text x="50" y="67" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" font-weight="700" fill="#ef4444">① OS 进程隔离 · Process Isolation</text>
+
+  <!-- Layer 1 right side annotation -->
+  <rect x="650" y="62" width="210" height="68" rx="6" fill="#1c0707" stroke="#ef4444" stroke-width="1" opacity="0.9"/>
+  <text x="660" y="80" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#fca5a5" font-weight="600">拦截：跨进程攻击</text>
+  <text x="660" y="94" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 独立 UID/GID，无 root 权限</text>
+  <text x="660" y="108" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· seccomp 系统调用过滤</text>
+  <text x="660" y="122" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· Linux namespaces 隔离</text>
+
+  <!-- ============================================================ -->
+  <!-- Layer 2: Docker 容器 -->
+  <!-- ============================================================ -->
+  <rect x="80" y="92" width="550" height="246" rx="14" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="7,3" filter="url(#glow-orange)"/>
+  <rect x="92" y="87" width="200" height="22" rx="4" fill="#0f172a"/>
+  <text x="100" y="102" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" font-weight="700" fill="#f97316">② Docker 容器 · Container Isolation</text>
+
+  <!-- Layer 2 right annotation -->
+  <rect x="650" y="144" width="210" height="68" rx="6" fill="#1c0c07" stroke="#f97316" stroke-width="1" opacity="0.9"/>
+  <text x="660" y="162" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#fdba74" font-weight="600">拦截：宿主机逃逸</text>
+  <text x="660" y="176" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 只读根文件系统</text>
+  <text x="660" y="190" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· --network=none 断网</text>
+  <text x="660" y="204" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· CPU/内存 cgroup 限额</text>
+
+  <!-- ============================================================ -->
+  <!-- Layer 3: 文件系统白名单 -->
+  <!-- ============================================================ -->
+  <rect x="132" y="128" width="460" height="180" rx="12" fill="none" stroke="#eab308" stroke-width="2" stroke-dasharray="6,3" filter="url(#glow-yellow)"/>
+  <rect x="144" y="123" width="220" height="22" rx="4" fill="#0f172a"/>
+  <text x="152" y="138" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" font-weight="700" fill="#eab308">③ 文件系统白名单 · FS Allowlist</text>
+
+  <!-- Layer 3 right annotation -->
+  <rect x="650" y="226" width="210" height="68" rx="6" fill="#1c1607" stroke="#eab308" stroke-width="1" opacity="0.9"/>
+  <text x="660" y="244" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#fde68a" font-weight="600">拦截：任意文件读写</text>
+  <text x="660" y="258" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 只允许 /tmp/workspace</text>
+  <text x="660" y="272" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 敏感路径 inotify 监控</text>
+  <text x="660" y="286" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 写入限额 100MB</text>
+
+  <!-- ============================================================ -->
+  <!-- Layer 4: 命令审批 (innermost wall) -->
+  <!-- ============================================================ -->
+  <rect x="184" y="164" width="360" height="124" rx="10" fill="none" stroke="#06b6d4" stroke-width="2" filter="url(#glow-cyan2)"/>
+  <rect x="196" y="159" width="210" height="22" rx="4" fill="#0f172a"/>
+  <text x="204" y="174" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="12" font-weight="700" fill="#06b6d4">④ 命令审批 · Command Approval</text>
+
+  <!-- Layer 4 right annotation -->
+  <rect x="650" y="308" width="210" height="48" rx="6" fill="#071a1c" stroke="#06b6d4" stroke-width="1" opacity="0.9"/>
+  <text x="660" y="326" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#67e8f9" font-weight="600">拦截：危险命令执行</text>
+  <text x="660" y="340" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 黑名单: rm -rf / curl | sh</text>
+  <text x="660" y="350" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">· 人工审批高风险操作</text>
+
+  <!-- Connector lines from layers to annotations -->
+  <line x1="630" y1="96" x2="650" y2="96" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+  <line x1="630" y1="178" x2="650" y2="178" stroke="#f97316" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+  <line x1="592" y1="260" x2="650" y2="260" stroke="#eab308" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+  <line x1="544" y1="332" x2="650" y2="332" stroke="#06b6d4" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>
+
+  <!-- ============================================================ -->
+  <!-- Center: Agent 执行器 -->
+  <!-- ============================================================ -->
+  <rect x="270" y="195" width="188" height="82" rx="12" fill="#064e3b" stroke="#10b981" stroke-width="3" filter="url(#glow-emerald2)"/>
+  <!-- Pulse ring animation effect (static representation) -->
+  <circle cx="364" cy="236" r="52" fill="none" stroke="#10b981" stroke-width="1" opacity="0.2"/>
+  <circle cx="364" cy="236" r="44" fill="none" stroke="#10b981" stroke-width="1" opacity="0.3"/>
+
+  <text x="364" y="219" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="20" fill="#10b981">⚡</text>
+  <text x="364" y="240" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="13" font-weight="700" fill="#34d399">Agent 执行器</text>
+  <text x="364" y="256" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#6ee7b7">Agent Executor</text>
+  <text x="364" y="270" text-anchor="middle" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="9" fill="#059669">Tool Call Handler</text>
+
+  <!-- ============================================================ -->
+  <!-- Legend bottom -->
+  <!-- ============================================================ -->
+  <rect x="30" y="374" width="600" height="20" rx="4" fill="none"/>
+  <line x1="30" y1="384" x2="50" y2="384" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="6,3"/>
+  <text x="55" y="388" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">最外层防线</text>
+  <line x1="140" y1="384" x2="160" y2="384" stroke="#f97316" stroke-width="2" stroke-dasharray="5,2"/>
+  <text x="165" y="388" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">容器隔离</text>
+  <line x1="240" y1="384" x2="260" y2="384" stroke="#eab308" stroke-width="2" stroke-dasharray="4,2"/>
+  <text x="265" y="388" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">文件白名单</text>
+  <line x1="360" y1="384" x2="380" y2="384" stroke="#06b6d4" stroke-width="2"/>
+  <text x="385" y="388" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#94a3b8">命令审批</text>
+  <rect x="460" y="378" width="10" height="10" rx="2" fill="#10b981"/>
+  <text x="475" y="388" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#34d399">核心执行器</text>
+  <text x="600" y="388" font-family="'PingFang SC','Noto Sans SC',sans-serif" font-size="10" fill="#475569">纵深防御 · Defence in Depth</text>
+
+</svg>

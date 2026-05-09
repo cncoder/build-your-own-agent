@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, initial-scale=1" />
+<title>Ch 13 · Heartbeat：让 Agent 主动找你</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0e1a;
+    --bg2:       #111827;
+    --border:    rgba(99,179,237,0.18);
+    --accent:    #63b3ed;   /* 心跳蓝 */
+    --accent2:   #68d391;   /* 活跃绿 */
+    --warn:      #f6ad55;   /* 告警橙 */
+    --text:      #e2e8f0;
+    --text-dim:  #718096;
+    --code-bg:   #1a2234;
+    --mono:      "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    --sans:      "Inter", "PingFang SC", system-ui, sans-serif;
+  }
+
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }
+
+  .deck { width: 1920px; height: 1080px; position: relative; }
+  .slide { width: 1920px; height: 1080px; position: absolute; top: 0; left: 0; display: none; padding: 72px 100px; flex-direction: column; justify-content: center; }
+  .slide.active { display: flex; }
+
+  /* Navigation */
+  .nav { position: fixed; bottom: 32px; right: 60px; display: flex; gap: 12px; z-index: 100; }
+  .nav button { background: rgba(99,179,237,0.15); border: 1px solid var(--border); color: var(--accent); padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: var(--sans); transition: all 0.2s; }
+  .nav button:hover { background: rgba(99,179,237,0.28); }
+  .counter { position: fixed; bottom: 40px; left: 60px; color: var(--text-dim); font-size: 13px; font-family: var(--mono); z-index: 100; }
+
+  /* Typography */
+  .chapter-label { font-size: 13px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 20px; font-family: var(--mono); }
+  h1 { font-size: 72px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+  h2 { font-size: 48px; font-weight: 700; margin-bottom: 32px; }
+  h3 { font-size: 28px; font-weight: 600; color: var(--accent); margin-bottom: 16px; }
+  .subtitle { font-size: 26px; color: var(--text-dim); margin-top: 20px; line-height: 1.5; }
+  p  { font-size: 22px; line-height: 1.7; color: var(--text); }
+  .quote { font-size: 28px; font-style: italic; color: var(--text-dim); border-left: 3px solid var(--accent); padding-left: 28px; margin: 24px 0; line-height: 1.6; }
+
+  /* Code blocks */
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; font-family: var(--mono); font-size: 18px; line-height: 1.7; overflow: hidden; }
+  .kw  { color: #c792ea; }
+  .fn  { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .cmt { color: #546e7a; font-style: italic; }
+  .num { color: #f78c6c; }
+  .type { color: #ffcb6b; }
+
+  /* Layouts */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 48px; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 36px; }
+  .card.accent-green { border-color: rgba(104,211,145,0.35); }
+  .card.accent-warn  { border-color: rgba(246,173,85,0.35); }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 4px 14px; border-radius: 999px; font-size: 13px; font-family: var(--mono); font-weight: 600; }
+  .badge-blue  { background: rgba(99,179,237,0.15); color: var(--accent); border: 1px solid rgba(99,179,237,0.3); }
+  .badge-green { background: rgba(104,211,145,0.15); color: var(--accent2); border: 1px solid rgba(104,211,145,0.3); }
+  .badge-warn  { background: rgba(246,173,85,0.15); color: var(--warn); border: 1px solid rgba(246,173,85,0.3); }
+
+  /* Heartbeat ECG line animation */
+  @keyframes ecg-draw {
+    from { stroke-dashoffset: 1000; }
+    to   { stroke-dashoffset: 0; }
+  }
+  .ecg-line { stroke-dasharray: 1000; animation: ecg-draw 2s ease-out forwards; }
+
+  /* Pulse animation */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.05); }
+  }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  /* Slide-specific: cover */
+  .slide-cover { background: radial-gradient(ellipse at 30% 50%, rgba(99,179,237,0.06) 0%, transparent 60%), var(--bg); }
+  .slide-cover h1 { background: linear-gradient(135deg, #e2e8f0 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* Timeline visual */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .timeline-item { display: flex; gap: 24px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-time { font-family: var(--mono); font-size: 18px; color: var(--accent); min-width: 72px; }
+  .timeline-desc { font-size: 18px; line-height: 1.5; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th { text-align: left; padding: 14px 20px; font-size: 15px; color: var(--text-dim); font-weight: 600; border-bottom: 1px solid var(--border); }
+  .compare-table td { padding: 16px 20px; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table .highlight { color: var(--accent2); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- ─── Slide 1: Cover ─────────────────────────────────────────────────── -->
+  <div class="slide slide-cover active" id="s1">
+    <div style="max-width:900px">
+      <div class="chapter-label">Ch 13 · Long-horizon 执行</div>
+      <h1>Heartbeat</h1>
+      <h1 style="color: var(--accent)">让 Agent 主动找你</h1>
+      <p class="subtitle" style="margin-top:36px">
+        被动等待命令的是工具<br>主动告知状态的才是助理
+      </p>
+      <div style="margin-top:52px; display:flex; gap:20px; align-items:center">
+        <span class="badge badge-blue">lena-v1.3</span>
+        <span class="badge badge-green">178 行甜点级</span>
+        <span class="badge badge-warn">每天 08:00 主动出击</span>
+      </div>
+    </div>
+    <!-- ECG decoration -->
+    <svg style="position:absolute;right:120px;top:50%;transform:translateY(-50%)" width="480" height="240" viewBox="0 0 480 240">
+      <path class="ecg-line" d="M0,120 L80,120 L100,120 L110,20 L120,200 L130,100 L140,120 L220,120 L240,120 L250,20 L260,200 L270,100 L280,120 L360,120 L380,120 L390,20 L400,200 L410,100 L420,120 L480,120"
+        fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.7"/>
+      <circle class="pulse" cx="420" cy="120" r="6" fill="var(--accent)"/>
+    </svg>
+  </div>
+
+  <!-- ─── Slide 2: 问题引入 ──────────────────────────────────────────────── -->
+  <div class="slide" id="s2">
+    <div class="chapter-label">问题引入</div>
+    <h2>你的 agent 在等你</h2>
+    <div class="two-col" style="margin-top:24px">
+      <div>
+        <div class="card" style="margin-bottom:24px">
+          <h3 style="color:var(--warn)">Reactive Agent（普通 chatbot）</h3>
+          <pre style="font-size:15px">用户  ──消息──► Lena ──处理──► 回复
+用户  ──消息──► Lena ──处理──► 回复
+
+<span class="cmt">// Lena 永远在等</span>
+<span class="cmt">// 你不问，她不说</span></pre>
+          <p style="margin-top:16px; font-size:18px; color:var(--text-dim)">你不知道该问什么时，Lena 一言不发。</p>
+        </div>
+      </div>
+      <div>
+        <div class="card accent-green">
+          <h3 style="color:var(--accent2)">Proactive Agent（有 Heartbeat）</h3>
+          <pre style="font-size:15px">08:00 <span class="cmt">← Heartbeat tick</span>
+  ↓ isActiveHours? ✓
+  ↓ generatePayload()
+  ↓ emit("outbound")
+用户  ◄──主动推送── Lena</pre>
+          <p style="margin-top:16px; font-size:18px; color:var(--text-dim)">Lena 知道现在什么信息对你最重要。</p>
+        </div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:32px; max-width:900px">
+      "agent 有话说时主动出口完整闭环——这是 always-on agent 与普通 chatbot 的本质区别。"
+    </div>
+  </div>
+
+  <!-- ─── Slide 3: Reactive vs Proactive 哲学 ───────────────────────────── -->
+  <div class="slide" id="s3">
+    <div class="chapter-label">设计哲学</div>
+    <h2>Proactive vs Reactive</h2>
+    <div class="two-col" style="margin-top:28px">
+      <div>
+        <h3 style="color:var(--warn)">Reactive</h3>
+        <table class="compare-table">
+          <tr><th>维度</th><th>状态</th></tr>
+          <tr><td>触发方式</td><td>用户发消息</td></tr>
+          <tr><td>信息主动权</td><td>在用户</td></tr>
+          <tr><td>适用场景</td><td>搜索、Q&A</td></tr>
+          <tr><td>本质</td><td>工具</td></tr>
+          <tr><td>局限</td><td>用户不问 = 没有输出</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="color:var(--accent2)">Proactive</h3>
+        <table class="compare-table">
+          <tr><th>维度</th><th>状态</th></tr>
+          <tr><td>触发方式</td><td class="highlight">Heartbeat 定时触发</td></tr>
+          <tr><td>信息主动权</td><td class="highlight">在 Agent</td></tr>
+          <tr><td>适用场景</td><td class="highlight">日报/预警/进度汇报</td></tr>
+          <tr><td>本质</td><td class="highlight">助理</td></tr>
+          <tr><td>优势</td><td class="highlight">Agent 决定何时说什么</td></tr>
+        </table>
+      </div>
+    </div>
+    <div style="margin-top:36px; padding:24px 32px; background:var(--bg2); border-radius:12px; border:1px solid var(--border)">
+      <p style="font-size:20px">
+        <strong style="color:var(--accent)">Design Note</strong>：
+        Anthropic 2026-04「Scaling Managed Agents」报告将 proactive vs reactive 列为当前 agent 系统的核心议题。
+        主动性是 2026 年 agent 能力边界最重要的话题。
+      </p>
+    </div>
+  </div>
+
+  <!-- ─── Slide 4: nano-claw 178 行代码导读 ────────────────────────────── -->
+  <div class="slide" id="s4">
+    <div class="chapter-label">nano-claw Heartbeat · 178 行甜点级</div>
+    <h2>setTimeout + EventEmitter</h2>
+    <div class="two-col" style="margin-top:20px; align-items:start">
+      <pre><span class="cmt">// nano-claw/heartbeat/index.ts</span>
+
+<span class="kw">class</span> <span class="type">HeartbeatTimer</span> {
+  <span class="fn">start</span>(onTick: () => <span class="type">void</span>): <span class="type">void</span> {
+    <span class="kw">const</span> tick = () => {
+      onTick();
+      <span class="cmt">// 递归 setTimeout，保证不重叠</span>
+      setTimeout(tick, <span class="kw">this</span>.intervalMs);
+    };
+    setTimeout(tick, <span class="kw">this</span>.intervalMs);
+  }
+}
+
+<span class="kw">class</span> <span class="type">HeartbeatRunner</span> <span class="kw">extends</span> <span class="type">EventEmitter</span> {
+  <span class="kw">private async</span> <span class="fn">onTick</span>() {
+    <span class="kw">if</span> (!<span class="fn">isActiveHours</span>(<span class="kw">this</span>.config)) <span class="kw">return</span>;
+    <span class="kw">const</span> payload = <span class="kw">await</span> <span class="kw">this</span>.<span class="fn">generatePayload</span>();
+    <span class="kw">if</span> (payload) <span class="kw">this</span>.<span class="fn">emit</span>(<span class="str">"outbound"</span>, payload);
+  }
+}</pre>
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <h3>为什么 setTimeout 不用 setInterval？</h3>
+          <p style="font-size:18px; line-height:1.6">
+            setInterval 固定间隔触发——<br>
+            如果执行花了 30s，下次可能立即触发。<br><br>
+            递归 setTimeout = 上次完成后才开始计时，<br>
+            保证节拍不重叠。
+          </p>
+        </div>
+        <div class="card accent-green">
+          <h3>3 个核心组件</h3>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px">
+            <div style="display:flex; gap:12px; align-items:center">
+              <span class="badge badge-blue">① Timer</span>
+              <span style="font-size:17px">setTimeout 递归节拍器</span>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center">
+              <span class="badge badge-green">② ActiveHours</span>
+              <span style="font-size:17px">时区感知过滤器</span>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center">
+              <span class="badge badge-warn">③ EventEmitter</span>
+              <span style="font-size:17px">推送事件总线</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Slide 5: active-hours ─────────────────────────────────────────── -->
+  <div class="slide" id="s5">
+    <div class="chapter-label">active-hours · 防打扰设计</div>
+    <h2>让 Lena 懂礼貌</h2>
+    <div class="two-col" style="margin-top:24px">
+      <div>
+        <pre><span class="cmt">// heartbeat-active-hours.ts</span>
+<span class="kw">interface</span> <span class="type">ActiveHoursConfig</span> {
+  timezone: <span class="type">string</span>;   <span class="cmt">// "Asia/Hong_Kong"</span>
+  weekdays: {
+    start: <span class="type">number</span>;  <span class="cmt">// 8 → 08:00</span>
+    end:   <span class="type">number</span>;  <span class="cmt">// 22 → 22:00</span>
+  };
+  weekend?: {
+    start: <span class="type">number</span>;  <span class="cmt">// 10</span>
+    end:   <span class="type">number</span>;  <span class="cmt">// 20</span>
+  };
+}
+
+<span class="kw">function</span> <span class="fn">isActiveHours</span>(cfg: <span class="type">ActiveHoursConfig</span>) {
+  <span class="kw">const</span> parts = <span class="kw">new</span> <span class="type">Intl.DateTimeFormat</span>(<span class="str">"en-US"</span>, {
+    timeZone: cfg.timezone,
+    hour: <span class="str">"numeric"</span>, weekday: <span class="str">"short"</span>
+  }).<span class="fn">formatToParts</span>(<span class="kw">new</span> <span class="type">Date</span>());
+  <span class="cmt">// ...返回 true/false</span>
+}</pre>
+      </div>
+      <div>
+        <h3>时间可视化</h3>
+        <div style="margin-top:16px">
+          <!-- 24-hour bar visualization -->
+          <div style="position:relative; height:48px; background:var(--code-bg); border-radius:8px; border:1px solid var(--border); overflow:hidden">
+            <!-- Non-active zone: 0-8 -->
+            <div style="position:absolute; left:0; width:33.3%; height:100%; background:rgba(255,255,255,0.04)"></div>
+            <!-- Active zone: 8-22 -->
+            <div style="position:absolute; left:33.3%; width:58.3%; height:100%; background:rgba(104,211,145,0.15); border-left:2px solid var(--accent2); border-right:2px solid var(--accent2)"></div>
+            <!-- Non-active: 22-24 -->
+            <div style="position:absolute; right:0; width:8.3%; height:100%; background:rgba(255,255,255,0.04)"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--mono); font-size:14px; color:var(--text-dim)">
+            <span>00:00</span><span style="color:var(--accent2)">08:00 ← active</span><span style="color:var(--accent2)">22:00 →</span><span>24:00</span>
+          </div>
+        </div>
+        <div style="margin-top:28px; display:flex; flex-direction:column; gap:16px">
+          <div class="card accent-green" style="padding:20px 24px">
+            <p style="font-size:18px">工作日：08:00 — 22:00</p>
+          </div>
+          <div class="card" style="padding:20px 24px">
+            <p style="font-size:18px">周末：10:00 — 20:00（可选）</p>
+          </div>
+          <div class="card accent-warn" style="padding:20px 24px">
+            <p style="font-size:18px; color:var(--warn)">凌晨 3 点？沉默。不打扰睡眠。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Slide 6: events-filter ────────────────────────────────────────── -->
+  <div class="slide" id="s6">
+    <div class="chapter-label">events-filter · 信息 ≠ 噪音</div>
+    <h2>什么事件值得主动推送？</h2>
+    <div class="three-col" style="margin-top:32px">
+      <div class="card accent-warn" style="text-align:center">
+        <div style="font-size:48px; margin-bottom:16px">🚨</div>
+        <h3 style="color:var(--warn)">高优先级</h3>
+        <p style="font-size:18px; line-height:1.6; margin-top:12px">系统崩溃<br>安全告警<br>任务失败</p>
+        <div style="margin-top:20px"><span class="badge badge-warn">立即发送</span></div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:48px; margin-bottom:16px">📊</div>
+        <h3>中优先级</h3>
+        <p style="font-size:18px; line-height:1.6; margin-top:12px">任务完成<br>数据更新<br>周期报告</p>
+        <div style="margin-top:20px"><span class="badge badge-blue">频率限制后发送</span></div>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:48px; margin-bottom:16px">💬</div>
+        <h3 style="color:var(--accent2)">低优先级</h3>
+        <p style="font-size:18px; line-height:1.6; margin-top:12px">日常问候<br>天气摘要<br>行程提醒</p>
+        <div style="margin-top:20px"><span class="badge badge-green">仅 digest 时段</span></div>
+      </div>
+    </div>
+    <div style="margin-top:36px; padding:24px 36px; background:var(--bg2); border-radius:12px; border:1px solid var(--border)">
+      <p style="font-size:20px">
+        <strong style="color:var(--accent)">Design Note</strong>：
+        events-filter 体现了 agent 的「情商」——它知道什么时候该说话，什么时候保持沉默。
+        这和人类助理的职业素养是一样的。
+      </p>
+    </div>
+  </div>
+
+  <!-- ─── Slide 7: 案例 13.1 日报 ──────────────────────────────────────── -->
+  <div class="slide" id="s7">
+    <div class="chapter-label">案例 13.1 · 真实生产 Heartbeat</div>
+    <h2>Lena 每日 05:00 主动推送日报</h2>
+    <div class="two-col" style="margin-top:24px">
+      <div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <span class="timeline-time">04:30</span>
+            <span class="timeline-desc">cron a9764e0d 触发采集<br><small style="color:var(--text-dim)">15 collector 并行，independent-isolated 模式</small></span>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-time" style="color:var(--accent2)">05:00</span>
+            <span class="timeline-desc">LLM 编辑（Opus 4.6）<br><small style="color:var(--text-dim)">25000-30000 字脚本</small></span>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-time">06:00</span>
+            <span class="timeline-desc">TTS 合成<br><small style="color:var(--text-dim)">Qwen3-TTS，25-45 分钟</small></span>
+          </div>
+          <div class="timeline-item">
+            <span class="timeline-time" style="color:var(--warn)">08:00</span>
+            <span class="timeline-desc"><strong>推送 Discord / 飞书</strong><br><small style="color:var(--text-dim)">用户醒来，日报已就绪</small></span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card accent-green">
+          <h3>关键设计：采集与推送分离</h3>
+          <p style="font-size:18px; line-height:1.7; margin-top:12px">
+            采集在 active-hours <strong style="color:var(--warn)">之前</strong>（04:30）<br>
+            推送在用户<strong style="color:var(--accent2)">醒来时</strong>（08:00）
+          </p>
+          <div style="margin-top:20px; padding:16px 20px; background:rgba(104,211,145,0.08); border-radius:8px">
+            <p style="font-size:17px; color:var(--accent2)">工作异步，推送准时</p>
+            <p style="font-size:15px; color:var(--text-dim); margin-top:8px">这是生产级 Heartbeat 的核心模式</p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <h3>量化指标</h3>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px; font-family:var(--mono); font-size:16px">
+            <div>collectors：<span style="color:var(--accent)">15 并行</span></div>
+            <div>脚本长度：<span style="color:var(--accent)">25,000-30,000 字</span></div>
+            <div>音频时长：<span style="color:var(--accent)">30-35 分钟</span></div>
+            <div>TTS 耗时：<span style="color:var(--accent)">25-45 分钟</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Slide 8: 案例 13.2 Watchdog ──────────────────────────────────── -->
+  <div class="slide" id="s8">
+    <div class="chapter-label">案例 13.2 · Heartbeat 的生产极端形态</div>
+    <h2>自进化 Watchdog：23 轮 Loop 造出的基础设施</h2>
+    <div class="two-col" style="margin-top:20px">
+      <div>
+        <p style="font-size:18px; color:var(--text-dim); margin-bottom:20px">2026-04-18 IO 异常，OpenClaw + CC 全线瘫痪。单夜 23 轮 loop 构建：</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">① Gateway 进程</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">② Node 进程</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">③ WS 8765</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">④ HTTP 3000</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">⑤ Lena session</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">⑥ LiteLLM proxy</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">⑦ Bedrock API</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">⑧ TTS service</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">⑨ 19 个 cron</span></div>
+          <div class="card" style="padding:14px 16px"><span style="font-family:var(--mono); font-size:14px; color:var(--accent)">⑩ Memory 文件</span></div>
+          <div class="card accent-warn" style="padding:14px 16px; grid-column:span 2"><span style="font-family:var(--mono); font-size:14px; color:var(--warn)">⑪ 磁盘空间 &gt;10%</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card accent-warn" style="margin-bottom:20px">
+          <h3 style="color:var(--warn)">指数退避告警</h3>
+          <pre style="margin-top:12px; font-size:16px"><span class="cmt"># 告警不刷屏策略</span>
+60s → 5m → 15m → 30m → 1h
+<span class="cmt"># 每次新增一个退避档</span></pre>
+        </div>
+        <div class="card" style="border-color:rgba(246,173,85,0.4)">
+          <h3 style="color:var(--warn)">核心原则：独立告警通道</h3>
+          <p style="font-size:18px; line-height:1.6; margin-top:12px">
+            告警走独立 Telegram bot<br>
+            <strong style="color:var(--warn)">不走 OpenClaw Gateway</strong>
+          </p>
+          <p style="font-size:16px; color:var(--text-dim); margin-top:12px">
+            因为 OpenClaw 本身可能就是故障点。<br>
+            独立通道 = 故障时的最后防线。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Slide 9: OpenClaw 4 子模块 ───────────────────────────────────── -->
+  <div class="slide" id="s9">
+    <div class="chapter-label">附录预告 · OpenClaw 生产级 Heartbeat</div>
+    <h2>4 子模块协同架构</h2>
+    <div style="margin-top:32px">
+      <div style="display:flex; align-items:flex-start; gap:48px">
+        <div style="flex:1">
+          <div class="card" style="margin-bottom:20px; border-color:rgba(99,179,237,0.3)">
+            <div style="font-family:var(--mono); font-size:17px; color:var(--accent); margin-bottom:12px">heartbeat-runner.ts（主控）</div>
+            <div style="display:flex; flex-direction:column; gap:10px; padding-left:20px">
+              <div style="display:flex; gap:16px; align-items:center">
+                <span style="color:var(--text-dim); font-family:var(--mono); font-size:14px">├──</span>
+                <span class="badge badge-green" style="min-width:200px">heartbeat-active-hours.ts</span>
+                <span style="font-size:16px; color:var(--text-dim)">时区 + 工作日/周末分开配置</span>
+              </div>
+              <div style="display:flex; gap:16px; align-items:center">
+                <span style="color:var(--text-dim); font-family:var(--mono); font-size:14px">├──</span>
+                <span class="badge badge-blue" style="min-width:200px">events-filter.ts</span>
+                <span style="font-size:16px; color:var(--text-dim)">priority / rate-limit / digest 模式</span>
+              </div>
+              <div style="display:flex; gap:16px; align-items:center">
+                <span style="color:var(--text-dim); font-family:var(--mono); font-size:14px">├──</span>
+                <span class="badge badge-warn" style="min-width:200px">visibility.ts</span>
+                <span style="font-size:16px; color:var(--text-dim)">用户在线状态感知 / DND 模式</span>
+              </div>
+              <div style="display:flex; gap:16px; align-items:center">
+                <span style="color:var(--text-dim); font-family:var(--mono); font-size:14px">└──</span>
+                <span class="badge badge-blue" style="min-width:200px">reason.ts</span>
+                <span style="font-size:16px; color:var(--text-dim)">推送原因链路，可追溯</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1">
+          <table class="compare-table">
+            <tr>
+              <th>维度</th>
+              <th>nano-claw 178 行</th>
+              <th>OpenClaw 4 子模块</th>
+            </tr>
+            <tr>
+              <td>active-hours</td>
+              <td>✓</td>
+              <td class="highlight">✓ + DND 时段</td>
+            </tr>
+            <tr>
+              <td>events-filter</td>
+              <td>✗</td>
+              <td class="highlight">✓ priority + rate-limit</td>
+            </tr>
+            <tr>
+              <td>visibility</td>
+              <td>✗</td>
+              <td class="highlight">✓ Discord online 感知</td>
+            </tr>
+            <tr>
+              <td>reason 链路</td>
+              <td>✗</td>
+              <td class="highlight">✓ 可追溯调试</td>
+            </tr>
+            <tr>
+              <td>适用场景</td>
+              <td>个人项目</td>
+              <td class="highlight">多 channel 生产</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Slide 10: lena-v1.3 演示 ─────────────────────────────────────── -->
+  <div class="slide" id="s10">
+    <div class="chapter-label">lena-v1.3 · 5 步跑通</div>
+    <h2>Telegram 早安消息演示</h2>
+    <div class="two-col" style="margin-top:24px">
+      <div>
+        <pre><span class="cmt"># 1. 安装依赖</span>
+<span class="fn">cd</span> book/chapters/ch13-heartbeat/code/lena-v1.3
+npm install
+
+<span class="cmt"># 2. 配置 Telegram（沿用 Ch11 的 bot）</span>
+<span class="kw">export</span> TELEGRAM_BOT_TOKEN=<span class="str">"your-token"</span>
+<span class="kw">export</span> TELEGRAM_CHAT_ID=<span class="str">"your-chat-id"</span>
+
+<span class="cmt"># 3. 临时调 active hours 到"现在"（测试）</span>
+<span class="cmt"># 修改 config.json → activeHours.weekdays.start</span>
+
+<span class="cmt"># 4. 启动 Lena</span>
+npm <span class="fn">start</span>
+
+<span class="cmt"># 5. 等一分钟，手机收到消息 ✓</span></pre>
+      </div>
+      <div>
+        <div class="card accent-green" style="padding:36px">
+          <h3 style="margin-bottom:20px">预期收到的消息</h3>
+          <div style="background:var(--code-bg); border-radius:12px; padding:24px; font-size:18px; line-height:1.8; border:1px solid var(--border)">
+            <p>🌅 早上好！今天是 2026-XX-XX，周X。</p>
+            <br>
+            <p>以下是今天的摘要：</p>
+            <p>• 天气：晴转多云，24-29°C</p>
+            <p>• 今日提醒：无待处理事项</p>
+            <br>
+            <p>有什么需要我帮忙的吗？</p>
+          </div>
+          <div style="margin-top:20px; display:flex; gap:12px">
+            <span class="badge badge-blue">lena → Telegram</span>
+            <span class="badge badge-green">主动推送</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Slide 11: 小结 ────────────────────────────────────────────────── -->
+  <div class="slide" id="s11">
+    <div class="chapter-label">本章小结</div>
+    <h2>从工具到助理的关键一步</h2>
+    <div class="three-col" style="margin-top:32px">
+      <div class="card">
+        <div style="font-size:40px; margin-bottom:16px">💓</div>
+        <h3>Heartbeat 本质</h3>
+        <p style="font-size:17px; line-height:1.6; margin-top:12px">
+          setTimeout 递归 + EventEmitter<br>
+          178 行即可跑起来<br>
+          节拍不重叠的设计选择
+        </p>
+      </div>
+      <div class="card accent-green">
+        <div style="font-size:40px; margin-bottom:16px">⏰</div>
+        <h3 style="color:var(--accent2)">active-hours</h3>
+        <p style="font-size:17px; line-height:1.6; margin-top:12px">
+          时区感知工作时间过滤<br>
+          防止 agent 打扰睡眠<br>
+          工作日 / 周末分别配置
+        </p>
+      </div>
+      <div class="card accent-warn">
+        <div style="font-size:40px; margin-bottom:16px">🚨</div>
+        <h3 style="color:var(--warn)">独立告警通道</h3>
+        <p style="font-size:17px; line-height:1.6; margin-top:12px">
+          Watchdog 的最后防线<br>
+          不走 OpenClaw Gateway<br>
+          故障时依然可达
+        </p>
+      </div>
+    </div>
+    <div style="margin-top:36px; padding:28px 36px; background:var(--bg2); border-radius:12px; border:1px solid rgba(99,179,237,0.3); text-align:center">
+      <p style="font-size:24px; color:var(--accent)">
+        Lena 在 Ch11 里程碑：7×24 常驻，Telegram 能主动找你。
+      </p>
+      <p style="font-size:18px; color:var(--text-dim); margin-top:12px">
+        下章：cron vs heartbeat — 主动推送的两种触发机制（Ch 14）
+      </p>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prevSlide()">← 上一页</button>
+  <button onclick="nextSlide()">下一页 →</button>
+</div>
+<div class="counter" id="counter">1 / 11</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function showSlide(n) {
+    slides[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+    localStorage.setItem('ch13-slide', current);
+  }
+
+  function nextSlide() { showSlide(current + 1); }
+  function prevSlide() { showSlide(current - 1); }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+    if (e.key === 'ArrowLeft')  prevSlide();
+  });
+
+  // Restore position
+  const saved = parseInt(localStorage.getItem('ch13-slide') || '0');
+  if (saved > 0 && saved < slides.length) showSlide(saved);
+</script>
+</body>
+</html>

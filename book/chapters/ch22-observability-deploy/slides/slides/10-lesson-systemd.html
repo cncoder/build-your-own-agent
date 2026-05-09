@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 10 血泪教训</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    padding: 60px 100px 56px;
+    gap: 48px;
+  }
+  .header { flex-shrink: 0; }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #f85149; text-transform: uppercase; margin-bottom: 14px; }
+  h1 { font-size: 52px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #f85149; }
+  .subtitle { font-size: 20px; color: #8b949e; margin-top: 8px; }
+
+  .lessons { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; flex: 1; }
+
+  .lesson {
+    background: rgba(22,27,34,0.6); border-radius: 14px;
+    border: 1px solid rgba(48,54,61,0.8);
+    padding: 32px; display: flex; flex-direction: column; gap: 16px;
+    position: relative; overflow: hidden;
+  }
+  .lesson::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .lesson.bad::before { background: linear-gradient(90deg, #f85149, transparent); }
+  .lesson.good::before { background: linear-gradient(90deg, #3fb950, transparent); }
+
+  .lesson-num {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-weight: 600;
+  }
+  .lesson.bad .lesson-num { color: #f85149; }
+  .lesson.good .lesson-num { color: #3fb950; }
+
+  .lesson-title { font-size: 22px; font-weight: 700; line-height: 1.3; }
+  .lesson.bad .lesson-title { color: #ffa198; }
+  .lesson.good .lesson-title { color: #7ee787; }
+
+  .lesson-body { font-size: 15px; color: #8b949e; line-height: 1.6; flex: 1; }
+  .lesson-body strong { color: #e6edf3; }
+  .lesson-body code { font-family: 'SF Mono', monospace; font-size: 13px; color: #d2a8ff; }
+
+  .lesson-fix {
+    background: rgba(0,0,0,0.4); border-radius: 6px; padding: 10px 14px;
+    font-family: 'SF Mono', monospace; font-size: 13px; color: #3fb950;
+    line-height: 1.6;
+  }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">血泪教训 · 真实案例</div>
+    <h1>两大<span>运维血坑</span> — 别重复踩</h1>
+    <p class="subtitle">来自生产运维经验 · CLAUDE.md lessons-learned.md</p>
+  </div>
+
+  <div class="lessons">
+    <div class="lesson bad">
+      <div class="lesson-num">坑 01 · systemd</div>
+      <div class="lesson-title">StartLimitBurst 把 Lena 永久停了</div>
+      <div class="lesson-body">
+        AWS key 过期 → Lena <strong>启动即崩溃</strong> → 5 次后 systemd 触发
+        <code>StartLimitBurst</code> → <strong>进程被永久暂停</strong>。
+        整个下午都没发现 Lena 挂了——没有任何 Discord 告警，因为
+        Watchdog 也是 Lena 本身的任务，Lena 死了 Watchdog 也死了。
+      </div>
+      <div class="lesson-fix">
+# 手动恢复命令（记住它！）<br>
+sudo systemctl reset-failed lena<br>
+sudo systemctl start lena
+      </div>
+    </div>
+
+    <div class="lesson good">
+      <div class="lesson-num">解法 01 · systemd</div>
+      <div class="lesson-title">独立 Watchdog + 独立告警通道</div>
+      <div class="lesson-body">
+        两个结构性解法：
+        ① <strong>放宽 StartLimitBurst</strong>（300s/5次 → 容忍偶发错误）
+        ② <strong>独立 Watchdog 进程</strong>，用独立的 Telegram bot 告警。
+        Watchdog 不依赖 Lena，Lena 全线瘫痪时 Watchdog 仍然存活并发出告警。
+      </div>
+      <div class="lesson-fix">
+# lena.service<br>
+StartLimitIntervalSec=300<br>
+StartLimitBurst=5
+      </div>
+    </div>
+
+    <div class="lesson bad">
+      <div class="lesson-num">坑 02 · launchd</div>
+      <div class="lesson-title">SIGUSR1 不刷新 plist 环境变量</div>
+      <div class="lesson-body">
+        修改了 plist 里的 <strong>环境变量</strong>，发 <code>SIGUSR1</code> 希望
+        让 launchd 重读配置——环境变量完全没变。
+        原因：SIGUSR1 只通知<strong>进程</strong>「配置可能变了」，
+        但 <strong>launchd 本身不重读 plist 文件</strong>。
+      </div>
+      <div class="lesson-fix">
+# 正确做法：每次改 plist 后<br>
+launchctl unload ai.lena.agent.plist<br>
+launchctl load  ai.lena.agent.plist
+      </div>
+    </div>
+
+    <div class="lesson good">
+      <div class="lesson-num">解法 02 · launchd</div>
+      <div class="lesson-title">ThrottleInterval 防重启风暴</div>
+      <div class="lesson-body">
+        launchd <code>KeepAlive</code> 不加 <code>ThrottleInterval</code> 时，
+        进程崩溃会以<strong>最快速度</strong>重启。
+        60 秒内触发 5 次后 launchd 把进程<strong>永久暂停</strong>（同 StartLimitBurst 症状）。
+        加了 60s 节流后，崩溃 → 等 60s → 重启，有时间记录日志、发告警。
+      </div>
+      <div class="lesson-fix">
+&lt;key&gt;ThrottleInterval&lt;/key&gt;<br>
+&lt;integer&gt;60&lt;/integer&gt;  &lt;!-- 必须！--&gt;
+      </div>
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · 血泪教训</div>
+</body>
+</html>

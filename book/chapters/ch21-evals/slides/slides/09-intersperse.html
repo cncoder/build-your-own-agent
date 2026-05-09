@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','PingFang SC',sans-serif; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(100,180,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(100,180,255,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #64b4ff; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+.timeline { display: flex; gap: 0; flex: 1; align-items: stretch; }
+.ch { flex: 1; display: flex; flex-direction: column; padding: 0 8px; }
+.ch-num { font-size: 13px; letter-spacing: 0.15em; color: rgba(255,255,255,0.3); margin-bottom: 8px; text-align: center; }
+.ch-box { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ch-title { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.6); }
+.eval-tag { font-size: 12px; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-top: auto; }
+.e-smoke { background: rgba(100,180,255,0.1); color: #64b4ff; border: 1px solid rgba(100,180,255,0.2); }
+.e-bench { background: rgba(255,153,68,0.1); color: #ff9944; border: 1px solid rgba(255,153,68,0.2); }
+.e-gate { background: rgba(68,255,136,0.1); color: #44ff88; border: 1px solid rgba(68,255,136,0.2); }
+.e-ci { background: rgba(170,136,255,0.15); color: #cc99ff; border: 1px solid rgba(170,136,255,0.3); font-weight: 700; }
+.e-none { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.05); }
+.connector { width: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.connector::after { content: '→'; color: rgba(255,255,255,0.15); font-size: 20px; }
+.quote-bar { background: rgba(100,180,255,0.05); border-top: 1px solid rgba(100,180,255,0.1); margin-top: 24px; padding-top: 16px; font-size: 16px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 16px; }
+.quote-bar span { color: #64b4ff; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>Evals 应该<em>穿插</em>，而非集中</h1>
+  <p class="sub">每章末尾都有小 eval，而不是等到 Ch17 才开始。习惯比方法更重要。</p>
+  <div class="timeline">
+    <div class="ch">
+      <div class="ch-num">Ch 1</div>
+      <div class="ch-box">
+        <div class="ch-title">Hello Agent</div>
+        <div class="eval-tag e-smoke">手工检查输出</div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="ch">
+      <div class="ch-num">Ch 3</div>
+      <div class="ch-box">
+        <div class="ch-title">Lena 诞生</div>
+        <div class="eval-tag e-smoke">smoke test</div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="ch">
+      <div class="ch-num">Ch 7</div>
+      <div class="ch-box">
+        <div class="ch-title">Context Engineering</div>
+        <div class="eval-tag e-bench">成本对比</div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="ch">
+      <div class="ch-num">Ch 9</div>
+      <div class="ch-box">
+        <div class="ch-title">Skills</div>
+        <div class="eval-tag e-bench">skill benchmark</div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="ch">
+      <div class="ch-num">Ch 14</div>
+      <div class="ch-box">
+        <div class="ch-title">Cron & Long Task</div>
+        <div class="eval-tag e-gate">quality_gate.py</div>
+      </div>
+    </div>
+    <div class="connector"></div>
+    <div class="ch" style="border: 2px solid rgba(170,136,255,0.3); border-radius: 12px; padding: 8px;">
+      <div class="ch-num" style="color:#cc99ff">Ch 17</div>
+      <div class="ch-box" style="background:rgba(170,136,255,0.05)">
+        <div class="ch-title" style="color:#cc99ff">系统化 Eval</div>
+        <div class="eval-tag e-ci">CI · LLM judge · 三维度</div>
+      </div>
+    </div>
+  </div>
+  <div class="quote-bar">
+    <span>R4 教学法洞察：</span>"等到最后才告诉读者怎么 eval，他们已经有了没有 eval 的坏习惯"
+  </div>
+</div>
+</body></html>

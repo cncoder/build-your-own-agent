@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 1 · API Playground · 三家 Provider 对比 Demo</title>
+<style>
+  :root {
+    --bg:     #030712;
+    --s1:     #0a0e1a;
+    --s2:     #0d1433;
+    --border: #1e293b;
+    --bd2:    #0f172a;
+    --blue:   #4a9eff;
+    --purple: #a855f7;
+    --green:  #34d399;
+    --amber:  #fbbf24;
+    --red:    #f87171;
+    --cyan:   #22d3ee;
+    --text:   #e2e8f0;
+    --muted:  #94a3b8;
+    --dim:    #475569;
+    --mono:   'SF Mono','Cascadia Code','Fira Code',Monaco,monospace;
+    --sans:   -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;
+  }
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .hdr {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--s1);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-shrink: 0;
+  }
+  .hdr-title { font-size: 18px; font-weight: 700; }
+  .hdr-sub { font-size: 13px; color: var(--dim); font-family: var(--mono); }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .07em;
+  }
+
+  /* ── Main layout ── */
+  .main {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 65px);
+  }
+
+  /* ── Left panel ── */
+  .left {
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--s1);
+  }
+
+  .left-section {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--bd2);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* Provider selector */
+  .provider-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .prov-btn {
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .2s;
+    outline: none;
+  }
+  .prov-btn:hover { border-color: var(--dim); }
+  .prov-btn.active {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .prov-btn.active.anthropic { border-color: var(--blue); background: rgba(74,158,255,.08); color: var(--blue); }
+  .prov-btn.active.openai    { border-color: var(--green); background: rgba(52,211,153,.08); color: var(--green); }
+  .prov-btn.active.bedrock   { border-color: var(--purple); background: rgba(168,85,247,.08); color: var(--purple); }
+
+  /* Prompt input */
+  .prompt-wrap {
+    position: relative;
+  }
+
+  .prompt-input {
+    width: 100%;
+    background: #020810;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    line-height: 1.5;
+  }
+  .prompt-input:focus { border-color: var(--blue); }
+
+  /* Send button */
+  .send-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: .04em;
+  }
+  .send-btn.anthropic { background: var(--blue); color: #030712; }
+  .send-btn.openai    { background: var(--green); color: #030712; }
+  .send-btn.bedrock   { background: var(--purple); color: #fff; }
+  .send-btn:disabled  { opacity: .4; cursor: not-allowed; }
+  .send-btn:hover:not(:disabled) { filter: brightness(1.1); }
+
+  /* Preset prompts */
+  .preset-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+    background: transparent;
+    font-family: var(--sans);
+  }
+  .chip:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* Stats */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-card {
+    background: #020810;
+    border: 1px solid var(--bd2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--text); }
+  .stat-key { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-top: 4px; letter-spacing: .06em; }
+
+  /* ── Right panel ── */
+  .right {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    overflow: hidden;
+  }
+
+  .pane {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .pane-header {
+    padding: 14px 20px;
+    background: var(--s2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .pane-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .pane:first-child { border-bottom: 1px solid var(--border); }
+
+  .json-view {
+    flex: 1;
+    overflow: auto;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  /* JSON syntax */
+  .j-key    { color: #93c5fd; }
+  .j-str    { color: #86efac; }
+  .j-num    { color: var(--amber); }
+  .j-bool   { color: #f87171; }
+  .j-null   { color: var(--dim); }
+  .j-hl     { color: var(--text); }
+  .j-cmt    { color: #334155; }
+
+  /* Response pane special */
+  .response-text {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .response-text.loading {
+    color: var(--dim);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+  /* diff highlight */
+  .diff-added {
+    background: rgba(52,211,153,.12);
+    border-left: 3px solid var(--green);
+    padding-left: 8px;
+    margin: 2px 0;
+    display: block;
+  }
+
+  /* Provider indicator dot */
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Note box */
+  .note-box {
+    background: rgba(251,191,36,.06);
+    border: 1px solid rgba(251,191,36,.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--amber);
+    line-height: 1.6;
+  }
+
+  /* Bottom bar */
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--s2);
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    flex-shrink: 0;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">🕹️ API Playground · lena-v0.1 Demo</div>
+    <div class="hdr-sub">Ch 1 · 三家 Provider 请求格式对比（Mock 响应，无需 API Key）</div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;">
+    <span class="badge" style="background:rgba(74,158,255,.1);color:var(--blue);border:1px solid rgba(74,158,255,.3);">Anthropic</span>
+    <span class="badge" style="background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.3);">OpenAI</span>
+    <span class="badge" style="background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.3);">Bedrock</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Left -->
+  <div class="left">
+
+    <!-- Provider selector -->
+    <div class="left-section">
+      <div class="section-label">选择 Provider</div>
+      <div class="provider-btns">
+        <button class="prov-btn active anthropic" onclick="selectProvider('anthropic')">
+          Anthropic<br><span style="font-size:10px;opacity:.7;">Messages API</span>
+        </button>
+        <button class="prov-btn openai" onclick="selectProvider('openai')">
+          OpenAI<br><span style="font-size:10px;opacity:.7;">Chat Completions</span>
+        </button>
+        <button class="prov-btn bedrock" onclick="selectProvider('bedrock')">
+          Bedrock<br><span style="font-size:10px;opacity:.7;">Converse API</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Prompt -->
+    <div class="left-section">
+      <div class="section-label">Prompt</div>
+      <div class="prompt-wrap">
+        <textarea class="prompt-input" id="promptInput" placeholder="输入你的 prompt...">用一句话解释什么是大语言模型</textarea>
+      </div>
+    </div>
+
+    <!-- Preset prompts -->
+    <div class="left-section">
+      <div class="section-label">快速示例</div>
+      <div class="preset-chips">
+        <button class="chip" onclick="setPrompt('用一句话解释什么是大语言模型')">什么是 LLM</button>
+        <button class="chip" onclick="setPrompt('你好，Lena！你能做什么？')">Hello Lena</button>
+        <button class="chip" onclick="setPrompt('今天是什么日子？')">今天日期</button>
+        <button class="chip" onclick="setPrompt('LLM 和 Agent 有什么区别？')">LLM vs Agent</button>
+        <button class="chip" onclick="setPrompt('用 Python 写一个 hello world')">代码生成</button>
+      </div>
+    </div>
+
+    <!-- Send -->
+    <div class="left-section">
+      <button class="send-btn anthropic" id="sendBtn" onclick="sendRequest()">
+        ▶ 发送请求
+      </button>
+    </div>
+
+    <!-- Note -->
+    <div class="left-section">
+      <div class="note-box">
+        ⚠ 本 Demo 使用预录制 Mock 响应，无需真实 API Key。<br>
+        切换 Provider 时观察右侧请求 JSON 的格式差异。<br>
+        真实代码见 <code style="font-family:var(--mono);">code/lena-v0.1/</code>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="left-section">
+      <div class="section-label">本次统计</div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-val" id="statInput">—</div>
+          <div class="stat-key">INPUT TOKENS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statOutput">—</div>
+          <div class="stat-key">OUTPUT TOKENS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statTime">—</div>
+          <div class="stat-key">LATENCY MS</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right -->
+  <div class="right">
+
+    <!-- Request pane -->
+    <div class="pane">
+      <div class="pane-header">
+        <div class="dot" id="reqDot" style="background:var(--blue);box-shadow:0 0 6px var(--blue);"></div>
+        <div class="pane-title" id="reqTitle">HTTP 请求 · Anthropic Messages API</div>
+        <div style="margin-left:auto;font-family:var(--mono);font-size:11px;" id="reqEndpoint">
+          POST api.anthropic.com/v1/messages
+        </div>
+      </div>
+      <div class="json-view" id="reqPane">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- Response pane -->
+    <div class="pane">
+      <div class="pane-header">
+        <div class="dot" style="background:var(--green);box-shadow:0 0 6px var(--green);"></div>
+        <div class="pane-title" id="respTitle">HTTP 响应</div>
+        <div style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);" id="respStatus">等待请求…</div>
+      </div>
+      <div class="json-view" id="respPane">
+        <span style="color:var(--dim);">点击「发送请求」查看响应…</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <div class="status-dot"></div>
+  <span>Demo 模式 · Mock 响应 · lena-v0.1</span>
+  <span style="margin-left:auto;">anthropic==0.84.0 · openai==2.30.0 · boto3==1.38.0</span>
+</div>
+
+<script>
+// ── State ──
+let currentProvider = 'anthropic';
+
+const PROVIDERS = {
+  anthropic: {
+    label: 'Anthropic Messages API',
+    endpoint: 'POST api.anthropic.com/v1/messages',
+    dotColor: 'var(--blue)',
+    model: 'claude-opus-4-5-20251101',
+    buildReq(prompt) {
+      return {
+        model: 'claude-opus-4-5-20251101',
+        max_tokens: 1024,
+        system: '你是一个有用的 AI 助手，名字叫 Lena。',
+        messages: [{ role: 'user', content: prompt }]
+      };
+    },
+    highlights: ['system', 'content'],  // keys unique to this provider
+    inputTokenField: 'input_tokens',
+    outputTokenField: 'output_tokens',
+    replyPath: 'content[0].text',
+    stopField: 'stop_reason',
+  },
+  openai: {
+    label: 'OpenAI Chat Completions',
+    endpoint: 'POST api.openai.com/v1/chat/completions',
+    dotColor: 'var(--green)',
+    model: 'gpt-4o',
+    buildReq(prompt) {
+      return {
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: '你是一个有用的 AI 助手，名字叫 Lena。' },
+          { role: 'user', content: prompt }
+        ]
+      };
+    },
+    highlights: ['finish_reason', 'choices'],
+    inputTokenField: 'prompt_tokens',
+    outputTokenField: 'completion_tokens',
+    replyPath: 'choices[0].message.content',
+    stopField: 'finish_reason',
+  },
+  bedrock: {
+    label: 'AWS Bedrock Converse API',
+    endpoint: 'boto3.client("bedrock-runtime").converse()',
+    dotColor: 'var(--purple)',
+    model: 'us.anthropic.claude-sonnet-4-6',
+    buildReq(prompt) {
+      return {
+        modelId: 'us.anthropic.claude-sonnet-4-6',
+        '// NOTE': '← inference profile ID，不是 model ID！',
+        system: [{ text: '你是一个有用的 AI 助手，名字叫 Lena。' }],
+        messages: [{ role: 'user', content: [{ text: prompt }] }],
+        inferenceConfig: { maxTokens: 1024 }
+      };
+    },
+    highlights: ['modelId', 'inferenceConfig'],
+    inputTokenField: 'inputTokens',
+    outputTokenField: 'outputTokens',
+    replyPath: 'output.message.content[0].text',
+    stopField: 'stopReason',
+  }
+};
+
+// Mock responses per prompt pattern
+const MOCK_RESPONSES = {
+  '大语言模型': '大语言模型是一种通过海量文本数据训练、能够理解和生成自然语言的大规模人工智能模型。',
+  'Lena': '你好！我是 Lena，一个 AI 助手。我可以帮你回答问题、分析文本、编写代码，以及进行各种语言相关的任务。目前我处于 v0.1 状态——没有记忆，没有工具。但随着后续章节的进展，我会逐步获得工具调用、记忆管理和自主规划能力。有什么我能帮到你的吗？',
+  '今天': '我没有办法知道今天的确切日期，因为我无法访问实时信息或当前时间。您可以查看手机、电脑或其他设备来确认今天的日期。（提示：这正是 Ch3 会解决的问题——给 Agent 加上 get_time 工具！）',
+  'LLM 和 Agent': 'LLM（大语言模型）是一个函数：你输入文字，它输出文字，一次调用结束。\n\nAgent 是一个程序：它有 while 循环（多步决策），有工具（能调 API、读文件），有记忆（每步结果都追加进上下文）。\n\n一句话：LLM 是大脑，Agent 是配了手和腿的大脑。',
+  'hello world': '# Python Hello World\n\n```python\nprint("Hello, World!")\n```\n\n运行方式：\n```bash\npython3 hello.py\n```',
+};
+
+function getMockReply(prompt) {
+  for (const [key, val] of Object.entries(MOCK_RESPONSES)) {
+    if (prompt.includes(key)) return val;
+  }
+  return '这是一条 Mock 响应。在真实环境中，这里会显示模型生成的内容。请在 code/lena-v0.1/ 目录运行真实代码体验完整效果。';
+}
+
+// ── UI ──
+function selectProvider(name) {
+  currentProvider = name;
+  document.querySelectorAll('.prov-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.prov-btn.' + name).classList.add('active');
+  document.getElementById('sendBtn').className = 'send-btn ' + name;
+
+  const p = PROVIDERS[name];
+  document.getElementById('reqDot').style.background = p.dotColor;
+  document.getElementById('reqDot').style.boxShadow = '0 0 6px ' + p.dotColor;
+  document.getElementById('reqTitle').textContent = 'HTTP 请求 · ' + p.label;
+  document.getElementById('reqEndpoint').textContent = p.endpoint;
+
+  // Update request pane immediately
+  updateRequestPane();
+}
+
+function setPrompt(text) {
+  document.getElementById('promptInput').value = text;
+  updateRequestPane();
+}
+
+function updateRequestPane() {
+  const prompt = document.getElementById('promptInput').value || '(空)';
+  const p = PROVIDERS[currentProvider];
+  const req = p.buildReq(prompt);
+  document.getElementById('reqPane').innerHTML = syntaxHighlight(req, currentProvider);
+}
+
+// ── JSON syntax highlight ──
+function syntaxHighlight(obj, provider) {
+  const json = JSON.stringify(obj, null, 2);
+  return json
+    .replace(/("\/\/ NOTE": ".*?")/g, '<span style="color:var(--amber)">$1</span>')
+    .replace(/"modelId"(\s*:\s*"[^"]*")/g,
+      provider === 'bedrock'
+        ? '<span style="color:var(--red)">"modelId"$1</span> <span style="color:var(--amber)">//← inference profile ID！</span>'
+        : '"modelId"$1')
+    .replace(/("(model|modelId|max_tokens|inferenceConfig|system|content|messages|role|text|maxTokens)")(\s*:)(\s*")/g,
+      '<span class="j-key">$1</span>$3$4')
+    .replace(/("(model|modelId|max_tokens|inferenceConfig|system|content|messages|role|text|maxTokens)")(\s*:)(\s*\[)/g,
+      '<span class="j-key">$1</span>$3$4')
+    .replace(/("(model|modelId|max_tokens|inferenceConfig|system|content|messages|role|text|maxTokens)")(\s*:)(\s*\{)/g,
+      '<span class="j-key">$1</span>$3$4')
+    .replace(/("([^"]+)")(\s*:)/g, '<span class="j-key">"$2"</span>$3')
+    .replace(/:\s*"([^"]*)"/g, ': <span class="j-str">"$1"</span>')
+    .replace(/:\s*(\d+)/g, ': <span class="j-num">$1</span>')
+    .replace(/:\s*(true|false)/g, ': <span class="j-bool">$1</span>')
+    .replace(/:\s*(null)/g, ': <span class="j-null">null</span>');
+}
+
+function buildMockResponse(provider, reply, ms) {
+  const p = PROVIDERS[provider];
+  if (provider === 'anthropic') {
+    return {
+      id: 'msg_01' + Math.random().toString(36).slice(2,10),
+      type: 'message',
+      role: 'assistant',
+      content: [{ type: 'text', text: reply }],
+      model: p.model,
+      stop_reason: 'end_turn',
+      usage: {
+        input_tokens: Math.floor(20 + Math.random() * 30),
+        output_tokens: Math.floor(reply.length / 3)
+      }
+    };
+  } else if (provider === 'openai') {
+    return {
+      id: 'chatcmpl-' + Math.random().toString(36).slice(2,12),
+      object: 'chat.completion',
+      model: 'gpt-4o-2024-11-20',
+      choices: [{
+        index: 0,
+        message: { role: 'assistant', content: reply },
+        finish_reason: 'stop'
+      }],
+      usage: {
+        prompt_tokens: Math.floor(25 + Math.random() * 20),
+        completion_tokens: Math.floor(reply.length / 3),
+        total_tokens: Math.floor(25 + reply.length / 3)
+      }
+    };
+  } else {
+    return {
+      ResponseMetadata: { RequestId: 'abc' + Math.random().toString(36).slice(2,10), HTTPStatusCode: 200 },
+      output: {
+        message: {
+          role: 'assistant',
+          content: [{ text: reply }]
+        }
+      },
+      stopReason: 'end_turn',
+      usage: {
+        inputTokens: Math.floor(22 + Math.random() * 15),
+        outputTokens: Math.floor(reply.length / 3),
+        totalTokens: Math.floor(22 + reply.length / 3)
+      }
+    };
+  }
+}
+
+// ── Send request ──
+async function sendRequest() {
+  const btn = document.getElementById('sendBtn');
+  const prompt = document.getElementById('promptInput').value.trim();
+  if (!prompt) return;
+
+  btn.disabled = true;
+  btn.textContent = '⟳ 等待响应…';
+
+  // Show loading
+  const respPane = document.getElementById('respPane');
+  respPane.innerHTML = '<span class="response-text loading">正在请求中…</span>';
+  document.getElementById('respStatus').textContent = '200 OK（Mock）';
+  document.getElementById('respTitle').textContent = 'HTTP 响应 · ' + PROVIDERS[currentProvider].label;
+
+  // Update request pane
+  updateRequestPane();
+
+  // Simulate latency
+  const latency = 300 + Math.floor(Math.random() * 500);
+  await new Promise(r => setTimeout(r, latency));
+
+  // Get mock reply
+  const reply = getMockReply(prompt);
+  const resp = buildMockResponse(currentProvider, reply, latency);
+  const p = PROVIDERS[currentProvider];
+
+  // Extract token counts
+  let inputTok, outputTok;
+  if (currentProvider === 'anthropic') {
+    inputTok = resp.usage.input_tokens;
+    outputTok = resp.usage.output_tokens;
+  } else if (currentProvider === 'openai') {
+    inputTok = resp.usage.prompt_tokens;
+    outputTok = resp.usage.completion_tokens;
+  } else {
+    inputTok = resp.usage.inputTokens;
+    outputTok = resp.usage.outputTokens;
+  }
+
+  // Update stats
+  document.getElementById('statInput').textContent = inputTok;
+  document.getElementById('statOutput').textContent = outputTok;
+  document.getElementById('statTime').textContent = latency;
+
+  // Show response
+  respPane.innerHTML = `
+    <div style="margin-bottom:16px;padding:16px;background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.15);border-radius:8px;">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:10px;letter-spacing:.08em;">MODEL REPLY · ${p.replyPath}</div>
+      <div style="font-size:15px;line-height:1.7;color:var(--text);white-space:pre-wrap;">${escapeHtml(reply)}</div>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:10px;letter-spacing:.08em;">FULL RESPONSE JSON</div>
+    ${syntaxHighlight(resp, currentProvider)}
+  `;
+
+  btn.disabled = false;
+  btn.textContent = '▶ 发送请求';
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Init ──
+document.getElementById('promptInput').addEventListener('input', updateRequestPane);
+
+// Initial render
+updateRequestPane();
+</script>
+</body>
+</html>

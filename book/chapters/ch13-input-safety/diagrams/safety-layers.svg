@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4040"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00ff88"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 10px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .small { font-size: 10px; }
+    </style>
+  </defs>
+
+  <rect width="800" height="280" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">安全三层防线（Ch13/Ch14）</text>
+
+  <!-- Input -->
+  <rect x="20" y="105" width="90" height="50" rx="8" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="65" y="127" text-anchor="middle" class="label">输入</text>
+  <text x="65" y="145" text-anchor="middle" class="sublabel">User / System</text>
+
+  <line x1="110" y1="130" x2="148" y2="130" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 1: Prompt Guard -->
+  <rect x="150" y="90" width="130" height="80" rx="8" fill="#0c1220" stroke="#ff8800" stroke-width="2"/>
+  <text x="215" y="118" text-anchor="middle" class="label">Prompt Guard</text>
+  <text x="215" y="133" text-anchor="middle" class="sublabel">注入检测</text>
+  <text x="215" y="147" text-anchor="middle" class="sublabel">越权识别</text>
+  <text x="215" y="160" text-anchor="middle" class="sublabel">黑名单模式匹配</text>
+
+  <!-- Reject arrow down from PromptGuard -->
+  <line x1="215" y1="170" x2="215" y2="210" stroke="#ff4040" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <rect x="168" y="212" width="94" height="26" rx="5" fill="#1a0a0a" stroke="#ff4040" stroke-width="1"/>
+  <text x="215" y="229" text-anchor="middle" class="small" fill="#ff4040">拒绝 Reject</text>
+
+  <line x1="280" y1="130" x2="318" y2="130" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 2: Approval Gate -->
+  <rect x="320" y="90" width="130" height="80" rx="8" fill="#0c1220" stroke="#ffb347" stroke-width="2"/>
+  <text x="385" y="118" text-anchor="middle" class="label">Approval Gate</text>
+  <text x="385" y="133" text-anchor="middle" class="sublabel">危险操作人工审批</text>
+  <text x="385" y="147" text-anchor="middle" class="sublabel">Budget / Rate 限制</text>
+  <text x="385" y="160" text-anchor="middle" class="sublabel">最小权限原则</text>
+
+  <!-- Deny arrow down from ApprovalGate -->
+  <line x1="385" y1="170" x2="385" y2="210" stroke="#ff4040" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <rect x="338" y="212" width="94" height="26" rx="5" fill="#1a0a0a" stroke="#ff4040" stroke-width="1"/>
+  <text x="385" y="229" text-anchor="middle" class="small" fill="#ff4040">拒绝 Deny</text>
+
+  <line x1="450" y1="130" x2="488" y2="130" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 3: Sandbox -->
+  <rect x="490" y="90" width="130" height="80" rx="8" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="555" y="118" text-anchor="middle" class="label">Sandbox</text>
+  <text x="555" y="133" text-anchor="middle" class="sublabel">Docker 隔离</text>
+  <text x="555" y="147" text-anchor="middle" class="sublabel">文件系统只读</text>
+  <text x="555" y="160" text-anchor="middle" class="sublabel">网络 / 进程限制</text>
+
+  <!-- Isolate arrow down from Sandbox -->
+  <line x1="555" y1="170" x2="555" y2="210" stroke="#ffb347" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <rect x="508" y="212" width="94" height="26" rx="5" fill="#1a1000" stroke="#ffb347" stroke-width="1"/>
+  <text x="555" y="229" text-anchor="middle" class="small" fill="#ffb347">隔离 Isolate</text>
+
+  <line x1="620" y1="130" x2="658" y2="130" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+  <!-- Output -->
+  <rect x="660" y="105" width="120" height="50" rx="8" fill="#0a2a14" stroke="#00ff88" stroke-width="1.5"/>
+  <text x="720" y="127" text-anchor="middle" class="label" fill="#00ff88">安全输出</text>
+  <text x="720" y="145" text-anchor="middle" class="sublabel">结果回填 LLM</text>
+
+  <!-- Layer labels (below boxes) -->
+  <text x="215" y="252" text-anchor="middle" class="sublabel">第一层：输入净化</text>
+  <text x="385" y="252" text-anchor="middle" class="sublabel">第二层：操作授权</text>
+  <text x="555" y="252" text-anchor="middle" class="sublabel">第三层：执行隔离</text>
+
+  <!-- Arrows between layers (top pass-through) -->
+  <text x="300" y="85" text-anchor="middle" class="sublabel" fill="#4a8060">通过</text>
+  <text x="468" y="85" text-anchor="middle" class="sublabel" fill="#4a8060">通过</text>
+  <text x="638" y="85" text-anchor="middle" class="sublabel" fill="#00ff88">通过</text>
+
+  <!-- Summary row -->
+  <rect x="20" y="265" width="760" height="10" rx="5" fill="#1a3050" opacity="0.3"/>
+  <text x="400" y="263" text-anchor="middle" class="sublabel">纵深防御：任一层阻断 = 任务终止；全部通过才允许执行</text>
+</svg>

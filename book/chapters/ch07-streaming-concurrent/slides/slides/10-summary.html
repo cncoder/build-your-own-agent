@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 80% at 50% 100%, #001a3a 0%, #050810 55%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,150,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,150,255,0.03) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; flex-direction: column; }
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 8px; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+
+.content { flex: 1; display: flex; gap: 60px; }
+.left { flex: 1.3; }
+.right { flex: 0.7; display: flex; flex-direction: column; gap: 20px; }
+
+/* Summary table */
+.summary-table { border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+.s-row { display: grid; grid-template-columns: 200px 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.s-row:last-child { border-bottom: none; }
+.s-row:hover { background: rgba(255,255,255,0.015); }
+.s-key { padding: 16px 20px; font-size: 15px; color: rgba(0,200,255,0.7); font-weight: 500; background: rgba(0,200,255,0.04); border-right: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; }
+.s-val { padding: 16px 20px; font-size: 15px; color: rgba(255,255,255,0.65); display: flex; align-items: center; }
+.s-val code { font-family: "SF Mono", monospace; color: #c3e88d; font-size: 13px; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; }
+
+/* Version cards */
+.ver-row { display: flex; gap: 16px; }
+.ver-card { flex: 1; padding: 20px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.03); }
+.ver-card.current { border-color: rgba(0,200,255,0.3); background: rgba(0,200,255,0.05); }
+.ver-num { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.ver-card.current .ver-num { color: #00c8ff; }
+.ver-card:not(.current) .ver-num { color: rgba(255,255,255,0.35); }
+.ver-feat { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+.ver-card.current .ver-feat { color: rgba(255,255,255,0.7); }
+
+/* Next chapter teaser */
+.next-card { padding: 24px 28px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; }
+.next-label { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+.next-card h4 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.next-card p { font-size: 15px; color: rgba(255,255,255,0.4); }
+
+.bottom-tagline { margin-top: 32px; padding: 20px 0 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 20px; color: rgba(255,255,255,0.5); font-style: italic; }
+.bottom-tagline strong { color: #00c8ff; font-style: normal; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <h2>本章小结</h2>
+  <p class="sub">lena-v0.5 — SSE 流式输出 + 5 工具并发抢跑</p>
+
+  <div class="content">
+    <div class="left">
+      <div class="summary-table">
+        <div class="s-row">
+          <div class="s-key">SSE 协议</div>
+          <div class="s-val">单向 HTTP 文本流，<code>data:</code> + 空行分隔，比 WebSocket 简单，代理友好</div>
+        </div>
+        <div class="s-row">
+          <div class="s-key">三家差异</div>
+          <div class="s-val">Anthropic: <code>signature_delta</code>；DeepSeek: <code>reasoning_content</code>；OpenAI: <code>[DONE]</code></div>
+        </div>
+        <div class="s-row">
+          <div class="s-key">流式抢跑</div>
+          <div class="s-val">tool_use 块到达即执行，不等 end_turn，节省 30-50% 总时间（<code>StreamingToolExecutor.ts:40</code>）</div>
+        </div>
+        <div class="s-row">
+          <div class="s-key">并发上限 10</div>
+          <div class="s-val">资源保护 + 防 rate limit + 副作用控制。Python: <code>asyncio.Semaphore(10)</code></div>
+        </div>
+        <div class="s-row">
+          <div class="s-key">并发 ≠ 万能</div>
+          <div class="s-val">有依赖顺序的步骤必须串行（TTS 案例），并发只适合完全独立的任务</div>
+        </div>
+        <div class="s-row">
+          <div class="s-key">资源清理</div>
+          <div class="s-val">并发工具必须 try/finally 释放资源，防止 Chrome tabs 类拥堵（CDP 案例）</div>
+        </div>
+      </div>
+
+      <div class="bottom-tagline">并发是工具系统的<strong>性能维度</strong>，流式是体验的<strong>响应性维度</strong>——两者叠加，长任务才真正可用。</div>
+    </div>
+
+    <div class="right">
+      <div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px">Lena 版本递进</div>
+        <div class="ver-row" style="margin-bottom:12px">
+          <div class="ver-card">
+            <div class="ver-num">v0.3</div>
+            <div class="ver-feat">50 行<br>while + tool_use<br>串行同步</div>
+          </div>
+          <div class="ver-card">
+            <div class="ver-num">v0.4</div>
+            <div class="ver-feat">4 工具<br>串行执行<br>无流式</div>
+          </div>
+        </div>
+        <div class="ver-card current" style="padding:20px 24px">
+          <div class="ver-num" style="font-size:18px">v0.5 ← 本章</div>
+          <div class="ver-feat" style="margin-top:6px">SSE 流式输出<br>5 工具并发抢跑<br>三家 SSE 差异处理<br>Semaphore 并发控制</div>
+        </div>
+      </div>
+
+      <div class="next-card">
+        <div class="next-label">下一章预告</div>
+        <h4>Ch 06 · 记忆与上下文</h4>
+        <p>让 Agent 有昨天 — 三层记忆架构 + 30 天半衰期 + 向量检索</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

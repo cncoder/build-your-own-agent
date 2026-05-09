@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system, 'PingFang SC', sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+.heading span { color: #9966ff; }
+
+.diagram {
+  position: absolute; top: 240px; left: 100px; right: 100px;
+  display: flex; align-items: center; gap: 0;
+}
+.runtime-box {
+  width: 340px; background: rgba(153,102,255,0.06); border: 1px solid rgba(153,102,255,0.3);
+  border-radius: 10px; padding: 28px 24px; flex-shrink: 0;
+}
+.runtime-title { font-size: 14px; letter-spacing: 0.2em; color: #9966ff; margin-bottom: 16px; text-transform: uppercase; }
+.runtime-item {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: rgba(255,255,255,0.6);
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.runtime-item:last-child { border-bottom: none; }
+.runtime-dot { width: 6px; height: 6px; border-radius: 50%; background: #9966ff; flex-shrink: 0; }
+
+.arrow-section {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 0 40px;
+}
+.arrow-label { font-size: 12px; color: rgba(153,102,255,0.6); letter-spacing: 0.2em; text-transform: uppercase; }
+.arrow-line {
+  display: flex; flex-direction: column; gap: 8px; width: 100%;
+}
+.method-tag {
+  background: rgba(153,102,255,0.08); border: 1px solid rgba(153,102,255,0.2);
+  border-radius: 4px; padding: 6px 14px; font-size: 12px;
+  color: rgba(153,102,255,0.8); text-align: center;
+}
+.arrow-symbol { text-align: center; font-size: 24px; color: rgba(153,102,255,0.4); }
+
+.agents-col {
+  display: flex; flex-direction: column; gap: 16px; flex: 1;
+}
+.agent-card {
+  border-radius: 8px; padding: 18px 20px;
+  border: 1px solid; flex: 1;
+}
+.agent-card.trading { background: rgba(0,200,100,0.04); border-color: rgba(0,200,100,0.25); }
+.agent-card.podcast  { background: rgba(0,150,255,0.04); border-color: rgba(0,150,255,0.25); }
+.agent-card.devops   { background: rgba(255,150,0,0.04); border-color: rgba(255,150,0,0.25); }
+.agent-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.agent-card.trading .agent-name { color: #00cc66; }
+.agent-card.podcast  .agent-name { color: #3399ff; }
+.agent-card.devops   .agent-name { color: #ff9900; }
+.agent-tools { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.8; font-family: monospace; }
+
+.quote {
+  position: absolute; bottom: 70px; left: 100px; right: 100px;
+  border-left: 3px solid #9966ff; padding-left: 24px;
+  font-size: 20px; color: rgba(255,255,255,0.5); font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="title">Specialization Pattern · 核心概念</div>
+<div class="heading">通用 runtime <span>不变</span>，配置层可替换</div>
+
+<div class="diagram">
+  <div class="runtime-box">
+    <div class="runtime-title">通用 Lena Runtime</div>
+    <div class="runtime-item"><div class="runtime-dot"></div>LLM Provider（Bedrock）</div>
+    <div class="runtime-item"><div class="runtime-dot"></div>Tool Registry（30+ 工具）</div>
+    <div class="runtime-item"><div class="runtime-dot"></div>Memory（三层记忆）</div>
+    <div class="runtime-item"><div class="runtime-dot"></div>AgentLoop（ReAct）</div>
+    <div class="runtime-item"><div class="runtime-dot"></div>Skills（SOP 文档）</div>
+    <div class="runtime-item"><div class="runtime-dot"></div>Channel（Discord/飞书）</div>
+  </div>
+
+  <div class="arrow-section">
+    <div class="arrow-label">裁剪 + 注入</div>
+    <div class="arrow-line">
+      <div class="method-tag">① System Prompt 特化</div>
+      <div class="method-tag">② 工具集裁剪</div>
+      <div class="method-tag">③ Skills 注入</div>
+    </div>
+    <div class="arrow-symbol">→</div>
+  </div>
+
+  <div class="agents-col">
+    <div class="agent-card trading">
+      <div class="agent-name">TradingBot</div>
+      <div class="agent-tools">工具：get_price / get_indicators<br>place_order / close_position / risk_check<br>Skills：trading-sop.md</div>
+    </div>
+    <div class="agent-card podcast">
+      <div class="agent-name">PodcastBot</div>
+      <div class="agent-tools">工具：collect_news / summarize<br>tts_synthesize / send_message<br>Skills：podcast-sop.md</div>
+    </div>
+    <div class="agent-card devops">
+      <div class="agent-name">DevOpsBot</div>
+      <div class="agent-tools">工具：list_alarms / get_logs<br>restart_service / send_message<br>Skills：devops-sop.md</div>
+    </div>
+  </div>
+</div>
+
+<div class="quote">
+  "decoupling the brain from the hands" — Anthropic, Scaling Managed Agents, 2026-04-08
+</div>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrow-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a80a0"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 12px; }
+      .sublabel { font-size: 10px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .topo-title { font-size: 13px; font-weight: bold; fill: #00d4ff; }
+    </style>
+  </defs>
+
+  <rect width="800" height="400" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">Multi-Agent 三种拓扑结构（Ch11）</text>
+
+  <!-- ===== TOPOLOGY 1: Hierarchical ===== -->
+  <!-- Panel -->
+  <rect x="15" y="42" width="240" height="330" rx="8" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="135" y="62" text-anchor="middle" class="topo-title">① Hierarchical</text>
+  <text x="135" y="76" text-anchor="middle" class="sublabel">层级调度</text>
+
+  <!-- Supervisor -->
+  <rect x="60" y="90" width="150" height="40" rx="7" fill="#0c1220" stroke="#00d4ff" stroke-width="2"/>
+  <text x="135" y="107" text-anchor="middle" class="label">Supervisor</text>
+  <text x="135" y="122" text-anchor="middle" class="sublabel">分解任务 · 调度子 Agent</text>
+
+  <!-- Arrow down-split -->
+  <line x1="100" y1="130" x2="75" y2="165" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="135" y1="130" x2="135" y2="165" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="170" y1="130" x2="195" y2="165" stroke="#00d4ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Sub-agents -->
+  <rect x="28" y="165" width="72" height="38" rx="6" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="64" y="180" text-anchor="middle" class="sublabel">研究</text>
+  <text x="64" y="194" text-anchor="middle" class="sublabel">Agent A</text>
+
+  <rect x="99" y="165" width="72" height="38" rx="6" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="135" y="180" text-anchor="middle" class="sublabel">编码</text>
+  <text x="135" y="194" text-anchor="middle" class="sublabel">Agent B</text>
+
+  <rect x="170" y="165" width="72" height="38" rx="6" fill="#0c1220" stroke="#4a6080" stroke-width="1.5"/>
+  <text x="206" y="180" text-anchor="middle" class="sublabel">发布</text>
+  <text x="206" y="194" text-anchor="middle" class="sublabel">Agent C</text>
+
+  <!-- Results back up -->
+  <line x1="64" y1="203" x2="115" y2="238" stroke="#4a6080" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrow-b)"/>
+  <line x1="135" y1="203" x2="135" y2="238" stroke="#4a6080" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrow-b)"/>
+  <line x1="206" y1="203" x2="155" y2="238" stroke="#4a6080" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrow-b)"/>
+
+  <rect x="60" y="238" width="150" height="32" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="135" y="254" text-anchor="middle" class="sublabel">汇总结果</text>
+  <text x="135" y="267" text-anchor="middle" class="sublabel">Supervisor 合并输出</text>
+
+  <!-- Use case -->
+  <rect x="25" y="295" width="220" height="62" rx="6" fill="#0a1018" stroke="#1a2030" stroke-width="1"/>
+  <text x="135" y="311" text-anchor="middle" class="sublabel" fill="#ffb347">适用场景</text>
+  <text x="135" y="326" text-anchor="middle" class="sublabel">任务可分解为独立子任务</text>
+  <text x="135" y="340" text-anchor="middle" class="sublabel">子 Agent 结果需汇总合并</text>
+  <text x="135" y="354" text-anchor="middle" class="sublabel">例：多步报告生成 / 代码审查</text>
+
+  <!-- ===== TOPOLOGY 2: Collaborative (Peer-to-Peer) ===== -->
+  <rect x="280" y="42" width="240" height="330" rx="8" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="400" y="62" text-anchor="middle" class="topo-title">② Collaborative</text>
+  <text x="400" y="76" text-anchor="middle" class="sublabel">协作对等</text>
+
+  <!-- Three agents around a shared queue -->
+  <rect x="340" y="90" width="80" height="38" rx="6" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="380" y="107" text-anchor="middle" class="sublabel">Agent A</text>
+  <text x="380" y="121" text-anchor="middle" class="sublabel">规划者</text>
+
+  <rect x="310" y="170" width="80" height="38" rx="6" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="350" y="187" text-anchor="middle" class="sublabel">Agent B</text>
+  <text x="350" y="201" text-anchor="middle" class="sublabel">执行者</text>
+
+  <rect x="410" y="170" width="80" height="38" rx="6" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="450" y="187" text-anchor="middle" class="sublabel">Agent C</text>
+  <text x="450" y="201" text-anchor="middle" class="sublabel">审查者</text>
+
+  <!-- Shared message queue -->
+  <rect x="330" y="240" width="140" height="38" rx="6" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="400" y="256" text-anchor="middle" class="sublabel">Message Bus</text>
+  <text x="400" y="270" text-anchor="middle" class="sublabel">共享消息队列</text>
+
+  <!-- Arrows peer-to-peer -->
+  <line x1="380" y1="128" x2="360" y2="168" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-b)"/>
+  <line x1="380" y1="128" x2="440" y2="168" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-b)"/>
+  <line x1="390" y1="208" x2="390" y2="238" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-b)"/>
+  <line x1="410" y1="208" x2="410" y2="238" stroke="#4a80a0" stroke-width="1.5" marker-end="url(#arrow-b)"/>
+  <line x1="390" y1="240" x2="380" y2="208" stroke="#00d4ff" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- Use case -->
+  <rect x="290" y="295" width="220" height="62" rx="6" fill="#0a1018" stroke="#1a2030" stroke-width="1"/>
+  <text x="400" y="311" text-anchor="middle" class="sublabel" fill="#ffb347">适用场景</text>
+  <text x="400" y="326" text-anchor="middle" class="sublabel">Agent 互相传递中间产物</text>
+  <text x="400" y="340" text-anchor="middle" class="sublabel">需要角色互检（规划-执行-审查）</text>
+  <text x="400" y="354" text-anchor="middle" class="sublabel">例：写代码→测试→代码审查</text>
+
+  <!-- ===== TOPOLOGY 3: Sequential Pipeline ===== -->
+  <rect x="545" y="42" width="240" height="330" rx="8" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="665" y="62" text-anchor="middle" class="topo-title">③ Sequential</text>
+  <text x="665" y="76" text-anchor="middle" class="sublabel">流水线</text>
+
+  <!-- Stage A -->
+  <rect x="580" y="88" width="170" height="38" rx="6" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="665" y="104" text-anchor="middle" class="label">Stage A</text>
+  <text x="665" y="120" text-anchor="middle" class="sublabel">研究 / 信息收集</text>
+
+  <line x1="665" y1="126" x2="665" y2="150" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Stage B -->
+  <rect x="580" y="150" width="170" height="38" rx="6" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="665" y="166" text-anchor="middle" class="label">Stage B</text>
+  <text x="665" y="182" text-anchor="middle" class="sublabel">处理 / 转换</text>
+
+  <line x1="665" y1="188" x2="665" y2="210" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Stage C -->
+  <rect x="580" y="210" width="170" height="38" rx="6" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="665" y="226" text-anchor="middle" class="label">Stage C</text>
+  <text x="665" y="242" text-anchor="middle" class="sublabel">生成 / 输出</text>
+
+  <line x1="665" y1="248" x2="665" y2="268" stroke="#00ff88" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Output -->
+  <rect x="580" y="268" width="170" height="32" rx="6" fill="#0a2a14" stroke="#00ff88" stroke-width="1.5"/>
+  <text x="665" y="289" text-anchor="middle" class="sublabel" fill="#00ff88">最终输出</text>
+
+  <!-- Use case -->
+  <rect x="555" y="315" width="220" height="44" rx="6" fill="#0a1018" stroke="#1a2030" stroke-width="1"/>
+  <text x="665" y="331" text-anchor="middle" class="sublabel" fill="#ffb347">适用场景</text>
+  <text x="665" y="346" text-anchor="middle" class="sublabel">前序结果严格依赖时</text>
+  <text x="665" y="358" text-anchor="middle" class="sublabel">例：爬取→解析→摘要→推送</text>
+</svg>

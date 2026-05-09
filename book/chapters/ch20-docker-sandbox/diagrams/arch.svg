@@ -1,0 +1,80 @@
+<svg viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono', 'Fira Code', monospace">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,255,100,0.04)" stroke-width="1"/>
+    </pattern>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#00cc55"/>
+    </marker>
+    <marker id="arrowGray" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="rgba(255,255,255,0.3)"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="900" fill="#0a0d10"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="800" y="48" fill="rgba(255,255,255,0.5)" font-size="16" text-anchor="middle" letter-spacing="4">DOCKER SANDBOX 分层架构 · Ch 16</text>
+
+  <!-- Host -->
+  <rect x="60" y="70" width="960" height="760" rx="8" fill="rgba(0,80,30,0.07)" stroke="rgba(0,204,85,0.2)" stroke-width="1.5"/>
+  <text x="90" y="108" fill="rgba(0,204,85,0.6)" font-size="13" letter-spacing="3">宿主机 (Host OS)</text>
+
+  <!-- Docker Engine -->
+  <rect x="100" y="120" width="880" height="690" rx="6" fill="rgba(0,40,80,0.12)" stroke="rgba(51,170,255,0.25)" stroke-width="1.5"/>
+  <text x="130" y="154" fill="#4499ff" font-size="12" letter-spacing="2">Docker Engine</text>
+
+  <!-- seccomp/AppArmor layer -->
+  <rect x="140" y="165" width="800" height="620" rx="5" fill="rgba(60,30,0,0.1)" stroke="rgba(255,102,0,0.3)" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="168" y="198" fill="#ff8844" font-size="12">seccomp + AppArmor</text>
+
+  <!-- Container -->
+  <rect x="180" y="215" width="720" height="540" rx="4" fill="rgba(0,20,50,0.5)" stroke="rgba(51,170,255,0.5)" stroke-width="2"/>
+  <text x="208" y="248" fill="#33aaff" font-size="13" font-weight="700">容器 (Ephemeral)</text>
+  <text x="640" y="248" fill="rgba(255,80,80,0.8)" font-size="12">--rm → 执行后销毁</text>
+
+  <!-- Code execution inner -->
+  <rect x="218" y="268" width="644" height="460" rx="3" fill="rgba(0,5,15,0.7)" stroke="rgba(51,170,255,0.15)" stroke-width="1"/>
+  <text x="248" y="302" fill="#55ccff" font-size="12">代码执行区</text>
+
+  <text x="260" y="340" fill="rgba(255,255,255,0.5)" font-size="13">● CPU ≤ 0.5 core</text>
+  <text x="260" y="368" fill="rgba(255,255,255,0.5)" font-size="13">● 内存 ≤ 256 MB</text>
+  <text x="260" y="396" fill="rgba(255,255,255,0.5)" font-size="13">● 网络: none (完全断网)</text>
+  <text x="260" y="424" fill="rgba(255,255,255,0.5)" font-size="13">● 文件系统: tmpfs, 隔离</text>
+  <text x="260" y="452" fill="rgba(255,255,255,0.5)" font-size="13">● 用户: nobody</text>
+  <text x="260" y="490" fill="#00cc55" font-size="13" font-weight="700">任意代码执行 → 宿主机不受影响</text>
+
+  <!-- Blocked socket box -->
+  <rect x="490" y="305" width="320" height="100" rx="4" fill="rgba(30,8,8,0.9)" stroke="rgba(255,50,50,0.45)" stroke-width="1.5"/>
+  <text x="650" y="338" fill="#ff5555" font-size="13" font-weight="700" text-anchor="middle">docker socket 阻断</text>
+  <text x="650" y="360" fill="#ff9966" font-size="12" text-anchor="middle">/var/run/docker.sock</text>
+  <text x="650" y="382" fill="#ff3333" font-size="13" text-anchor="middle">❌ docker.ts:30-32</text>
+
+  <!-- Right side labels -->
+  <text x="1100" y="140" fill="rgba(0,204,85,0.5)" font-size="13">隔离层</text>
+  <text x="1100" y="190" fill="rgba(51,170,255,0.5)" font-size="13">容器运行时</text>
+  <text x="1100" y="230" fill="rgba(255,102,0,0.5)" font-size="13">系统调用约束</text>
+  <text x="1100" y="280" fill="rgba(51,170,255,0.7)" font-size="13">执行环境</text>
+
+  <!-- Connecting lines -->
+  <line x1="1090" y1="140" x2="1025" y2="140" stroke="rgba(0,204,85,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="1090" y1="190" x2="1025" y2="190" stroke="rgba(51,170,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="1090" y1="230" x2="1025" y2="230" stroke="rgba(255,102,0,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="1090" y1="280" x2="1025" y2="268" stroke="rgba(51,170,255,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Lifecycle flow at bottom -->
+  <text x="60" y="865" fill="rgba(255,255,255,0.3)" font-size="12" letter-spacing="2">请求</text>
+  <path d="M 100 858 L 200 858" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+  <text x="210" y="865" fill="rgba(255,200,0,0.6)" font-size="12">校验</text>
+  <path d="M 260 858 L 360 858" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+  <text x="370" y="865" fill="rgba(51,170,255,0.6)" font-size="12">创建容器</text>
+  <path d="M 460 858 L 560 858" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+  <text x="570" y="865" fill="#00cc55" font-size="12">执行代码</text>
+  <path d="M 660 858 L 760 858" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+  <text x="770" y="865" fill="rgba(0,204,85,0.7)" font-size="12">结果回传</text>
+  <path d="M 870 858 L 970 858" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" marker-end="url(#arrowGray)"/>
+  <text x="980" y="865" fill="rgba(255,80,80,0.7)" font-size="12">容器销毁 (--rm)</text>
+
+  <!-- Version tag -->
+  <text x="1540" y="885" fill="rgba(0,204,85,0.3)" font-size="11" text-anchor="end">lena-v1.6</text>
+</svg>

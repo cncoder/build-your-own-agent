@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 08 launchd 部署</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: grid; grid-template-columns: 1.1fr 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .header {
+    grid-column: 1 / -1; padding: 46px 100px 28px;
+    border-bottom: 1px solid rgba(48,54,61,0.6);
+  }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #58a6ff; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: 44px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #58a6ff; }
+  .subtitle { font-size: 17px; color: #8b949e; margin-top: 6px; }
+
+  .panel { padding: 32px 60px 32px 100px; display: flex; flex-direction: column; gap: 16px; }
+  .panel.right { padding: 32px 100px 32px 60px; border-left: 1px solid rgba(48,54,61,0.6); }
+
+  .code {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+    padding: 18px 22px; font-family: 'SF Mono', monospace;
+    font-size: 13px; line-height: 1.75; flex: 1; overflow: hidden;
+  }
+  .xml-tag { color: #7ee787; }
+  .xml-key { color: #79c0ff; }
+  .xml-val { color: #a5d6ff; }
+  .xml-bool { color: #ff7b72; }
+  .xml-num { color: #f2cc60; }
+  .cm { color: #6e7681; font-style: italic; }
+  .hl { background: rgba(248,81,73,0.15); border-left: 3px solid #f85149; padding-left: 8px; display: block; margin: 0 -22px; padding-right: 22px; }
+
+  .cmd-list { display: flex; flex-direction: column; gap: 8px; }
+  .cmd {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+    padding: 10px 16px; font-family: 'SF Mono', monospace; font-size: 13px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cmd-prompt { color: #58a6ff; }
+  .cmd-text { color: #c9d1d9; flex: 1; }
+  .cmd-comment { color: #6e7681; font-size: 12px; font-style: italic; }
+
+  .blood-box {
+    background: rgba(248,81,73,0.07); border: 1px solid rgba(248,81,73,0.25);
+    border-radius: 8px; padding: 16px 20px; font-size: 14px;
+  }
+  .blood-title { color: #f85149; font-weight: 600; margin-bottom: 8px; }
+  .blood-text { color: #8b949e; line-height: 1.6; }
+
+  .procs {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .proc {
+    background: #0d1117; border: 1px solid #21262d; border-radius: 6px;
+    padding: 10px 14px; font-family: 'SF Mono', monospace; font-size: 12px;
+    color: #8b949e; display: flex; align-items: center; gap: 12px;
+  }
+  .proc-dot { width: 8px; height: 8px; background: #3fb950; border-radius: 50%; flex-shrink: 0; }
+  .proc-name { color: #58a6ff; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">launchd 部署 · macOS · ~/Library/LaunchAgents/</div>
+    <h1>ai.lena.agent.plist<span> — 必须加 ThrottleInterval（血泪教训）</span></h1>
+    <p class="subtitle">KeepAlive 不加 ThrottleInterval 会重启风暴 · SIGUSR1 不刷新 env 必须 unload/load</p>
+  </div>
+
+  <div class="panel">
+    <div class="code">
+<span class="cm">&lt;!-- ~/Library/LaunchAgents/ai.lena.agent.plist --&gt;</span>
+<span class="xml-tag">&lt;dict&gt;</span>
+  <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">Label</span><span class="xml-tag">&lt;/key&gt;</span>
+  <span class="xml-tag">&lt;string&gt;</span><span class="xml-val">ai.lena.agent</span><span class="xml-tag">&lt;/string&gt;</span>
+
+  <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">RunAtLoad</span><span class="xml-tag">&lt;/key&gt;</span>   <span class="cm">&lt;!-- 随登录自动启动 --&gt;</span>
+  <span class="xml-tag">&lt;true/&gt;</span>
+
+  <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">KeepAlive</span><span class="xml-tag">&lt;/key&gt;</span>  <span class="cm">&lt;!-- 崩溃后自动重启 --&gt;</span>
+  <span class="xml-tag">&lt;true/&gt;</span>
+
+<span class="hl">  <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">ThrottleInterval</span><span class="xml-tag">&lt;/key&gt;</span> <span class="cm">&lt;!-- 必须加！防重启风暴 --&gt;</span></span>
+<span class="hl">  <span class="xml-tag">&lt;integer&gt;</span><span class="xml-num">60</span><span class="xml-tag">&lt;/integer&gt;</span>  <span class="cm">&lt;!-- 每 60s 最多重启一次 --&gt;</span></span>
+
+  <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">EnvironmentVariables</span><span class="xml-tag">&lt;/key&gt;</span>
+  <span class="xml-tag">&lt;dict&gt;</span>
+    <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">AWS_REGION</span><span class="xml-tag">&lt;/key&gt;</span>
+    <span class="xml-tag">&lt;string&gt;</span><span class="xml-val">us-west-2</span><span class="xml-tag">&lt;/string&gt;</span>
+    <span class="xml-tag">&lt;key&gt;</span><span class="xml-key">PYTHONUNBUFFERED</span><span class="xml-tag">&lt;/key&gt;</span>
+    <span class="xml-tag">&lt;string&gt;</span><span class="xml-val">1</span><span class="xml-tag">&lt;/string&gt;</span>
+  <span class="xml-tag">&lt;/dict&gt;</span>
+<span class="xml-tag">&lt;/dict&gt;</span>
+    </div>
+  </div>
+
+  <div class="panel right">
+    <div class="cmd-list">
+      <div class="cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text">launchctl load ~/Library/LaunchAgents/ai.lena.agent.plist</span>
+        <span class="cmd-comment">首次加载</span>
+      </div>
+      <div class="cmd" style="background: rgba(248,81,73,0.05); border-color: rgba(248,81,73,0.2);">
+        <span class="cmd-prompt" style="color:#f85149">$</span>
+        <span class="cmd-text">launchctl unload ... &amp;&amp; launchctl load ...</span>
+        <span class="cmd-comment" style="color:#f85149">改 plist 后必须！SIGUSR1 无效</span>
+      </div>
+      <div class="cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text">launchctl list | grep lena</span>
+        <span class="cmd-comment">查看状态</span>
+      </div>
+      <div class="cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text">tail -f /tmp/lena-agent.log</span>
+        <span class="cmd-comment">实时日志</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 13px; color: #6e7681; margin-bottom: 10px; letter-spacing: 0.08em;">生产环境 4 个 OpenClaw 守护进程（案例 18.2）</div>
+      <div class="procs">
+        <div class="proc"><div class="proc-dot"></div><span class="proc-name">ai.openclaw.gateway</span> — OpenClaw 对外接口</div>
+        <div class="proc"><div class="proc-dot"></div><span class="proc-name">ai.openclaw.node</span> — Agent 执行环境</div>
+        <div class="proc"><div class="proc-dot"></div><span class="proc-name">ai.openclaw.voice-service</span> — TTS 语音合成</div>
+        <div class="proc"><div class="proc-dot" style="background:#d29922"></div><span class="proc-name" style="color:#d29922">com.user.openclaw-watchdog</span> — 独立守护者</div>
+      </div>
+    </div>
+
+    <div class="blood-box">
+      <div class="blood-title">🩸 血泪教训（案例 18.2）</div>
+      <div class="blood-text">
+        修改 plist 环境变量后 → 用 SIGUSR1 希望重读配置 → 环境变量完全没变。<br>
+        原因：launchd 在 <strong style="color:#e6edf3">unload/load</strong> 时才重新读 plist，
+        SIGUSR1 只通知进程，launchd 本身不重读文件。
+      </div>
+    </div>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · launchd</div>
+</body>
+</html>

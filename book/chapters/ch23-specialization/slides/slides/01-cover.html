@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace; }
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(153,102,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(153,102,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.bg-glow {
+  position: absolute;
+  width: 900px; height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,80,255,0.07) 0%, transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.chapter-tag {
+  position: absolute; top: 60px; left: 80px;
+  font-size: 13px; letter-spacing: 0.3em;
+  color: #9966ff; text-transform: uppercase;
+  border: 1px solid rgba(153,102,255,0.3);
+  padding: 6px 16px; border-radius: 2px;
+}
+.chapter-num {
+  position: absolute; top: 30px; right: 80px;
+  font-size: 220px; font-weight: 900;
+  color: rgba(255,255,255,0.025);
+  line-height: 1; letter-spacing: -0.05em;
+  font-family: 'Arial Black', sans-serif;
+}
+.main {
+  position: absolute; top: 50%; left: 80px;
+  transform: translateY(-50%);
+}
+.title-line1 {
+  font-size: 20px; letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.35); margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.title-main {
+  font-size: 88px; font-weight: 900;
+  color: #ffffff; line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-family: 'Arial Black', 'Helvetica Neue', sans-serif;
+}
+.title-sub {
+  font-size: 40px; font-weight: 300;
+  color: #9966ff; margin-top: 16px;
+  letter-spacing: 0.03em;
+}
+.subtitle {
+  margin-top: 36px;
+  font-size: 17px; color: rgba(255,255,255,0.38);
+  letter-spacing: 0.06em;
+  max-width: 700px; line-height: 2;
+}
+.right-panel {
+  position: absolute; right: 80px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 28px; align-items: flex-end;
+}
+.stat-block {
+  text-align: right;
+  border-right: 2px solid rgba(153,102,255,0.4);
+  padding-right: 20px;
+}
+.stat-num { font-size: 52px; font-weight: 700; color: #9966ff; }
+.stat-label { font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 0.25em; margin-top: 2px; text-transform: uppercase; }
+.bottom-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #9966ff 35%, #cc88ff 65%, transparent 100%);
+}
+.pillar {
+  position: absolute; bottom: 24px; right: 80px;
+  font-size: 11px; color: rgba(153,102,255,0.6); letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.part-badge {
+  position: absolute; top: 60px; right: 80px;
+  font-size: 12px; letter-spacing: 0.2em; color: rgba(153,102,255,0.5);
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="chapter-num">19</div>
+<div class="chapter-tag">Ch 19 · Specialization Pattern</div>
+<div class="part-badge">PART 4 · SCALING YOUR AGENT</div>
+
+<div class="main">
+  <div class="title-line1">一个 Runtime 派生 N 个 Agent</div>
+  <div class="title-main">Specialization<br>Pattern</div>
+  <div class="title-sub">通用 Lena → 专用 agent 的通路</div>
+  <div class="subtitle">
+    三种派生姿势 · CrewAI 双范式<br>
+    SupervisorAgent · TradingAgents 四层<br>
+    Lena-SpecKit：一行命令 fork
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="stat-block">
+    <div class="stat-num">3</div>
+    <div class="stat-label">派生姿势</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num">v1.9</div>
+    <div class="stat-label">Lena 本章产物</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num">1行</div>
+    <div class="stat-label">Fork 命令</div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+<div class="pillar">支柱：Specialization Pattern</div>
+</body>
+</html>

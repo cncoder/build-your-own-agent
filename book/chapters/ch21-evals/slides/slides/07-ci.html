@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','Fira Code',monospace; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(100,180,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(100,180,255,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #64b4ff; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+.cols { display: flex; gap: 40px; flex: 1; }
+.left { flex: 1.3; }
+.right { flex: 0.7; display: flex; flex-direction: column; gap: 20px; }
+pre { background: #060d14; border: 1px solid rgba(100,180,255,0.15); border-radius: 10px; padding: 26px; font-size: 14px; line-height: 1.65; color: #c8d8f0; height: 100%; overflow: hidden; }
+.kw { color: #64b4ff; }
+.str { color: #88ddaa; }
+.cm { color: #445566; }
+.val { color: #ff9944; }
+.flow-step { background: rgba(100,180,255,0.06); border: 1px solid rgba(100,180,255,0.15); border-radius: 10px; padding: 18px 22px; }
+.fs-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.fs-icon { font-size: 22px; }
+.fs-title { font-size: 17px; font-weight: 700; }
+.fs-body { font-size: 15px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+.flow-step.alert { border-color: rgba(255,68,68,0.3); background: rgba(255,68,68,0.05); }
+.flow-step.ok { border-color: rgba(0,255,136,0.25); background: rgba(0,255,136,0.04); }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1>CI 集成：<em>每个 PR</em> 自动跑 Eval</h1>
+  <p class="sub">PR 跑 20 条（快），main 跑 100 条（精）。composite &lt; 0.75 阻断合并。</p>
+  <div class="cols">
+    <div class="left">
+<pre><span class="cm"># .github/workflows/eval.yml</span>
+<span class="kw">name</span>: <span class="str">Lena Eval CI</span>
+
+<span class="kw">on</span>:
+  pull_request:
+    branches: [<span class="str">main</span>]
+  push:
+    branches: [<span class="str">main</span>]
+
+<span class="kw">env</span>:
+  EVAL_SAMPLE_SIZE: <span class="val">20</span>      <span class="cm"># PR 只跑 20 条</span>
+  EVAL_FULL_SIZE:   <span class="val">100</span>     <span class="cm"># main 跑全量</span>
+  EVAL_PASS_THRESHOLD: <span class="val">0.75</span> <span class="cm"># 低于此值阻断</span>
+
+<span class="kw">jobs</span>:
+  <span class="kw">eval</span>:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: <span class="str">"3.12"</span> }
+      - run: pip install -r code/lena-v1.7/requirements.txt
+
+      - <span class="kw">name</span>: Run eval
+        env: { ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} }
+        run: |
+          python code/lena-v1.7/run_eval.py \
+            --dataset golden-dataset.json  \
+            --sample-size $EVAL_SAMPLE_SIZE \
+            --threshold   $EVAL_PASS_THRESHOLD
+
+      - <span class="kw">name</span>: Comment on PR
+        uses: actions/github-script@v7
+        <span class="cm"># 自动在 PR 页面写 eval 结果评论</span></pre>
+    </div>
+    <div class="right">
+      <div class="flow-step">
+        <div class="fs-head"><span class="fs-icon">🔀</span><span class="fs-title">PR 提交</span></div>
+        <div class="fs-body">开发者提交代码，CI 自动触发</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-head"><span class="fs-icon">⚡</span><span class="fs-title">Eval 运行（20 条采样）</span></div>
+        <div class="fs-body">LLM judge + 三维度评分，约 30 秒</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-head"><span class="fs-icon">💬</span><span class="fs-title">PR 评论</span></div>
+        <div class="fs-body">自动写入质量报告：composite 分、各维度、通过/失败</div>
+      </div>
+      <div class="flow-step ok">
+        <div class="fs-head"><span class="fs-icon">✅</span><span class="fs-title">PASS → 可合并</span></div>
+        <div class="fs-body">composite ≥ 0.75，无退化检测</div>
+      </div>
+      <div class="flow-step alert">
+        <div class="fs-head"><span class="fs-icon">❌</span><span class="fs-title">FAIL → 阻断合并</span></div>
+        <div class="fs-body">composite &lt; 0.75 或有回归，必须修复再提交</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

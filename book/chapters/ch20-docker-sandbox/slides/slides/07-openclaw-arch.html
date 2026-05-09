@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; right: 80px; display: flex; justify-content: space-between; align-items: flex-end; }
+.title-area h2 { font-size: 52px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.deep-water { background: rgba(0,100,255,0.1); border: 1px solid rgba(0,100,255,0.3); padding: 8px 20px; border-radius: 3px; font-size: 13px; color: #4488ff; letter-spacing: 0.2em; }
+
+.content { position: absolute; top: 210px; left: 80px; right: 80px; bottom: 60px; display: flex; gap: 48px; }
+
+/* file tree */
+.file-tree { flex: 0 0 420px; background: #0c1015; border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 24px; overflow: hidden; }
+.tree-title { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.2em; margin-bottom: 16px; }
+.tree-item { font-size: 13px; padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+.tree-item .icon { color: rgba(255,255,255,0.2); width: 14px; }
+.tree-item .name { color: rgba(255,255,255,0.6); }
+.tree-item.highlight .name { color: #00cc55; font-weight: 700; }
+.tree-item.highlight .icon { color: #00cc55; }
+.tree-item .badge { font-size: 10px; background: rgba(0,204,85,0.15); color: #00cc55; padding: 1px 6px; border-radius: 2px; margin-left: auto; }
+.tree-indent { padding-left: 20px; }
+.tree-count { margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.25); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; }
+.tree-count span { color: #00cc55; font-weight: 700; }
+
+/* module map */
+.module-map { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+.module-row { display: flex; gap: 16px; }
+.module-card {
+  flex: 1; background: #0f1418; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 4px; padding: 16px 20px;
+  transition: border-color 0.2s;
+}
+.module-card.primary { border-color: rgba(0,204,85,0.3); border-left-width: 3px; border-left-color: #00cc55; }
+.module-card.secondary { border-color: rgba(51,170,255,0.2); }
+.module-card.warn { border-color: rgba(255,102,0,0.2); }
+.mc-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.mc-file { font-size: 11px; color: rgba(0,204,85,0.6); margin-bottom: 6px; }
+.mc-desc { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">OpenClaw 41 文件架构</div>
+<div class="page-num">07 / 11</div>
+
+<div class="title-area">
+  <h2>OpenClaw Docker Sandbox<br>41 文件系统全景</h2>
+  <div class="deep-water">🌊 深水区</div>
+</div>
+
+<div class="content">
+  <div class="file-tree">
+    <div class="tree-title">agents/sandbox/</div>
+    <div class="tree-item highlight"><span class="icon">▶</span><span class="name">docker.ts</span><span class="badge">核心</span></div>
+    <div class="tree-item highlight"><span class="icon">▶</span><span class="name">validate-sandbox-security.ts</span></div>
+    <div class="tree-item highlight"><span class="icon">▶</span><span class="name">infra/exec-approvals.ts</span></div>
+    <div class="tree-indent">
+      <div class="tree-item"><span class="icon">·</span><span class="name">container-lifecycle.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">resource-limits.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">output-stream.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">error-classifier.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">image-manager.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">lang/python.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">lang/shell.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">lang/javascript.ts</span></div>
+      <div class="tree-item"><span class="icon">·</span><span class="name">... 30+ 更多文件</span></div>
+    </div>
+    <div class="tree-count">共 <span>41</span> 个文件</div>
+  </div>
+
+  <div class="module-map">
+    <div class="module-row">
+      <div class="module-card primary">
+        <div class="mc-title">容器创建与销毁</div>
+        <div class="mc-file">docker.ts · :30-32 阻挂 socket</div>
+        <div class="mc-desc">每次执行独立容器，--rm 执行后立即销毁，无状态残留</div>
+      </div>
+      <div class="module-card primary">
+        <div class="mc-title">安全策略校验</div>
+        <div class="mc-file">validate-sandbox-security.ts · :311-322</div>
+        <div class="mc-desc">启动前校验：阻 socket 挂载 / seccomp 绕过 / AppArmor 绕过 / privileged</div>
+      </div>
+      <div class="module-card primary">
+        <div class="mc-title">session 级批准记忆</div>
+        <div class="mc-file">infra/exec-approvals.ts</div>
+        <div class="mc-desc">批准一次后同类操作不再询问，session 结束全部清除</div>
+      </div>
+    </div>
+    <div class="module-row">
+      <div class="module-card secondary">
+        <div class="mc-title">资源配额</div>
+        <div class="mc-file">resource-limits.ts</div>
+        <div class="mc-desc">CPU / 内存 / 超时 / 输出截断，防 DoS</div>
+      </div>
+      <div class="module-card secondary">
+        <div class="mc-title">多语言执行环境</div>
+        <div class="mc-file">lang/python.ts · shell.ts · javascript.ts</div>
+        <div class="mc-desc">每种语言独立镜像配置和执行命令</div>
+      </div>
+      <div class="module-card secondary">
+        <div class="mc-title">输出流处理</div>
+        <div class="mc-file">output-stream.ts · error-classifier.ts</div>
+        <div class="mc-desc">stdout/stderr 截断，错误分类（超时/OOM/运行错误）</div>
+      </div>
+      <div class="module-card warn">
+        <div class="mc-title">镜像管理</div>
+        <div class="mc-file">image-manager.ts</div>
+        <div class="mc-desc">预拉取镜像，首次执行无等待</div>
+      </div>
+    </div>
+    <div style="background: rgba(0,100,255,0.06); border: 1px solid rgba(0,100,255,0.2); padding: 14px 20px; border-radius: 4px;">
+      <span style="font-size: 12px; color: #4488ff; letter-spacing: 0.15em;">深水区提示：</span>
+      <span style="font-size: 13px; color: rgba(255,255,255,0.5); margin-left: 8px;">41 文件是工业级实现，本章只需掌握 3 个核心文件。lena-v1.6 是简化但可运行的教学版。</span>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

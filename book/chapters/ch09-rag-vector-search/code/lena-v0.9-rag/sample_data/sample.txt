@@ -1,0 +1,131 @@
+Lena API Reference — Version 2.1
+
+SECTION 1: OVERVIEW
+
+The Lena API provides programmatic access to the Lena agent runtime. All endpoints
+are served over HTTPS and return JSON responses. Authentication uses Bearer tokens
+issued from the Lena Developer Console.
+
+Base URL: https://api.lena.example.com/v2
+
+SECTION 2: AUTHENTICATION
+
+All requests must include an Authorization header:
+
+    Authorization: Bearer <your-api-key>
+
+API keys are scoped to a single workspace. A key cannot access resources in other
+workspaces. Keys expire after 90 days and must be rotated via the console.
+
+SECTION 3: RATE LIMITS
+
+The API enforces rate limits to ensure fair use across all customers.
+
+Default limits per API key:
+  - 1,000 requests per minute
+  - 50,000 requests per day
+  - 10 concurrent requests
+
+Exceeding the per-minute limit returns HTTP 429 with the header:
+    Retry-After: <seconds>
+
+Enterprise plans have configurable limits. Contact support for increases.
+
+SECTION 4: ENDPOINTS
+
+4.1 POST /v2/completions
+
+Generate a text completion from a given prompt.
+
+Request body:
+  {
+    "model": "lena-v1",
+    "prompt": "string",
+    "max_tokens": 1024,
+    "temperature": 0.7,
+    "metadata": {
+      "user_id": "optional-string",
+      "session_id": "optional-string"
+    }
+  }
+
+The metadata field accepts any flat key-value pairs with string values. Nested
+objects are not supported. Keys must be alphanumeric with underscores, max 64 chars.
+Values max 256 chars. Maximum 16 metadata key-value pairs per request.
+
+Response:
+  {
+    "id": "cmpl-abc123",
+    "model": "lena-v1",
+    "text": "string",
+    "usage": {
+      "prompt_tokens": 42,
+      "completion_tokens": 128,
+      "total_tokens": 170
+    },
+    "created": 1717200000
+  }
+
+4.2 GET /v2/models
+
+List available models.
+
+Response: array of model objects with id, name, context_window, and pricing fields.
+
+4.3 DELETE /v2/sessions/{session_id}
+
+Delete a session and all associated conversation history. This action is irreversible.
+
+Returns HTTP 204 on success, HTTP 404 if session not found.
+
+SECTION 5: ERROR CODES
+
+All errors follow the format:
+  {
+    "error": {
+      "code": "string",
+      "message": "string",
+      "param": "string or null"
+    }
+  }
+
+Common error codes:
+  - invalid_api_key: The provided API key is invalid or expired.
+  - rate_limit_exceeded: Too many requests. See Retry-After header.
+  - context_length_exceeded: The prompt + max_tokens exceeds the model context window.
+  - invalid_request_error: Malformed request body. The param field indicates which field.
+  - server_error: Internal server error. Retry with exponential backoff.
+
+SECTION 6: WEBHOOKS
+
+Webhooks allow the API to push events to your server when asynchronous operations
+complete.
+
+Supported events:
+  - completion.finished: A long-running completion has finished.
+  - session.expired: A session has reached its TTL.
+
+Webhook payloads are signed with HMAC-SHA256 using your webhook secret. Verify the
+X-Lena-Signature header before processing any webhook.
+
+SECTION 7: SDKS AND LIBRARIES
+
+Official SDKs:
+  - Python: pip install lena-sdk
+  - TypeScript: npm install @lena/sdk
+  - Go: go get github.com/lena-ai/lena-go
+
+Community SDKs (unsupported):
+  - Ruby, Rust, Java — see the community integrations page.
+
+SECTION 8: CHANGELOG
+
+v2.1 (2026-04-15):
+  - Added metadata field to /v2/completions
+  - Increased default rate limit from 500 to 1,000 req/min
+  - Deprecated /v1/completions (sunset 2026-10-01)
+
+v2.0 (2025-11-01):
+  - New authentication scheme (Bearer tokens replace API key query params)
+  - Webhook support added
+  - Breaking: response format for /v2/models changed (id field renamed from model_id)

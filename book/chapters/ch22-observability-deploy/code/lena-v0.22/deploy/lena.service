@@ -1,0 +1,62 @@
+# Lena Agent - systemd 服务配置（Linux）
+#
+# 安装：
+#   sudo cp lena.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lena
+#
+# 如果因重启过快被 StartLimitBurst 停止：
+#   sudo systemctl reset-failed lena && sudo systemctl start lena
+#
+# 查看日志：
+#   sudo journalctl -u lena -f                    # 实时跟踪
+#   sudo journalctl -u lena -o json | jq '.'      # JSON 格式
+
+[Unit]
+Description=Lena AI Agent v0.22
+Documentation=https://github.com/your-org/lena
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lena
+Group=lena
+WorkingDirectory=/opt/lena
+ExecStart=/opt/lena/.venv/bin/python -u -m src.main
+
+# 环境变量：非敏感值放这里，敏感值（API key 等）放 EnvironmentFile
+Environment=AWS_REGION=us-west-2
+Environment=PYTHONUNBUFFERED=1
+Environment=LOG_LEVEL=INFO
+Environment=LOG_FORMAT=json
+# 创建 /opt/lena/.env，chmod 600，不进 git
+EnvironmentFile=-/opt/lena/.env
+
+# 重启策略：进程非正常退出时重启，正常退出（exit 0）不重启
+Restart=on-failure
+RestartSec=15s
+
+# StartLimitBurst：300s 内最多 5 次重启，超过则停止服务
+# 触发后手动恢复：systemctl reset-failed lena && systemctl start lena
+# 不要设太宽松——如果进程频繁崩溃，说明代码有 bug，应该告警而非无限重启
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# 资源限制
+MemoryMax=1G
+CPUQuota=80%
+
+# 安全加固（最小权限原则）
+NoNewPrivileges=yes      # 禁止 setuid/setgid 提权
+PrivateTmp=yes           # 独立的 /tmp（防止 /tmp 信息泄漏）
+ProtectSystem=strict     # / 和 /usr 只读（/opt/lena/data 用 ReadWritePaths 打开）
+ReadWritePaths=/opt/lena/data /var/log/lena
+
+# 日志（journald 自动收集，无需手动 rotate）
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lena-agent
+
+[Install]
+WantedBy=multi-user.target

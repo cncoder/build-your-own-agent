@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 58px; font-weight: 900; }
+.tag { display: inline-block; background: rgba(153,102,255,0.15); border: 1px solid rgba(153,102,255,0.4); border-radius: 4px; padding: 4px 14px; font-size: 14px; color: #cc88ff; letter-spacing: 0.1em; vertical-align: middle; margin-right: 16px; }
+
+.layout { position: absolute; top: 240px; left: 100px; right: 100px; display: flex; gap: 40px; align-items: flex-start; }
+
+.full-tools {
+  width: 380px; flex-shrink: 0;
+}
+.col-title { font-size: 13px; letter-spacing: 0.25em; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 16px; }
+.tool-list { display: flex; flex-direction: column; gap: 6px; }
+.tool-item {
+  padding: 8px 14px; border-radius: 4px; font-family: monospace; font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+}
+.tool-item.keep { background: rgba(0,200,100,0.06); border: 1px solid rgba(0,200,100,0.2); color: #88ddaa; }
+.tool-item.remove { background: rgba(255,80,80,0.04); border: 1px solid rgba(255,80,80,0.1); color: rgba(255,100,100,0.4); text-decoration: line-through; }
+.tool-badge { font-size: 10px; margin-left: auto; padding: 2px 8px; border-radius: 2px; }
+.tool-badge.keep-badge { background: rgba(0,200,100,0.1); color: #00cc66; }
+.tool-badge.remove-badge { background: rgba(255,80,80,0.08); color: rgba(255,80,80,0.4); }
+
+.profiles { flex: 1; }
+.profile-card { margin-bottom: 20px; border-radius: 8px; padding: 20px 24px; }
+.profile-card.trading { background: rgba(0,200,100,0.04); border: 1px solid rgba(0,200,100,0.2); }
+.profile-card.podcast  { background: rgba(0,150,255,0.04); border: 1px solid rgba(0,150,255,0.2); }
+.profile-card.devops   { background: rgba(255,150,0,0.04);  border: 1px solid rgba(255,150,0,0.2);  }
+.profile-name { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.profile-card.trading .profile-name { color: #00cc66; }
+.profile-card.podcast  .profile-name { color: #3399ff; }
+.profile-card.devops   .profile-name { color: #ff9900; }
+.profile-tools { font-size: 12px; font-family: monospace; color: rgba(255,255,255,0.5); }
+.profile-count { float: right; font-size: 11px; color: rgba(255,255,255,0.3); }
+
+.why-box {
+  flex-shrink: 0; width: 380px;
+  background: rgba(153,102,255,0.04); border: 1px solid rgba(153,102,255,0.15);
+  border-radius: 8px; padding: 24px;
+}
+.why-title { font-size: 13px; letter-spacing: 0.2em; color: #9966ff; text-transform: uppercase; margin-bottom: 16px; }
+.why-item { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 14px; line-height: 1.7; }
+.why-item strong { color: #cc88ff; }
+</style>
+</head>
+<body>
+<div class="title">派生姿势 ② · 核心操作</div>
+<div class="heading"><span class="tag">② 工具集裁剪</span>减少幻觉，缩小攻击面</div>
+
+<div class="layout">
+  <div class="full-tools">
+    <div class="col-title">通用 Lena（30+ 工具）→ TradingBot（7 工具）</div>
+    <div class="tool-list">
+      <div class="tool-item keep">get_price <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item keep">get_indicators <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item keep">get_positions <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item keep">place_order <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item keep">close_position <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item keep">get_pnl <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item keep">send_message <div class="tool-badge keep-badge">保留</div></div>
+      <div class="tool-item remove">read_file <div class="tool-badge remove-badge">裁剪</div></div>
+      <div class="tool-item remove">execute_code <div class="tool-badge remove-badge">裁剪</div></div>
+      <div class="tool-item remove">web_search <div class="tool-badge remove-badge">裁剪</div></div>
+      <div class="tool-item remove">bash_command <div class="tool-badge remove-badge">裁剪</div></div>
+      <div class="tool-item remove">... 23+ 其他工具 <div class="tool-badge remove-badge">裁剪</div></div>
+    </div>
+  </div>
+
+  <div class="profiles">
+    <div class="col-title">三种专用 Agent 的工具配置</div>
+    <div class="profile-card trading">
+      <div class="profile-name">TradingBot <span class="profile-count">7 工具</span></div>
+      <div class="profile-tools">get_price · get_indicators · get_positions · place_order · close_position · get_pnl · send_message</div>
+    </div>
+    <div class="profile-card podcast">
+      <div class="profile-name">PodcastBot <span class="profile-count">4 工具</span></div>
+      <div class="profile-tools">collect_news · summarize · tts_synthesize · send_message</div>
+    </div>
+    <div class="profile-card devops">
+      <div class="profile-name">DevOpsBot <span class="profile-count">3 工具</span></div>
+      <div class="profile-tools">list_alarms · restart_service · send_message</div>
+    </div>
+  </div>
+
+  <div class="why-box">
+    <div class="why-title">为什么裁剪能减少幻觉？</div>
+    <div class="why-item"><strong>工具越少 → 选错概率越低</strong><br>LLM 扫描所有工具来决策，30 个工具比 7 个工具选错的概率高 4 倍以上</div>
+    <div class="why-item"><strong>隐式安全边界</strong><br>TradingBot 不可能"不小心"去读取配置文件——它根本没有 read_file 工具</div>
+    <div class="why-item"><strong>更短的 context</strong><br>工具定义少了 → 系统 prompt 短了 → 更多 token 给推理</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 10 · Context 管理可视化</title>
+<style>
+/* ── 深空霓虹 · neon-cyan accent ── */
+:root {
+  --bg: #050810;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --accent: #22d3ee;
+  --green: #34d399;
+  --violet: #a78bfa;
+  --amber: #fbbf24;
+  --rose: #fb7185;
+  --text: rgba(255,255,255,0.87);
+  --dim: rgba(255,255,255,0.45);
+  --muted: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --sans: -apple-system, 'PingFang SC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 36px 24px 64px;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(34,211,238,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(167,139,250,0.04) 0%, transparent 50%);
+}
+header { text-align: center; margin-bottom: 32px; }
+.eyebrow {
+  display: inline-block; margin-bottom: 10px;
+  padding: 4px 14px; border-radius: 999px;
+  background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.18em; text-transform: uppercase;
+}
+header h1 { font-size: 30px; font-weight: 700; margin-bottom: 8px; }
+header p { font-size: 14px; color: var(--dim); max-width: 600px; margin: 0 auto; line-height: 1.65; }
+
+/* ── 主布局 ── */
+.main { display: grid; grid-template-columns: 1fr 380px; gap: 20px; max-width: 1060px; margin: 0 auto; }
+@media (max-width: 740px) { .main { grid-template-columns: 1fr; } }
+
+/* ── 左：Context 窗口柱状图 ── */
+.ctx-panel {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(34,211,238,0.12);
+  border-radius: 14px; padding: 24px;
+}
+.panel-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 18px; }
+
+/* 窗口总览柱 */
+.ctx-window {
+  height: 280px; display: flex; flex-direction: column; gap: 0;
+  border: 1px solid rgba(34,211,238,0.2); border-radius: 10px; overflow: hidden;
+  position: relative;
+}
+.ctx-segment {
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 0 12px; transition: all 0.5s cubic-bezier(0.4,0,0.2,1);
+  cursor: pointer; position: relative; overflow: hidden;
+}
+.ctx-segment:hover { filter: brightness(1.2); }
+.ctx-seg-label { font-size: 13px; font-weight: 600; z-index: 1; }
+.ctx-seg-tok { font-family: var(--mono); font-size: 11px; z-index: 1; margin-left: auto; opacity: 0.7; }
+.seg-system  { background: rgba(34,211,238,0.18); border-bottom: 1px solid rgba(34,211,238,0.15); }
+.seg-tool    { background: rgba(167,139,250,0.18); border-bottom: 1px solid rgba(167,139,250,0.15); }
+.seg-history { background: rgba(251,191,36,0.15); border-bottom: 1px solid rgba(251,191,36,0.12); }
+.seg-memory  { background: rgba(52,211,153,0.15); border-bottom: 1px solid rgba(52,211,153,0.12); }
+.seg-query   { background: rgba(251,113,133,0.18); }
+.ctx-free {
+  background: rgba(255,255,255,0.02); flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+}
+
+/* 进度条 */
+.ctx-usage-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.ctx-progress-wrap { flex: 1; background: rgba(255,255,255,0.04); border-radius: 4px; height: 10px; }
+.ctx-progress-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.ctx-pct { font-family: var(--mono); font-size: 12px; color: var(--accent); width: 44px; text-align: right; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── 右：操作面板 ── */
+.ops-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* Compaction 演示 */
+.op-card {
+  background: rgba(6,12,28,0.85); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 18px;
+}
+.op-card-title { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+
+/* 对话消息列表 */
+.msg-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.msg-row {
+  display: flex; align-items: flex-start; gap: 8px; padding: 8px 12px;
+  border-radius: 8px; font-size: 13px; color: var(--dim);
+  border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);
+  transition: all 0.4s;
+}
+.msg-row.compacting { opacity: 0.3; transform: scale(0.97); }
+.msg-row.compressed { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.2); color: var(--text); }
+.msg-role { font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; width: 32px; flex-shrink: 0; margin-top: 1px; }
+.msg-role.user { color: var(--accent); }
+.msg-role.ai { color: var(--violet); }
+.msg-tok { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+.btn-compact {
+  width: 100%; padding: 9px; border-radius: 8px;
+  background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3);
+  color: var(--accent); font-size: 13px; font-weight: 600; font-family: var(--sans);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-compact:hover { background: rgba(34,211,238,0.2); }
+.btn-compact:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Cache hit/miss */
+.cache-list { display: flex; flex-direction: column; gap: 7px; }
+.cache-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+.cache-hit { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); color: var(--green); }
+.cache-miss { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: var(--dim); }
+.cache-badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px;
+}
+.cache-hit .cache-badge { background: rgba(52,211,153,0.2); color: var(--green); }
+.cache-miss .cache-badge { background: rgba(255,255,255,0.08); color: var(--muted); }
+.cache-tok { font-family: var(--mono); font-size: 11px; margin-left: auto; }
+.cache-hit .cache-tok { color: var(--green); }
+
+/* Token 花费计数 */
+.cost-row { display: flex; gap: 20px; flex-wrap: wrap; padding: 14px 16px; background: rgba(0,0,0,0.25); border-radius: 10px; }
+.cost-col { display: flex; flex-direction: column; }
+.cost-l { font-family: var(--mono); font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+.cost-v { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.cost-v.green { color: var(--green); }
+.cost-v.amber { color: var(--amber); }
+.cost-v.cyan { color: var(--accent); }
+.cost-note { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+footer { text-align: center; margin-top: 48px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Ch 10 · Context Engineering</div>
+  <h1>Context 窗口管理可视化</h1>
+  <p>Agent 的 context window 不是无限的。合理分配 system prompt、工具 schema、历史对话、记忆片段的比例，是控制推理成本和质量的核心技术。</p>
+</header>
+
+<div class="main">
+  <!-- 左：Context 窗口总览 -->
+  <div class="ctx-panel">
+    <div class="panel-title">Context Window 分布（200k tokens）</div>
+    <div class="ctx-window" id="ctx-window"><!-- 动态填充 --></div>
+    <div class="ctx-usage-row">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">已用</span>
+      <div class="ctx-progress-wrap">
+        <div class="ctx-progress-bar" id="ctx-progress" style="width:0%"></div>
+      </div>
+      <span class="ctx-pct" id="ctx-pct">0%</span>
+    </div>
+    <div class="legend" id="legend"></div>
+
+    <!-- 滑块控制历史轮次 -->
+    <div style="margin-top:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">模拟对话轮数</span>
+        <span style="font-family:var(--mono);font-size:13px;color:var(--accent)" id="rounds-val">10 轮</span>
+      </div>
+      <input type="range" id="rounds-slider" min="1" max="80" value="10"
+        style="width:100%;accent-color:var(--accent);cursor:pointer" oninput="updateWindow()">
+    </div>
+  </div>
+
+  <!-- 右：操作面板 -->
+  <div class="ops-col">
+
+    <!-- Compaction 演示 -->
+    <div class="op-card">
+      <div class="op-card-title">对话压缩（Compaction）演示</div>
+      <div class="msg-list" id="msg-list"><!-- 动态填充 --></div>
+      <button class="btn-compact" id="btn-compact" onclick="runCompaction()">▶ 执行 Compaction（将旧对话压缩为摘要）</button>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5" id="compact-note"></div>
+    </div>
+
+    <!-- Cache hit/miss -->
+    <div class="op-card">
+      <div class="op-card-title">Prompt Cache 命中 / 未命中</div>
+      <div class="cache-list" id="cache-list"><!-- 动态填充 --></div>
+    </div>
+
+    <!-- Token 花费实时计数 -->
+    <div class="op-card">
+      <div class="op-card-title">Token 花费实时计数</div>
+      <div class="cost-row" id="cost-row"><!-- 动态填充 --></div>
+      <div class="cost-note" id="cost-note">Cache hit 的 token 价格是 miss 的 1/10，大量重复 system prompt 时开启 cache 可节省 90%。</div>
+    </div>
+
+  </div>
+</div>
+
+<footer>《从零构建你的 AI Agent》第 10 章 · Context Engineering · 交互式 Demo</footer>
+
+<script>
+// ── Context 窗口数据 ──
+const SEGMENTS = [
+  { key: 'system',  label: 'System Prompt', color: 'rgba(34,211,238,0.7)',  baseTokens: 2000 },
+  { key: 'tool',    label: 'Tool Schemas',  color: 'rgba(167,139,250,0.7)', baseTokens: 3500 },
+  { key: 'history', label: 'Chat History',  color: 'rgba(251,191,36,0.7)',  baseTokens: 800 },  // per round
+  { key: 'memory',  label: 'Memory/RAG',    color: 'rgba(52,211,153,0.7)',  baseTokens: 1500 },
+  { key: 'query',   label: 'Current Query', color: 'rgba(251,113,133,0.7)', baseTokens: 200 },
+];
+const TOTAL_CTX = 200000;
+const HISTORY_PER_ROUND = 800;
+
+function calcTokens(rounds) {
+  return {
+    system:  2000,
+    tool:    3500,
+    history: rounds * HISTORY_PER_ROUND,
+    memory:  1500,
+    query:   200,
+  };
+}
+
+function updateWindow() {
+  const rounds = parseInt(document.getElementById('rounds-slider').value);
+  document.getElementById('rounds-val').textContent = rounds + ' 轮';
+  const toks = calcTokens(rounds);
+  const totalUsed = Object.values(toks).reduce((a, b) => a + b, 0);
+  const pct = Math.min(totalUsed / TOTAL_CTX * 100, 100);
+
+  // 更新柱状图
+  const win = document.getElementById('ctx-window');
+  win.innerHTML = '';
+
+  const keys = ['system','tool','history','memory','query'];
+  const segDefs = {
+    system:  { label: 'System Prompt', cls: 'seg-system', color: '#22d3ee' },
+    tool:    { label: 'Tool Schemas',  cls: 'seg-tool',   color: '#a78bfa' },
+    history: { label: 'Chat History',  cls: 'seg-history', color: '#fbbf24' },
+    memory:  { label: 'Memory/RAG',    cls: 'seg-memory', color: '#34d399' },
+    query:   { label: 'New Query',     cls: 'seg-query',  color: '#fb7185' },
+  };
+
+  const TOTAL_PX = 280;
+  keys.forEach(k => {
+    const t = toks[k];
+    const heightPct = t / TOTAL_CTX;
+    const heightPx = Math.max(heightPct * TOTAL_PX * (TOTAL_PX / (TOTAL_PX * totalUsed / TOTAL_CTX)), 24);
+    // 按比例分配实际高度（占 totalUsed 部分）
+    const h = Math.max((t / totalUsed) * TOTAL_PX * (totalUsed / TOTAL_CTX) * (TOTAL_PX / Math.max(TOTAL_PX * totalUsed / TOTAL_CTX, 1)), 22);
+    const seg = document.createElement('div');
+    seg.className = 'ctx-segment ' + segDefs[k].cls;
+    seg.style.height = Math.max((t / TOTAL_CTX) * TOTAL_PX * 3.5, 22) + 'px';
+    seg.innerHTML = `<span class="ctx-seg-label" style="color:${segDefs[k].color}">${segDefs[k].label}</span><span class="ctx-seg-tok">${(t/1000).toFixed(1)}k</span>`;
+    win.appendChild(seg);
+  });
+
+  // 剩余空间
+  const freeTokens = TOTAL_CTX - totalUsed;
+  if (freeTokens > 0) {
+    const freeEl = document.createElement('div');
+    freeEl.className = 'ctx-free';
+    freeEl.style.flex = '1';
+    freeEl.textContent = `剩余 ${(freeTokens/1000).toFixed(0)}k tokens`;
+    win.appendChild(freeEl);
+  }
+
+  // 进度条
+  const bar = document.getElementById('ctx-progress');
+  const color = pct > 85 ? '#fb7185' : pct > 60 ? '#fbbf24' : '#22d3ee';
+  bar.style.width = pct + '%';
+  bar.style.background = `linear-gradient(90deg, ${color}88, ${color})`;
+  document.getElementById('ctx-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('ctx-pct').style.color = color;
+
+  // 更新成本
+  updateCost(toks, rounds);
+}
+
+// Legend
+const win = document.getElementById('ctx-window');
+document.getElementById('legend').innerHTML = [
+  { label: 'System', color: '#22d3ee' },
+  { label: 'Tools',  color: '#a78bfa' },
+  { label: 'History', color: '#fbbf24' },
+  { label: 'Memory', color: '#34d399' },
+  { label: 'Query',  color: '#fb7185' },
+].map(l => `<div class="leg-item"><div class="leg-dot" style="background:${l.color}"></div>${l.label}</div>`).join('');
+
+// ── 对话消息（compaction 演示）──
+const MESSAGES = [
+  { role: 'user', text: '帮我分析 Q3 销售数据', tokens: 12 },
+  { role: 'ai',   text: 'Q3 总收入 320 万，同比 +18%，华东区增长最快…', tokens: 68 },
+  { role: 'user', text: '华东区的具体城市分布？', tokens: 10 },
+  { role: 'ai',   text: '上海 45%，杭州 28%，南京 17%，其他 10%…', tokens: 52 },
+  { role: 'user', text: '与 Q2 相比变化如何？', tokens: 9 },
+  { role: 'ai',   text: 'Q2 华东占比 38%，增长 7 个百分点，主要来自电商渠道…', tokens: 58 },
+  { role: 'user', text: '预测 Q4 趋势', tokens: 8 },
+];
+let compacted = false;
+
+function initMsgList() {
+  const list = document.getElementById('msg-list');
+  list.innerHTML = MESSAGES.map((m, i) => `
+    <div class="msg-row" id="msg-${i}">
+      <span class="msg-role ${m.role}">${m.role === 'user' ? 'U' : 'AI'}</span>
+      <span>${m.text}</span>
+      <span class="msg-tok">${m.tokens}tok</span>
+    </div>`).join('');
+  document.getElementById('compact-note').textContent = '';
+  document.getElementById('btn-compact').disabled = false;
+  compacted = false;
+}
+
+function runCompaction() {
+  if (compacted) { initMsgList(); return; }
+  const btn = document.getElementById('btn-compact');
+  btn.disabled = true;
+  // 前 6 条消息压缩为 1 条摘要
+  [0,1,2,3,4,5].forEach(i => {
+    setTimeout(() => {
+      document.getElementById('msg-' + i).classList.add('compacting');
+    }, i * 120);
+  });
+  setTimeout(() => {
+    const list = document.getElementById('msg-list');
+    // 移除 0-5
+    [0,1,2,3,4,5].forEach(i => {
+      const el = document.getElementById('msg-' + i);
+      if (el) el.remove();
+    });
+    // 插入摘要
+    const summary = document.createElement('div');
+    summary.className = 'msg-row compressed';
+    summary.innerHTML = `
+      <span class="msg-role ai" style="color:var(--green);width:auto;margin-right:4px">摘要</span>
+      <span>【已压缩 6 条对话】Q3 华东销售同比+18%，上海占比最高(45%)，Q2→Q3 增长7pp</span>
+      <span class="msg-tok" style="color:var(--green)">28tok</span>`;
+    const msg6 = document.getElementById('msg-6');
+    list.insertBefore(summary, msg6 || null);
+    document.getElementById('compact-note').textContent =
+      '✓ 6 条对话（199 tokens）→ 1 条摘要（28 tokens），节省 86% context';
+    btn.textContent = '↺ 重置演示';
+    btn.disabled = false;
+    compacted = true;
+  }, 6 * 120 + 400);
+}
+
+// ── Cache 命中演示 ──
+const CACHE_ITEMS = [
+  { label: 'System Prompt（2000 tok）', hit: true,  tokens: 2000, note: '上次请求已缓存' },
+  { label: 'Tool Schemas（3500 tok）',  hit: true,  tokens: 3500, note: '命中缓存' },
+  { label: 'Chat History（8000 tok）',  hit: false, tokens: 8000, note: '新增对话，未命中' },
+  { label: 'Current Query（200 tok）',  hit: false, tokens: 200,  note: '每次新请求' },
+];
+document.getElementById('cache-list').innerHTML = CACHE_ITEMS.map(c => `
+  <div class="cache-row ${c.hit ? 'cache-hit' : 'cache-miss'}">
+    <span class="cache-badge">${c.hit ? 'HIT' : 'MISS'}</span>
+    <span>${c.label}</span>
+    <span class="cache-tok" style="${c.hit ? '' : 'color:var(--muted)'}">${c.hit ? '×0.1 成本' : '全价'}</span>
+  </div>`).join('');
+
+// ── 成本计数 ──
+function updateCost(toks, rounds) {
+  const hitTokens = toks.system + toks.tool; // system + tool 走缓存
+  const missTokens = toks.history + toks.memory + toks.query;
+  // Sonnet 4.5: $3/MTok input, cache hit $0.3/MTok
+  const normalCost = (hitTokens + missTokens) * 3 / 1_000_000;
+  const cacheCost = hitTokens * 0.3 / 1_000_000 + missTokens * 3 / 1_000_000;
+  const saved = normalCost - cacheCost;
+
+  document.getElementById('cost-row').innerHTML = `
+    <div class="cost-col">
+      <div class="cost-l">无缓存成本</div>
+      <div class="cost-v amber">$${normalCost.toFixed(5)}</div>
+    </div>
+    <div class="cost-col">
+      <div class="cost-l">含 Cache Hit</div>
+      <div class="cost-v green">$${cacheCost.toFixed(5)}</div>
+    </div>
+    <div class="cost-col">
+      <div class="cost-l">节省</div>
+      <div class="cost-v cyan">$${saved.toFixed(5)}</div>
+    </div>`;
+}
+
+// 初始化
+initMsgList();
+updateWindow();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Ch 19 · Specialization Pattern — 一个 Runtime 派生 N 个 Agent</title>
+<script>
+  window.DECK_MANIFEST = [
+    { file: "slides/01-cover.html",          label: "封面" },
+    { file: "slides/02-part4-intro.html",    label: "Part 4 开章" },
+    { file: "slides/03-what-is-spec.html",   label: "什么是 Specialization" },
+    { file: "slides/04-prompt-spec.html",    label: "路径 ① System Prompt" },
+    { file: "slides/05-tool-trim.html",      label: "路径 ② 工具集裁剪" },
+    { file: "slides/06-skills-inject.html",  label: "路径 ③ Skills 注入" },
+    { file: "slides/07-crewai.html",         label: "CrewAI Crew vs Flow" },
+    { file: "slides/08-supervisor.html",     label: "SupervisorAgent" },
+    { file: "slides/09-trading-agents.html", label: "TradingAgents 四层" },
+    { file: "slides/10-spec-kit.html",       label: "Lena-SpecKit 演示" },
+    { file: "slides/11-design-note.html",    label: "Design Note" },
+    { file: "slides/12-summary.html",        label: "本章小结" },
+  ];
+  window.DECK_WIDTH = 1920;
+  window.DECK_HEIGHT = 1080;
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #08090f; overflow: hidden; font-family: -apple-system, "PingFang SC", sans-serif; }
+  #stage { position: fixed; top: 50%; left: 50%; transform-origin: top left; will-change: transform; background: #08090f; box-shadow: 0 10px 60px rgba(0,0,0,0.7); }
+  iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .counter { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.75); color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 13px; letter-spacing: 0.05em; z-index: 100; user-select: none; opacity: 0.7; transition: opacity 0.2s; }
+  .counter:hover { opacity: 1; }
+  .counter .label { color: rgba(153,102,255,0.9); margin-left: 8px; }
+  .nav-zone { position: fixed; top: 0; bottom: 0; width: 15%; cursor: pointer; z-index: 50; }
+  .nav-zone.left { left: 0; }
+  .nav-zone.right { right: 0; }
+  .nav-hint { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 999px; background: rgba(153,102,255,0.1); color: rgba(153,102,255,0.6); display: flex; align-items: center; justify-content: center; font-size: 22px; opacity: 0; transition: opacity 0.2s; }
+  .nav-zone.left .nav-hint { left: 20px; }
+  .nav-zone.right .nav-hint { right: 20px; }
+  .nav-zone:hover .nav-hint { opacity: 1; }
+  @media print {
+    @page { size: 1920px 1080px; margin: 0; }
+    html, body { background: #fff; overflow: visible; height: auto; }
+    #stage { position: static; transform: none !important; box-shadow: none; }
+    .counter, .nav-zone { display: none !important; }
+    .print-stack { display: block; }
+    .print-stack iframe { width: 1920px; height: 1080px; page-break-after: always; display: block; }
+  }
+</style>
+</head>
+<body>
+<div id="stage"><iframe id="frame" src="about:blank"></iframe></div>
+<div class="nav-zone left" id="navL"><div class="nav-hint">‹</div></div>
+<div class="nav-zone right" id="navR"><div class="nav-hint">›</div></div>
+<div class="counter" id="counter">1 / 12</div>
+<div class="print-stack" id="printStack" style="display:none;"></div>
+<script>
+(function () {
+  const W = window.DECK_WIDTH || 1920, H = window.DECK_HEIGHT || 1080;
+  const deck = window.DECK_MANIFEST || [];
+  const stage = document.getElementById('stage');
+  const frame = document.getElementById('frame');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+
+  function resize() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const scale = Math.min(vw / W, vh / H);
+    const w = W * scale, h = H * scale;
+    stage.style.width = W + 'px';
+    stage.style.height = H + 'px';
+    stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  }
+
+  function go(i) {
+    cur = (i + deck.length) % deck.length;
+    frame.src = deck[cur].file;
+    counter.innerHTML = `${cur + 1} / ${deck.length} <span class="label">${deck[cur].label}</span>`;
+  }
+
+  document.getElementById('navL').addEventListener('click', () => go(cur - 1));
+  document.getElementById('navR').addEventListener('click', () => go(cur + 1));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') go(cur + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(cur - 1);
+  });
+
+  window.addEventListener('resize', resize);
+  resize();
+  go(0);
+
+  const ps = document.getElementById('printStack');
+  deck.forEach(s => {
+    const f = document.createElement('iframe');
+    f.src = s.file;
+    ps.appendChild(f);
+  });
+})();
+</script>
+</body>
+</html>

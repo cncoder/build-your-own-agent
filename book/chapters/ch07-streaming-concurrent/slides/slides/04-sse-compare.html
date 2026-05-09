@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 100% 50% at 50% 100%, #0a0520 0%, #050810 50%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(100,0,200,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(100,0,200,0.025) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; flex-direction: column; }
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 8px; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+
+.compare-table { flex: 1; display: flex; flex-direction: column; gap: 0; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+
+.table-header, .table-row { display: grid; grid-template-columns: 200px 1fr 1fr 1fr; }
+.table-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); }
+.table-row { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s; }
+.table-row:last-child { border-bottom: none; }
+.table-row:hover { background: rgba(255,255,255,0.02); }
+
+.cell { padding: 18px 24px; font-size: 16px; border-right: 1px solid rgba(255,255,255,0.05); }
+.cell:last-child { border-right: none; }
+
+/* Header cells */
+.table-header .cell { font-size: 14px; font-weight: 600; letter-spacing: 0.05em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+.table-header .cell.anthropic { color: #c792ea; }
+.table-header .cell.openai    { color: #00c864; }
+.table-header .cell.deepseek  { color: #4db8ff; }
+
+/* Row label */
+.cell.label { font-size: 14px; color: rgba(255,255,255,0.35); font-weight: 500; display: flex; align-items: center; }
+
+/* Code snippets in cells */
+code { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; padding: 2px 7px; border-radius: 4px; line-height: 1.6; }
+.tag-a  { background: rgba(199,146,234,0.12); color: #c792ea; border: 1px solid rgba(199,146,234,0.2); }
+.tag-o  { background: rgba(0,200,100,0.1); color: #00c864; border: 1px solid rgba(0,200,100,0.2); }
+.tag-d  { background: rgba(77,184,255,0.1); color: #4db8ff; border: 1px solid rgba(77,184,255,0.2); }
+.tag-n  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.08); }
+
+.cell-inner { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.cell-note  { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+
+/* Special row */
+.row-special { background: rgba(0,200,255,0.03); border-top: 1px solid rgba(0,200,255,0.08) !important; }
+
+.legend { display: flex; gap: 24px; margin-top: 20px; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.4); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <h2>三家 SSE 事件格式对比</h2>
+  <p class="sub">相同思路，不同字段 — 一次性掌握，切换 provider 不踩坑</p>
+
+  <div class="compare-table">
+    <div class="table-header">
+      <div class="cell label">阶段</div>
+      <div class="cell anthropic">Anthropic</div>
+      <div class="cell openai">OpenAI</div>
+      <div class="cell deepseek">DeepSeek</div>
+    </div>
+
+    <div class="table-row">
+      <div class="cell label">连接建立</div>
+      <div class="cell"><div class="cell-inner"><code class="tag-a">message_start</code></div></div>
+      <div class="cell"><div class="cell-inner"><span style="color:rgba(255,255,255,0.25); font-size:14px">（无独立事件）</span></div></div>
+      <div class="cell"><div class="cell-inner"><span style="color:rgba(255,255,255,0.25); font-size:14px">（同 OpenAI）</span></div></div>
+    </div>
+
+    <div class="table-row">
+      <div class="cell label">文字片段</div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-a">content_block_delta</code>
+        <span class="cell-note">delta.type = "text_delta"</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-o">choices[0].delta.content</code>
+        <span class="cell-note">直接是字符串</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-d">choices[0].delta.content</code>
+        <span class="cell-note">同 OpenAI</span>
+      </div></div>
+    </div>
+
+    <div class="table-row">
+      <div class="cell label">工具调用参数</div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-a">content_block_delta</code>
+        <span class="cell-note">delta.type = "input_json_delta"</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-o">choices[0].delta.tool_calls[0]</code>
+        <span class="cell-note">.function.arguments（增量）</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-d">choices[0].delta.tool_calls[0]</code>
+        <span class="cell-note">同 OpenAI</span>
+      </div></div>
+    </div>
+
+    <div class="table-row row-special">
+      <div class="cell label" style="color:#c792ea">思维链 / 签名</div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-a">thinking_delta</code>
+        <div style="margin-top:4px"><code class="tag-a" style="background:rgba(199,146,234,0.2);">signature_delta 🔑</code></div>
+        <span class="cell-note">Extended Thinking 必须携带签名回传</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-n">（无原生支持）</code>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-d" style="background:rgba(77,184,255,0.18); border-color:rgba(77,184,255,0.4);">reasoning_content 🧠</code>
+        <span class="cell-note">独立字段，与 content 并存</span>
+      </div></div>
+    </div>
+
+    <div class="table-row">
+      <div class="cell label">Cache 统计字段</div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-a">cache_read_input_tokens</code>
+        <span class="cell-note">+ cache_creation_input_tokens</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-o">prompt_tokens_details</code>
+        <span class="cell-note">.cached_tokens</span>
+      </div></div>
+      <div class="cell"><div class="cell-inner">
+        <code class="tag-d">prompt_cache_hit_tokens</code>
+        <span class="cell-note">+ prompt_cache_miss_tokens</span>
+      </div></div>
+    </div>
+
+    <div class="table-row">
+      <div class="cell label">流结束标志</div>
+      <div class="cell"><div class="cell-inner"><code class="tag-a">message_stop</code> 事件</div></div>
+      <div class="cell"><div class="cell-inner"><code class="tag-o">data: [DONE]</code> 文本</div></div>
+      <div class="cell"><div class="cell-inner"><code class="tag-d">data: [DONE]</code> 文本</div></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#c792ea"></div>Anthropic Claude</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00c864"></div>OpenAI GPT</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4db8ff"></div>DeepSeek</div>
+    <div style="flex:1"></div>
+    <span style="font-size:13px; color:rgba(0,200,255,0.6)">🔑 signature_delta 和 🧠 reasoning_content 是各家 SSE 最重要的 edge case</span>
+  </div>
+</div>
+</body>
+</html>

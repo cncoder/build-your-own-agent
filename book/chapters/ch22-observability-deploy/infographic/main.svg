@@ -1,0 +1,377 @@
+<svg viewBox="0 0 1200 1700" xmlns="http://www.w3.org/2000/svg" font-family="'SF Pro Display', -apple-system, 'Helvetica Neue', sans-serif">
+  <defs>
+    <linearGradient id="bg-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#040812"/>
+      <stop offset="100%" stop-color="#0a1020"/>
+    </linearGradient>
+    <linearGradient id="g-blue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f6feb"/>
+      <stop offset="100%" stop-color="#58a6ff"/>
+    </linearGradient>
+    <linearGradient id="g-green" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#238636"/>
+      <stop offset="100%" stop-color="#3fb950"/>
+    </linearGradient>
+    <linearGradient id="g-purple" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6e40c9"/>
+      <stop offset="100%" stop-color="#bc8cff"/>
+    </linearGradient>
+    <linearGradient id="g-yellow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#9e6a03"/>
+      <stop offset="100%" stop-color="#d29922"/>
+    </linearGradient>
+    <filter id="glow-blue">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1200" height="1700" fill="url(#bg-grad)"/>
+
+  <!-- 背景网格 -->
+  <g opacity="0.04" stroke="#58a6ff" stroke-width="1">
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="300" x2="1200" y2="300"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/>
+    <line x1="0" y1="500" x2="1200" y2="500"/>
+    <line x1="0" y1="600" x2="1200" y2="600"/>
+    <line x1="0" y1="700" x2="1200" y2="700"/>
+    <line x1="0" y1="800" x2="1200" y2="800"/>
+    <line x1="0" y1="900" x2="1200" y2="900"/>
+    <line x1="0" y1="1000" x2="1200" y2="1000"/>
+    <line x1="0" y1="1100" x2="1200" y2="1100"/>
+    <line x1="0" y1="1200" x2="1200" y2="1200"/>
+    <line x1="0" y1="1300" x2="1200" y2="1300"/>
+    <line x1="0" y1="1400" x2="1200" y2="1400"/>
+    <line x1="0" y1="1500" x2="1200" y2="1500"/>
+    <line x1="0" y1="1600" x2="1200" y2="1600"/>
+    <line x1="100" y1="0" x2="100" y2="1700"/>
+    <line x1="200" y1="0" x2="200" y2="1700"/>
+    <line x1="300" y1="0" x2="300" y2="1700"/>
+    <line x1="400" y1="0" x2="400" y2="1700"/>
+    <line x1="500" y1="0" x2="500" y2="1700"/>
+    <line x1="600" y1="0" x2="600" y2="1700"/>
+    <line x1="700" y1="0" x2="700" y2="1700"/>
+    <line x1="800" y1="0" x2="800" y2="1700"/>
+    <line x1="900" y1="0" x2="900" y2="1700"/>
+    <line x1="1000" y1="0" x2="1000" y2="1700"/>
+    <line x1="1100" y1="0" x2="1100" y2="1700"/>
+  </g>
+
+  <!-- ============ TITLE ============ -->
+  <text x="600" y="60" text-anchor="middle" font-size="13" fill="#58a6ff" letter-spacing="3" font-weight="600">AGENT PRODUCTION OPERATIONS</text>
+  <text x="600" y="110" text-anchor="middle" font-size="48" fill="#e6edf3" font-weight="800" letter-spacing="-1">Agent 生产运维全景</text>
+  <text x="600" y="148" text-anchor="middle" font-size="18" fill="#8b949e">可观测 × 部署 × 预算 × Hooks · Lena v1.8</text>
+
+  <!-- 分隔线 -->
+  <line x1="60" y1="170" x2="1140" y2="170" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ============ 三列布局 ============ -->
+  <!-- 列标题 -->
+  <!-- 左列：可观测性 -->
+  <rect x="40" y="186" width="340" height="32" rx="6" fill="rgba(56,139,253,0.1)" stroke="rgba(56,139,253,0.3)" stroke-width="1"/>
+  <text x="210" y="207" text-anchor="middle" font-size="13" fill="#58a6ff" font-weight="700" letter-spacing="2">可 观 测 性</text>
+
+  <!-- 中列：部署方式 -->
+  <rect x="430" y="186" width="340" height="32" rx="6" fill="rgba(63,185,80,0.1)" stroke="rgba(63,185,80,0.3)" stroke-width="1"/>
+  <text x="600" y="207" text-anchor="middle" font-size="13" fill="#3fb950" font-weight="700" letter-spacing="2">部 署 方 案</text>
+
+  <!-- 右列：Hooks -->
+  <rect x="820" y="186" width="340" height="32" rx="6" fill="rgba(188,140,255,0.1)" stroke="rgba(188,140,255,0.3)" stroke-width="1"/>
+  <text x="990" y="207" text-anchor="middle" font-size="13" fill="#bc8cff" font-weight="700" letter-spacing="2">CC Hooks 14 种事件</text>
+
+  <!-- ===== 左列内容：结构化日志 ===== -->
+  <rect x="40" y="232" width="340" height="120" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="40" y="232" width="340" height="4" rx="2" fill="url(#g-blue)"/>
+  <text x="56" y="256" font-size="11" fill="#58a6ff" font-weight="700" letter-spacing="1">STRUCTURED LOGGING · structlog</text>
+  <text x="56" y="276" font-size="12" fill="#c9d1d9" font-family="'SF Mono', monospace">log.info("llm_call",</text>
+  <text x="56" y="294" font-size="12" fill="#c9d1d9" font-family="'SF Mono', monospace">  model="claude-sonnet-4-6",</text>
+  <text x="56" y="312" font-size="12" fill="#c9d1d9" font-family="'SF Mono', monospace">  tokens=1234, latency_ms=2100)</text>
+  <text x="56" y="340" font-size="11" fill="#6e7681">生产用 JSONRenderer → jq 任意查询</text>
+
+  <!-- OpenTelemetry -->
+  <rect x="40" y="366" width="340" height="160" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="40" y="366" width="340" height="4" rx="2" fill="url(#g-blue)"/>
+  <text x="56" y="390" font-size="11" fill="#58a6ff" font-weight="700" letter-spacing="1">OPENTELEMETRY · 四概念</text>
+
+  <rect x="56" y="400" width="140" height="32" rx="4" fill="rgba(63,185,80,0.1)" stroke="rgba(63,185,80,0.25)" stroke-width="1"/>
+  <text x="126" y="420" text-anchor="middle" font-size="11" fill="#3fb950" font-weight="600">Trace · 完整请求旅程</text>
+
+  <rect x="210" y="400" width="155" height="32" rx="4" fill="rgba(88,166,255,0.1)" stroke="rgba(88,166,255,0.25)" stroke-width="1"/>
+  <text x="287" y="420" text-anchor="middle" font-size="11" fill="#58a6ff" font-weight="600">Span · 单个操作时间段</text>
+
+  <rect x="56" y="444" width="140" height="32" rx="4" fill="rgba(210,153,34,0.1)" stroke="rgba(210,153,34,0.25)" stroke-width="1"/>
+  <text x="126" y="464" text-anchor="middle" font-size="11" fill="#d29922" font-weight="600">Metric · 数值时间序列</text>
+
+  <rect x="210" y="444" width="155" height="32" rx="4" fill="rgba(248,81,73,0.1)" stroke="rgba(248,81,73,0.25)" stroke-width="1"/>
+  <text x="287" y="464" text-anchor="middle" font-size="11" fill="#f85149" font-weight="600">Log · 单事件快照</text>
+
+  <text x="56" y="502" font-size="11" fill="#6e7681">三者通过 trace_id / span_id 关联</text>
+  <text x="56" y="518" font-size="11" fill="#6e7681">后端：Jaeger（本地）/ X-Ray（AWS）/ Honeycomb</text>
+
+  <!-- Token/Cost 监控 -->
+  <rect x="40" y="540" width="340" height="120" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="40" y="540" width="340" height="4" rx="2" fill="url(#g-yellow)"/>
+  <text x="56" y="564" font-size="11" fill="#d29922" font-weight="700" letter-spacing="1">TOKEN / COST 监控</text>
+
+  <text x="56" y="584" font-size="12" fill="#8b949e">实时追踪：今日 token 用量</text>
+  <text x="56" y="602" font-size="12" fill="#8b949e">structlog 每次调用记录 cost_usd</text>
+  <text x="56" y="620" font-size="12" fill="#8b949e">jq '[.cost_usd] | add' app.log</text>
+  <rect x="56" y="630" width="280" height="8" rx="4" fill="#161b22"/>
+  <rect x="56" y="630" width="180" height="8" rx="4" fill="url(#g-yellow)"/>
+  <text x="246" y="641" font-size="10" fill="#d29922">64%</text>
+  <text x="56" y="655" font-size="10" fill="#6e7681">$3.20 / $5.00 今日预算</text>
+
+  <!-- ===== 中列内容：部署方案 ===== -->
+
+  <!-- launchd -->
+  <rect x="430" y="232" width="340" height="150" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="430" y="232" width="340" height="4" rx="2" fill="url(#g-green)"/>
+  <rect x="430" y="232" width="80" height="20" rx="3" fill="rgba(88,166,255,0.15)"/>
+  <text x="470" y="246" text-anchor="middle" font-size="10" fill="#58a6ff" font-weight="700">macOS</text>
+  <text x="550" y="256" text-anchor="middle" font-size="15" fill="#58a6ff" font-weight="700">launchd</text>
+  <text x="550" y="278" text-anchor="middle" font-size="11" fill="#8b949e">~/Library/LaunchAgents/ai.lena.agent.plist</text>
+
+  <line x1="446" y1="290" x2="754" y2="290" stroke="#21262d" stroke-width="1"/>
+  <text x="446" y="308" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="308" font-size="11" fill="#8b949e">随登录自启 (RunAtLoad: true)</text>
+  <text x="446" y="326" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="326" font-size="11" fill="#8b949e">崩溃自动重启 (KeepAlive: true)</text>
+  <text x="446" y="344" font-size="11" fill="#f85149">⚠</text>
+  <text x="462" y="344" font-size="11" fill="#f85149">必须加 ThrottleInterval: 60</text>
+  <text x="446" y="362" font-size="11" fill="#f85149">⚠</text>
+  <text x="462" y="362" font-size="11" fill="#f85149">改 plist 必须 unload/load（SIGUSR1 无效）</text>
+  <text x="446" y="375" font-size="10" fill="#6e7681">适用：Mac 个人助手 7×24</text>
+
+  <!-- systemd -->
+  <rect x="430" y="396" width="340" height="150" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="430" y="396" width="340" height="4" rx="2" fill="url(#g-green)"/>
+  <rect x="430" y="396" width="80" height="20" rx="3" fill="rgba(210,153,34,0.15)"/>
+  <text x="470" y="410" text-anchor="middle" font-size="10" fill="#d29922" font-weight="700">Linux</text>
+  <text x="550" y="420" text-anchor="middle" font-size="15" fill="#d29922" font-weight="700">systemd</text>
+  <text x="550" y="442" text-anchor="middle" font-size="11" fill="#8b949e">/etc/systemd/system/lena.service</text>
+
+  <line x1="446" y1="454" x2="754" y2="454" stroke="#21262d" stroke-width="1"/>
+  <text x="446" y="472" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="472" font-size="11" fill="#8b949e">journald 日志集成 (journalctl -u lena -f)</text>
+  <text x="446" y="490" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="490" font-size="11" fill="#8b949e">restart=on-failure + RestartSec=10s</text>
+  <text x="446" y="508" font-size="11" fill="#f85149">⚠</text>
+  <text x="462" y="508" font-size="11" fill="#f85149">StartLimitBurst 触发 → systemctl reset-failed</text>
+  <text x="446" y="526" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="526" font-size="11" fill="#8b949e">MemoryMax / CPUQuota 资源限制</text>
+  <text x="446" y="540" font-size="10" fill="#6e7681">适用：Linux 服务器 / EC2 / VPS</text>
+
+  <!-- Docker Compose -->
+  <rect x="430" y="560" width="340" height="100" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="430" y="560" width="340" height="4" rx="2" fill="url(#g-green)"/>
+  <rect x="430" y="560" width="80" height="20" rx="3" fill="rgba(188,140,255,0.15)"/>
+  <text x="470" y="574" text-anchor="middle" font-size="10" fill="#bc8cff" font-weight="700">多服务</text>
+  <text x="550" y="584" text-anchor="middle" font-size="15" fill="#bc8cff" font-weight="700">Docker Compose</text>
+  <line x1="446" y1="596" x2="754" y2="596" stroke="#21262d" stroke-width="1"/>
+  <text x="446" y="614" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="614" font-size="11" fill="#8b949e">Lena + Redis + Jaeger 一键启停</text>
+  <text x="446" y="632" font-size="11" fill="#3fb950">✓</text>
+  <text x="462" y="632" font-size="11" fill="#8b949e">lena-net 服务间网络隔离</text>
+  <text x="446" y="650" font-size="10" fill="#6e7681">适用：多服务架构 + 需要 Redis/监控</text>
+
+  <!-- ===== 右列内容：Hooks 14 种事件 ===== -->
+  <rect x="820" y="232" width="340" height="430" rx="8" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+  <rect x="820" y="232" width="340" height="4" rx="2" fill="url(#g-purple)"/>
+  <text x="836" y="256" font-size="11" fill="#bc8cff" font-weight="700" letter-spacing="1">CC HOOKS · utils/hooks.ts · 5022 行</text>
+
+  <!-- 工具执行 -->
+  <text x="836" y="278" font-size="10" fill="#6e7681" letter-spacing="1">— 工具执行 —</text>
+  <text x="836" y="296" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">PreToolUse</text>
+  <text x="978" y="296" font-size="11" fill="#8b949e">权限审批 / 防注入</text>
+  <text x="836" y="314" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">PostToolUse</text>
+  <text x="978" y="314" font-size="11" fill="#8b949e">代码审计 / 埋点</text>
+  <text x="836" y="332" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">PostToolUseFailure</text>
+  <text x="978" y="332" font-size="11" fill="#8b949e">失败告警</text>
+
+  <line x1="836" y1="346" x2="1140" y2="346" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 会话生命周期 -->
+  <text x="836" y="364" font-size="10" fill="#6e7681" letter-spacing="1">— 会话生命周期 —</text>
+  <text x="836" y="382" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">SessionStart</text>
+  <text x="978" y="382" font-size="11" fill="#8b949e">加载上下文</text>
+  <text x="836" y="400" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">Setup</text>
+  <text x="978" y="400" font-size="11" fill="#8b949e">安装依赖 / 检查环境</text>
+  <text x="836" y="418" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">Stop</text>
+  <text x="978" y="418" font-size="11" fill="#8b949e">发通知 / 保存摘要</text>
+  <text x="836" y="436" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">StopFailure</text>
+  <text x="978" y="436" font-size="11" fill="#8b949e">异常告警 / 重试</text>
+
+  <line x1="836" y1="450" x2="1140" y2="450" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 子 Agent / 用户 -->
+  <text x="836" y="468" font-size="10" fill="#6e7681" letter-spacing="1">— 子 Agent / 用户 —</text>
+  <text x="836" y="486" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">SubagentStart/Stop</text>
+  <text x="978" y="486" font-size="11" fill="#8b949e">子任务追踪</text>
+  <text x="836" y="504" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">UserPromptSubmit</text>
+  <text x="978" y="504" font-size="11" fill="#8b949e">日志 / 过滤</text>
+  <text x="836" y="522" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">Notification</text>
+  <text x="978" y="522" font-size="11" fill="#8b949e">中继外部渠道</text>
+
+  <line x1="836" y1="536" x2="1140" y2="536" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 文件 / 目录 -->
+  <text x="836" y="554" font-size="10" fill="#6e7681" letter-spacing="1">— 文件 / 目录 —</text>
+  <text x="836" y="572" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">InstructionsLoaded</text>
+  <text x="978" y="572" font-size="11" fill="#8b949e">验证 CLAUDE.md</text>
+  <text x="836" y="590" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">FileChanged</text>
+  <text x="978" y="590" font-size="11" fill="#8b949e">触发 lint/格式化</text>
+  <text x="836" y="608" font-size="12" fill="#e6edf3" font-family="'SF Mono', monospace">CwdChanged</text>
+  <text x="978" y="608" font-size="11" fill="#8b949e">记录上下文切换</text>
+
+  <text x="836" y="648" font-size="10" fill="#6e7681">child_process.spawn() · JSON stdin/stdout</text>
+  <text x="836" y="664" font-size="10" fill="#6e7681">支持 async:true 异步 Hook</text>
+
+  <!-- ============ 第二区：Budget 状态机 ============ -->
+  <line x1="40" y1="690" x2="1160" y2="690" stroke="#21262d" stroke-width="1"/>
+
+  <text x="600" y="720" text-anchor="middle" font-size="13" fill="#d29922" font-weight="700" letter-spacing="2">TOKEN BUDGET 状态机</text>
+  <text x="600" y="742" text-anchor="middle" font-size="13" fill="#8b949e">BudgetController · 防止 token 爆炸 · 次日 00:00 重置</text>
+
+  <!-- 状态节点 -->
+  <!-- NORMAL -->
+  <rect x="60" y="758" width="210" height="80" rx="10" fill="rgba(31,111,235,0.12)" stroke="rgba(88,166,255,0.4)" stroke-width="1.5"/>
+  <text x="165" y="788" text-anchor="middle" font-size="18" fill="#58a6ff" font-weight="700">NORMAL</text>
+  <text x="165" y="808" text-anchor="middle" font-size="13" fill="#8b949e">0 – 80%</text>
+  <text x="165" y="828" text-anchor="middle" font-size="11" fill="#6e7681">正常执行</text>
+
+  <!-- arrow -->
+  <line x1="270" y1="798" x2="320" y2="798" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+  <text x="295" y="792" text-anchor="middle" font-size="10" fill="#6e7681">告警</text>
+
+  <!-- WARNING -->
+  <rect x="320" y="758" width="210" height="80" rx="10" fill="rgba(158,106,3,0.12)" stroke="rgba(210,153,34,0.4)" stroke-width="1.5"/>
+  <text x="425" y="788" text-anchor="middle" font-size="18" fill="#d29922" font-weight="700">WARNING</text>
+  <text x="425" y="808" text-anchor="middle" font-size="13" fill="#8b949e">80 – 90%</text>
+  <text x="425" y="828" text-anchor="middle" font-size="11" fill="#6e7681">Discord 告警</text>
+
+  <!-- arrow -->
+  <line x1="530" y1="798" x2="580" y2="798" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+  <text x="555" y="792" text-anchor="middle" font-size="10" fill="#6e7681">限速</text>
+
+  <!-- THROTTLE -->
+  <rect x="580" y="758" width="210" height="80" rx="10" fill="rgba(110,44,0,0.20)" stroke="rgba(240,136,62,0.5)" stroke-width="1.5"/>
+  <text x="685" y="788" text-anchor="middle" font-size="18" fill="#f0883e" font-weight="700">THROTTLE</text>
+  <text x="685" y="808" text-anchor="middle" font-size="13" fill="#8b949e">90 – 100%</text>
+  <text x="685" y="828" text-anchor="middle" font-size="11" fill="#6e7681">延迟 2s/次</text>
+
+  <!-- arrow -->
+  <line x1="790" y1="798" x2="840" y2="798" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+  <text x="815" y="792" text-anchor="middle" font-size="10" fill="#6e7681">停止</text>
+
+  <!-- STOPPED -->
+  <rect x="840" y="758" width="210" height="80" rx="10" fill="rgba(61,28,28,0.25)" stroke="rgba(248,81,73,0.5)" stroke-width="1.5"/>
+  <text x="945" y="788" text-anchor="middle" font-size="18" fill="#f85149" font-weight="700">STOPPED</text>
+  <text x="945" y="808" text-anchor="middle" font-size="13" fill="#8b949e">≥ 100%</text>
+  <text x="945" y="828" text-anchor="middle" font-size="11" fill="#6e7681">拒绝新任务</text>
+
+  <!-- 重置箭头 -->
+  <defs>
+    <marker id="arr-right" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#30363d"/>
+    </marker>
+    <marker id="arr-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+  <path d="M945,838 Q945,880 600,880 Q165,880 165,838" fill="none" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)"/>
+  <text x="600" y="900" text-anchor="middle" font-size="12" fill="#3fb950">次日 00:00 自动重置</text>
+
+  <!-- ============ Fleet 部署案例 ============ -->
+  <line x1="40" y1="926" x2="1160" y2="926" stroke="#21262d" stroke-width="1"/>
+  <text x="600" y="956" text-anchor="middle" font-size="13" fill="#3fb950" font-weight="700" letter-spacing="2">PRIVATECLAW · FLEET 批量部署 7 步自动化</text>
+  <text x="600" y="978" text-anchor="middle" font-size="13" fill="#8b949e">案例 18.1 · privateclaw · 零 SSH，全 SSM</text>
+
+  <!-- 7 步流程 -->
+  <g transform="translate(40, 994)">
+    <!-- Step boxes -->
+    <g transform="translate(0,0)">
+      <rect width="156" height="60" rx="6" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+      <text x="10" y="20" font-size="10" fill="#58a6ff" font-weight="700">Step 1</text>
+      <text x="10" y="38" font-size="11" fill="#e6edf3">LiteLLM Virtual Key</text>
+      <text x="10" y="54" font-size="10" fill="#6e7681">独立费用追踪</text>
+    </g>
+    <line x1="156" y1="30" x2="186" y2="30" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+    <g transform="translate(186,0)">
+      <rect width="156" height="60" rx="6" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+      <text x="10" y="20" font-size="10" fill="#3fb950" font-weight="700">Step 2</text>
+      <text x="10" y="38" font-size="11" fill="#e6edf3">启动 EC2 实例</text>
+      <text x="10" y="54" font-size="10" fill="#6e7681">openclaw=y 标签</text>
+    </g>
+    <line x1="342" y1="30" x2="372" y2="30" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+    <g transform="translate(372,0)">
+      <rect width="156" height="60" rx="6" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+      <text x="10" y="20" font-size="10" fill="#bc8cff" font-weight="700">Step 3</text>
+      <text x="10" y="38" font-size="11" fill="#e6edf3">SSM 注入配置</text>
+      <text x="10" y="54" font-size="10" fill="#6e7681">Parameter Store</text>
+    </g>
+    <line x1="528" y1="30" x2="558" y2="30" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+    <g transform="translate(558,0)">
+      <rect width="156" height="60" rx="6" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+      <text x="10" y="20" font-size="10" fill="#d29922" font-weight="700">Step 4</text>
+      <text x="10" y="38" font-size="11" fill="#e6edf3">SSM Run Command</text>
+      <text x="10" y="54" font-size="10" fill="#6e7681">openclaw configure</text>
+    </g>
+    <line x1="714" y1="30" x2="744" y2="30" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+    <g transform="translate(744,0)">
+      <rect width="156" height="60" rx="6" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+      <text x="10" y="20" font-size="10" fill="#3fb950" font-weight="700">Step 5</text>
+      <text x="10" y="38" font-size="11" fill="#e6edf3">验证健康检查</text>
+      <text x="10" y="54" font-size="10" fill="#6e7681">/health timeout=120s</text>
+    </g>
+    <line x1="900" y1="30" x2="930" y2="30" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr-right)"/>
+    <g transform="translate(930,0)">
+      <rect width="156" height="60" rx="6" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+      <text x="10" y="20" font-size="10" fill="#f85149" font-weight="700">Step 6-7</text>
+      <text x="10" y="38" font-size="11" fill="#e6edf3">输出 CSV + Watchdog</text>
+      <text x="10" y="54" font-size="10" fill="#6e7681">monitor.py --watch</text>
+    </g>
+  </g>
+
+  <!-- ============ 血泪教训 ============ -->
+  <line x1="40" y1="1120" x2="1160" y2="1120" stroke="#21262d" stroke-width="1"/>
+  <text x="600" y="1150" text-anchor="middle" font-size="13" fill="#f85149" font-weight="700" letter-spacing="2">生产血泪教训</text>
+
+  <!-- 教训1 -->
+  <rect x="40" y="1166" width="530" height="100" rx="8" fill="rgba(248,81,73,0.06)" stroke="rgba(248,81,73,0.25)" stroke-width="1"/>
+  <text x="60" y="1190" font-size="12" fill="#f85149" font-weight="700">systemd StartLimitBurst（CLAUDE.md §lessons-learned.md）</text>
+  <text x="60" y="1210" font-size="12" fill="#8b949e">AWS key 过期 → 启动即崩溃 → 5次 → 进程永久停止</text>
+  <text x="60" y="1228" font-size="12" fill="#8b949e">没有告警，整个下午不知道 Lena 挂了</text>
+  <text x="60" y="1254" font-size="12" fill="#3fb950" font-family="'SF Mono', monospace">→ sudo systemctl reset-failed lena &amp;&amp; systemctl start lena</text>
+
+  <!-- 教训2 -->
+  <rect x="630" y="1166" width="530" height="100" rx="8" fill="rgba(248,81,73,0.06)" stroke="rgba(248,81,73,0.25)" stroke-width="1"/>
+  <text x="650" y="1190" font-size="12" fill="#f85149" font-weight="700">launchd SIGUSR1 不刷新 plist 环境变量</text>
+  <text x="650" y="1210" font-size="12" fill="#8b949e">改了 plist 环境变量 → 发 SIGUSR1 → 完全没变</text>
+  <text x="650" y="1228" font-size="12" fill="#8b949e">KeepAlive 不加 ThrottleInterval → 重启风暴</text>
+  <text x="650" y="1254" font-size="12" fill="#3fb950" font-family="'SF Mono', monospace">→ launchctl unload ... &amp;&amp; launchctl load ...</text>
+
+  <!-- 教训3 -->
+  <rect x="40" y="1280" width="530" height="80" rx="8" fill="rgba(248,81,73,0.06)" stroke="rgba(248,81,73,0.25)" stroke-width="1"/>
+  <text x="60" y="1304" font-size="12" fill="#f85149" font-weight="700">hermesbot 死循环 $47 账单（budget 教训）</text>
+  <text x="60" y="1322" font-size="12" fill="#8b949e">熔断状态没清零 → 无限重试 → 24h → $47 全是同一条错误</text>
+  <text x="60" y="1348" font-size="12" fill="#3fb950" font-family="'SF Mono', monospace">→ Token Budget 熔断器是必须的，不是可选的</text>
+
+  <!-- 教训4 -->
+  <rect x="630" y="1280" width="530" height="80" rx="8" fill="rgba(248,81,73,0.06)" stroke="rgba(248,81,73,0.25)" stroke-width="1"/>
+  <text x="650" y="1304" font-size="12" fill="#f85149" font-weight="700">Watchdog 依赖 Lena 本身（独立性原则）</text>
+  <text x="650" y="1322" font-size="12" fill="#8b949e">用 OpenClaw 自己守护自己 → OpenClaw 死了 Watchdog 也死</text>
+  <text x="650" y="1348" font-size="12" fill="#3fb950" font-family="'SF Mono', monospace">→ 独立 launchd 进程 + 独立 Telegram bot 告警通道</text>
+
+  <!-- ============ Footer ============ -->
+  <line x1="40" y1="1400" x2="1160" y2="1400" stroke="#21262d" stroke-width="1"/>
+  <text x="600" y="1440" text-anchor="middle" font-size="13" fill="#8b949e">《从零构建你的 AI Agent：Claude Code &amp; OpenClaw 深度实战》</text>
+  <text x="600" y="1462" text-anchor="middle" font-size="13" fill="#58a6ff" font-weight="600">第 18 章 · 可观测性与部署 · Lena v1.8</text>
+  <text x="600" y="1484" text-anchor="middle" font-size="11" fill="#30363d">Ch 18 · 深空霓虹风格 · A3</text>
+</svg>

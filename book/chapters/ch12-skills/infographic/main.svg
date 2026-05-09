@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 3508 2480" xmlns="http://www.w3.org/2000/svg"
+     font-family="'JetBrains Mono','Fira Code',monospace">
+
+  <!-- A3: 3508×2480 px @300dpi | Deep Space Neon -->
+
+  <!-- ── Background ── -->
+  <rect width="3508" height="2480" fill="#0d1117"/>
+  <radialGradient id="bgGlow1" cx="25%" cy="30%" r="50%">
+    <stop offset="0%" stop-color="#1f6feb" stop-opacity="0.08"/>
+    <stop offset="100%" stop-color="#0d1117" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bgGlow2" cx="75%" cy="70%" r="45%">
+    <stop offset="0%" stop-color="#238636" stop-opacity="0.06"/>
+    <stop offset="100%" stop-color="#0d1117" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="3508" height="2480" fill="url(#bgGlow1)"/>
+  <rect width="3508" height="2480" fill="url(#bgGlow2)"/>
+
+  <!-- ── Grid Lines ── -->
+  <g stroke="#21262d" stroke-width="1" opacity="0.4">
+    <line x1="0" y1="620" x2="3508" y2="620"/>
+    <line x1="0" y1="1400" x2="3508" y2="1400"/>
+    <line x1="0" y1="1950" x2="3508" y2="1950"/>
+    <line x1="1200" y1="620" x2="1200" y2="2480"/>
+    <line x1="2300" y1="620" x2="2300" y2="2480"/>
+  </g>
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════ -->
+  <rect width="3508" height="140" fill="#161b22"/>
+  <line x1="0" y1="140" x2="3508" y2="140" stroke="#30363d" stroke-width="2"/>
+  <text x="80" y="90" font-size="28" fill="#8b949e" letter-spacing="4">《从零构建你的 AI Agent》·  Ch 09</text>
+  <text x="3430" y="90" font-size="28" fill="#8b949e" text-anchor="end" letter-spacing="4">loadSkillsDir.ts · commands.ts:563 · $ARGUMENTS · R1 R3 R5</text>
+
+  <!-- ── Title Block ── -->
+  <text x="3508" y="230" font-size="148" font-weight="900"
+        font-family="'Noto Serif SC',serif"
+        fill="#e6edf3" text-anchor="end" letter-spacing="-2">Skills：可复用的能力单元</text>
+
+  <!-- Accent bar -->
+  <defs>
+    <linearGradient id="accentBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="100%" stop-color="#3fb950"/>
+    </linearGradient>
+  </defs>
+  <rect x="80" y="340" width="640" height="8" rx="4" fill="url(#accentBar)"/>
+
+  <!-- Subtitle -->
+  <text x="80" y="410" font-size="46" fill="#8b949e" letter-spacing="2">
+    工具解决「能不能做」· Skills 解决「怎么做得好」
+  </text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION A · 加载流程（Top Center）
+  ══════════════════════════════════════════════ -->
+  <!-- Section Label -->
+  <text x="80" y="700" font-size="24" fill="#6e7681" letter-spacing="6">A · SKILLS 加载流水线</text>
+  <line x1="80" y1="715" x2="3428" y2="715" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Flow Steps -->
+  <!-- Step boxes: x=80,700,1320,1940,2560, y=760, w=540, h=280 -->
+
+  <!-- Step 1: Directory Scan -->
+  <rect x="80" y="760" width="540" height="280" rx="14"
+        fill="#161b22" stroke="#1f6feb" stroke-width="2"/>
+  <text x="350" y="820" font-size="22" fill="#6e7681" text-anchor="middle" letter-spacing="4">STEP 01</text>
+  <text x="350" y="875" font-size="52" text-anchor="middle">📁</text>
+  <text x="350" y="940" font-size="34" font-weight="700" fill="#58a6ff" text-anchor="middle">目录扫描</text>
+  <text x="350" y="985" font-size="22" fill="#8b949e" text-anchor="middle">~/.claude/skills/</text>
+  <text x="350" y="1018" font-size="22" fill="#8b949e" text-anchor="middle">.claude/skills/</text>
+
+  <!-- Arrow -->
+  <text x="660" y="910" font-size="64" fill="#1f6feb" text-anchor="middle">→</text>
+
+  <!-- Step 2: Read Files -->
+  <rect x="700" y="760" width="540" height="280" rx="14"
+        fill="#161b22" stroke="#9e5600" stroke-width="2"/>
+  <text x="970" y="820" font-size="22" fill="#6e7681" text-anchor="middle" letter-spacing="4">STEP 02</text>
+  <text x="970" y="875" font-size="52" text-anchor="middle">📝</text>
+  <text x="970" y="940" font-size="34" font-weight="700" fill="#f0883e" text-anchor="middle">读取文件</text>
+  <text x="970" y="985" font-size="22" fill="#8b949e" text-anchor="middle">UTF-8 读取 .md</text>
+  <text x="970" y="1018" font-size="22" fill="#8b949e" text-anchor="middle">内容加载到内存</text>
+
+  <!-- Arrow -->
+  <text x="1280" y="910" font-size="64" fill="#1f6feb" text-anchor="middle">→</text>
+
+  <!-- Step 3: Parse frontmatter -->
+  <rect x="1320" y="760" width="540" height="280" rx="14"
+        fill="#161b22" stroke="#6e40c9" stroke-width="2"/>
+  <text x="1590" y="820" font-size="22" fill="#6e7681" text-anchor="middle" letter-spacing="4">STEP 03</text>
+  <text x="1590" y="875" font-size="52" text-anchor="middle">🔍</text>
+  <text x="1590" y="940" font-size="34" font-weight="700" fill="#bc8cff" text-anchor="middle">frontmatter 解析</text>
+  <text x="1590" y="985" font-size="22" fill="#8b949e" text-anchor="middle">gray-matter 库</text>
+  <text x="1590" y="1018" font-size="22" fill="#8b949e" text-anchor="middle">YAML → 对象</text>
+
+  <!-- Arrow -->
+  <text x="1900" y="910" font-size="64" fill="#1f6feb" text-anchor="middle">→</text>
+
+  <!-- Step 4: Command Object -->
+  <rect x="1940" y="760" width="540" height="280" rx="14"
+        fill="#161b22" stroke="rgba(121,192,255,0.5)" stroke-width="2"/>
+  <text x="2210" y="820" font-size="22" fill="#6e7681" text-anchor="middle" letter-spacing="4">STEP 04</text>
+  <text x="2210" y="875" font-size="52" text-anchor="middle">🏗️</text>
+  <text x="2210" y="940" font-size="34" font-weight="700" fill="#79c0ff" text-anchor="middle">Command 对象</text>
+  <text x="2210" y="985" font-size="22" fill="#8b949e" text-anchor="middle">commands.ts:563</text>
+  <text x="2210" y="1018" font-size="22" fill="#8b949e" text-anchor="middle">name/content/$ARGS</text>
+
+  <!-- Arrow -->
+  <text x="2520" y="910" font-size="64" fill="#1f6feb" text-anchor="middle">→</text>
+
+  <!-- Step 5: Registry -->
+  <rect x="2560" y="760" width="868" height="280" rx="14"
+        fill="#161b22" stroke="#238636" stroke-width="2"/>
+  <text x="2994" y="820" font-size="22" fill="#6e7681" text-anchor="middle" letter-spacing="4">STEP 05</text>
+  <text x="2994" y="875" font-size="52" text-anchor="middle">📦</text>
+  <text x="2994" y="940" font-size="34" font-weight="700" fill="#3fb950" text-anchor="middle">CommandRegistry</text>
+  <text x="2994" y="985" font-size="22" fill="#3fb950" text-anchor="middle">/weather · /pdf-report</text>
+  <text x="2994" y="1018" font-size="22" fill="#8b949e" text-anchor="middle">用户可调用</text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION B · Tools vs Skills（Left）
+  ══════════════════════════════════════════════ -->
+  <text x="80" y="1140" font-size="24" fill="#6e7681" letter-spacing="6">B · TOOL vs SKILL 本质差异</text>
+  <line x1="80" y1="1155" x2="1140" y2="1155" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Tool Box -->
+  <rect x="80" y="1180" width="480" height="680" rx="14"
+        fill="#161b22" stroke="#f85149" stroke-width="2"/>
+  <text x="320" y="1240" font-size="36" font-weight="700" fill="#f85149" text-anchor="middle">Tool（工具）</text>
+  <text x="320" y="1280" font-size="24" fill="#6e7681" text-anchor="middle">描述"能做什么"</text>
+  <rect x="100" y="1300" width="440" height="360" rx="8" fill="#0d1117"/>
+  <text x="120" y="1350" font-size="24" fill="#ff7b72">def </text>
+  <text x="196" y="1350" font-size="24" fill="#d2a8ff">get_weather</text>
+  <text x="376" y="1350" font-size="24" fill="#e6edf3">(</text>
+  <text x="392" y="1350" font-size="24" fill="#79c0ff">city</text>
+  <text x="432" y="1350" font-size="24" fill="#e6edf3">):</text>
+  <text x="136" y="1392" font-size="22" fill="#8b949e">"""查询城市天气"""</text>
+  <text x="136" y="1434" font-size="22" fill="#8b949e">resp = requests.get(API</text>
+  <text x="136" y="1476" font-size="22" fill="#8b949e">             + city)</text>
+  <text x="136" y="1518" font-size="22" fill="#ff7b72">return </text>
+  <text x="238" y="1518" font-size="22" fill="#79c0ff">resp</text>
+  <text x="286" y="1518" font-size="22" fill="#e6edf3">.json()</text>
+  <text x="136" y="1570" font-size="21" fill="#6e7681"># 只有函数签名</text>
+  <text x="136" y="1605" font-size="21" fill="#6e7681"># 无"失败怎么办"</text>
+  <text x="136" y="1640" font-size="21" fill="#6e7681"># 无"结果怎么展示"</text>
+
+  <rect x="100" y="1680" width="440" height="44" rx="4" fill="rgba(248,81,73,0.1)" stroke="#f85149" stroke-width="1"/>
+  <text x="320" y="1708" font-size="22" fill="#f85149" text-anchor="middle">只描述能力，不编码知识</text>
+
+  <text x="100" y="1782" font-size="24" fill="#8b949e">• 修改需改代码 + 部署</text>
+  <text x="100" y="1822" font-size="24" fill="#8b949e">• 只有工程师能维护</text>
+  <text x="100" y="1862" font-size="24" fill="#8b949e">• 无法共享"最佳实践"</text>
+
+  <!-- Skill Box -->
+  <rect x="620" y="1180" width="480" height="680" rx="14"
+        fill="#161b22" stroke="#3fb950" stroke-width="2"/>
+  <text x="860" y="1240" font-size="36" font-weight="700" fill="#3fb950" text-anchor="middle">Skill（技能）</text>
+  <text x="860" y="1280" font-size="24" fill="#6e7681" text-anchor="middle">描述"怎么做"</text>
+  <rect x="640" y="1300" width="440" height="360" rx="8" fill="#0d1117"/>
+  <text x="660" y="1350" font-size="24" fill="#ffa657">---</text>
+  <text x="660" y="1392" font-size="24" fill="#ffa657">name: </text>
+  <text x="782" y="1392" font-size="24" fill="#a5d6ff">weather</text>
+  <text x="660" y="1434" font-size="24" fill="#ffa657">description: </text>
+  <text x="850" y="1434" font-size="22" fill="#a5d6ff">查询天气</text>
+  <text x="660" y="1476" font-size="24" fill="#ffa657">---</text>
+  <text x="660" y="1518" font-size="22" fill="#e6edf3">查询 </text>
+  <rect x="730" y="1496" width="132" height="32" rx="4" fill="rgba(227,179,65,0.2)"/>
+  <text x="730" y="1518" font-size="22" fill="#e3b341">$ARGUMENTS</text>
+  <text x="866" y="1518" font-size="22" fill="#e6edf3"> 天气</text>
+  <text x="660" y="1560" font-size="22" fill="#8b949e">1. 确认城市名</text>
+  <text x="660" y="1600" font-size="22" fill="#8b949e">2. 调用 get_weather</text>
+  <text x="660" y="1640" font-size="22" fill="#8b949e">3. 格式化输出</text>
+
+  <rect x="640" y="1680" width="440" height="44" rx="4" fill="rgba(63,185,80,0.1)" stroke="#3fb950" stroke-width="1"/>
+  <text x="860" y="1708" font-size="22" fill="#3fb950" text-anchor="middle">SOP + 知识，可复用</text>
+
+  <text x="640" y="1782" font-size="24" fill="#8b949e">• 改 Markdown，无需部署</text>
+  <text x="640" y="1822" font-size="24" fill="#8b949e">• 任何人都能维护</text>
+  <text x="640" y="1862" font-size="24" fill="#8b949e">• 跨 agent 一键共享</text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION C · $ARGUMENTS（Center-Left）
+  ══════════════════════════════════════════════ -->
+  <text x="1250" y="1140" font-size="24" fill="#6e7681" letter-spacing="6">C · $ARGUMENTS 替换流程</text>
+  <line x1="1250" y1="1155" x2="2240" y2="1155" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Flow diagram -->
+  <rect x="1250" y="1185" width="920" height="600" rx="14" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+
+  <!-- User input -->
+  <rect x="1290" y="1220" width="840" height="72" rx="8" fill="#0d1117" stroke="#30363d"/>
+  <text x="1340" y="1265" font-size="28" fill="#6e7681" font-style="italic">用户输入：</text>
+  <text x="1540" y="1265" font-size="32" font-weight="700" fill="#3fb950">/weather 上海</text>
+
+  <text x="1710" y="1333" font-size="40" fill="#30363d" text-anchor="middle">↓</text>
+
+  <!-- Parse -->
+  <rect x="1290" y="1355" width="840" height="72" rx="8" fill="rgba(56,139,253,0.08)" stroke="#1f6feb"/>
+  <text x="1340" y="1398" font-size="22" fill="#58a6ff">匹配 CommandRegistry["weather"]</text>
+  <text x="1700" y="1398" font-size="22" fill="#8b949e">→ weather.md 的 content</text>
+
+  <text x="1710" y="1468" font-size="40" fill="#30363d" text-anchor="middle">↓</text>
+
+  <!-- Replace -->
+  <rect x="1290" y="1490" width="840" height="90" rx="8" fill="rgba(227,179,65,0.08)" stroke="rgba(227,179,65,0.4)"/>
+  <text x="1340" y="1530" font-size="22" fill="#e3b341">"查询 $ARGUMENTS 的天气…"</text>
+  <text x="1340" y="1568" font-size="22" fill="#f0883e">→  "查询 上海 的天气…"</text>
+
+  <text x="1710" y="1634" font-size="40" fill="#30363d" text-anchor="middle">↓</text>
+
+  <!-- Inject -->
+  <rect x="1290" y="1655" width="840" height="72" rx="8" fill="rgba(63,185,80,0.08)" stroke="#238636"/>
+  <text x="1340" y="1698" font-size="22" fill="#3fb950">追加到 system prompt → LLM 执行</text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION D · Industry Timeline（Right）
+  ══════════════════════════════════════════════ -->
+  <text x="2360" y="1140" font-size="24" fill="#6e7681" letter-spacing="6">D · 行业收敛时间线</text>
+  <line x1="2360" y1="1155" x2="3428" y2="1155" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Timeline line -->
+  <line x1="2450" y1="1200" x2="2450" y2="1820" stroke="#30363d" stroke-width="2"/>
+
+  <!-- T1: MCP -->
+  <circle cx="2450" cy="1260" r="16" fill="#6e7681"/>
+  <text x="2500" y="1250" font-size="26" fill="#6e7681" font-weight="700">2024-11 · Anthropic MCP</text>
+  <text x="2500" y="1286" font-size="22" fill="#6e7681">工具连接基础设施，Skills 前置</text>
+
+  <!-- T2: Anthropic Skills -->
+  <circle cx="2450" cy="1395" r="20" fill="#58a6ff"/>
+  <text x="2500" y="1385" font-size="28" fill="#58a6ff" font-weight="700">2025-10-16 · Anthropic Skills</text>
+  <text x="2500" y="1420" font-size="22" fill="#8b949e">"Equipping Agents for the Real World"</text>
+  <rect x="2500" y="1434" width="648" height="44" rx="6" fill="rgba(56,139,253,0.1)" stroke="#1f6feb"/>
+  <text x="2524" y="1462" font-size="22" fill="#3fb950" font-weight="700">Simon Willison: "a bigger deal than MCP"</text>
+
+  <!-- T3: OpenAI -->
+  <circle cx="2450" cy="1570" r="20" fill="#f0883e"/>
+  <text x="2500" y="1560" font-size="28" fill="#f0883e" font-weight="700">2025-12-12 · OpenAI 跟进</text>
+  <text x="2500" y="1595" font-size="22" fill="#8b949e">ChatGPT + Codex CLI 加入 Skills</text>
+  <text x="2500" y="1628" font-size="22" fill="#8b949e">格式高度相似：MD + frontmatter + $ARGS</text>
+
+  <!-- T4: Standard -->
+  <circle cx="2450" cy="1740" r="20" fill="#3fb950"/>
+  <text x="2500" y="1730" font-size="28" fill="#3fb950" font-weight="700">2026 → Skills 成为行业标准</text>
+  <text x="2500" y="1765" font-size="22" fill="#8b949e">两月内双巨头跟进，行业收敛确立</text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION E · Skills vs MCP（Bottom Left）
+  ══════════════════════════════════════════════ -->
+  <text x="80" y="1990" font-size="24" fill="#6e7681" letter-spacing="6">E · SKILLS vs MCP 互补关系</text>
+  <line x1="80" y1="2005" x2="1140" y2="2005" stroke="#30363d" stroke-width="1"/>
+
+  <!-- MCP -->
+  <rect x="80" y="2030" width="460" height="380" rx="14"
+        fill="rgba(56,139,253,0.06)" stroke="#1f6feb" stroke-width="2"/>
+  <text x="310" y="2095" font-size="44" text-anchor="middle">🔌</text>
+  <text x="310" y="2150" font-size="36" font-weight="700" fill="#58a6ff" text-anchor="middle">MCP</text>
+  <text x="310" y="2192" font-size="24" fill="#8b949e" text-anchor="middle">工具连接层</text>
+  <text x="100" y="2255" font-size="22" fill="#6e7681">• JSON-RPC over stdio</text>
+  <text x="100" y="2295" font-size="22" fill="#6e7681">• 工程师写</text>
+  <text x="100" y="2335" font-size="22" fill="#6e7681">• "agent 能连接什么"</text>
+  <text x="310" y="2390" font-size="22" fill="#58a6ff" text-anchor="middle">类比：USB 接口标准</text>
+
+  <!-- Plus -->
+  <text x="600" y="2240" font-size="80" fill="#30363d" text-anchor="middle">+</text>
+  <text x="600" y="2310" font-size="26" fill="#8b949e" text-anchor="middle">互补</text>
+
+  <!-- Skills -->
+  <rect x="660" y="2030" width="460" height="380" rx="14"
+        fill="rgba(63,185,80,0.06)" stroke="#238636" stroke-width="2"/>
+  <text x="890" y="2095" font-size="44" text-anchor="middle">📋</text>
+  <text x="890" y="2150" font-size="36" font-weight="700" fill="#3fb950" text-anchor="middle">Skills</text>
+  <text x="890" y="2192" font-size="24" fill="#8b949e" text-anchor="middle">知识复用层</text>
+  <text x="680" y="2255" font-size="22" fill="#6e7681">• Markdown + SOP</text>
+  <text x="680" y="2295" font-size="22" fill="#6e7681">• 任何人写</text>
+  <text x="680" y="2335" font-size="22" fill="#6e7681">• "agent 怎么做得好"</text>
+  <text x="890" y="2390" font-size="22" fill="#3fb950" text-anchor="middle">类比：操作手册标准</text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION F · Real Cases（Bottom Center）
+  ══════════════════════════════════════════════ -->
+  <text x="1250" y="1990" font-size="24" fill="#6e7681" letter-spacing="6">F · 真实案例</text>
+  <line x1="1250" y1="2005" x2="2240" y2="2005" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Case 9.1 -->
+  <rect x="1250" y="2030" width="920" height="200" rx="14"
+        fill="#161b22" stroke="#1f6feb" stroke-width="1"/>
+  <text x="1290" y="2082" font-size="28" font-weight="700" fill="#58a6ff">案例 9.1 · ironman-config 跨机器同步</text>
+  <text x="1290" y="2120" font-size="22" fill="#8b949e">learn.sh --skill → 自动创建分支 → push → PR</text>
+  <text x="1290" y="2158" font-size="22" fill="#8b949e">其他机器 git pull &amp;&amp; install.sh 即可同步</text>
+  <rect x="1290" y="2172" width="540" height="38" rx="4" fill="rgba(248,81,73,0.1)"/>
+  <text x="1310" y="2197" font-size="20" fill="#f85149">⚠ 断更 27 天 → 重复踩坑 · 铁律：当天记录</text>
+
+  <!-- Case 9.2 -->
+  <rect x="1250" y="2250" width="920" height="200" rx="14"
+        fill="#161b22" stroke="#238636" stroke-width="1"/>
+  <text x="1290" y="2302" font-size="28" font-weight="700" fill="#3fb950">案例 9.2 · Lena Voyager 式自进化</text>
+  <text x="1290" y="2340" font-size="22" fill="#8b949e">skill-usage.jsonl 埋点 → 每周日聚合</text>
+  <text x="1290" y="2378" font-size="22" fill="#8b949e">高使用升级 · 低使用降级 · 7天零用归档</text>
+  <rect x="1290" y="2392" width="600" height="38" rx="4" fill="rgba(63,185,80,0.1)"/>
+  <text x="1310" y="2417" font-size="20" fill="#3fb950">Skills 不是静态文档，而是可以演化的</text>
+
+  <!-- ══════════════════════════════════════════════
+       SECTION G · weather.md 结构注解（Bottom Right）
+  ══════════════════════════════════════════════ -->
+  <text x="2360" y="1990" font-size="24" fill="#6e7681" letter-spacing="6">G · weather.md 结构注解</text>
+  <line x1="2360" y1="2005" x2="3428" y2="2005" stroke="#30363d" stroke-width="1"/>
+
+  <rect x="2360" y="2030" width="1060" height="400" rx="14"
+        fill="#161b22" stroke="#30363d" stroke-width="1"/>
+
+  <!-- frontmatter region -->
+  <rect x="2380" y="2055" width="380" height="172" rx="6" fill="#0d1117" stroke="rgba(255,166,87,0.4)"/>
+  <text x="2400" y="2096" font-size="22" fill="#ffa657">---</text>
+  <text x="2400" y="2130" font-size="22" fill="#ffa657">name: </text>
+  <text x="2520" y="2130" font-size="22" fill="#a5d6ff">weather</text>
+  <text x="2400" y="2164" font-size="22" fill="#ffa657">description: ...</text>
+  <text x="2400" y="2198" font-size="22" fill="#ffa657">allowed-tools: [...]</text>
+  <text x="2400" y="2220" font-size="22" fill="#ffa657">---</text>
+  <!-- frontmatter label -->
+  <line x1="2760" y1="2138" x2="2820" y2="2138" stroke="#ffa657" stroke-width="1" stroke-dasharray="4"/>
+  <rect x="2820" y="2100" width="580" height="90" rx="6" fill="rgba(255,166,87,0.08)" stroke="rgba(255,166,87,0.3)"/>
+  <text x="2844" y="2135" font-size="24" font-weight="700" fill="#ffa657">frontmatter（YAML）</text>
+  <text x="2844" y="2165" font-size="20" fill="#8b949e">name → /weather 命令</text>
+  <text x="2844" y="2190" font-size="20" fill="#8b949e">commands.ts:563 解析</text>
+
+  <!-- body region -->
+  <rect x="2380" y="2250" width="380" height="152" rx="6" fill="#0d1117" stroke="rgba(63,185,80,0.4)"/>
+  <text x="2400" y="2286" font-size="20" fill="#e6edf3">查询 </text>
+  <rect x="2468" y="2265" width="136" height="28" rx="3" fill="rgba(227,179,65,0.2)"/>
+  <text x="2470" y="2286" font-size="20" fill="#e3b341">$ARGUMENTS</text>
+  <text x="2610" y="2286" font-size="20" fill="#e6edf3"> 天气</text>
+  <text x="2400" y="2320" font-size="20" fill="#8b949e">1. 确认城市名</text>
+  <text x="2400" y="2354" font-size="20" fill="#8b949e">2. 调用工具</text>
+  <text x="2400" y="2388" font-size="20" fill="#8b949e">3. 格式化输出</text>
+  <!-- body label -->
+  <line x1="2760" y1="2325" x2="2820" y2="2325" stroke="#3fb950" stroke-width="1" stroke-dasharray="4"/>
+  <rect x="2820" y="2290" width="580" height="90" rx="6" fill="rgba(63,185,80,0.08)" stroke="rgba(63,185,80,0.3)"/>
+  <text x="2844" y="2325" font-size="24" font-weight="700" fill="#3fb950">正文（Markdown）</text>
+  <text x="2844" y="2355" font-size="20" fill="#8b949e">$ARGUMENTS → 用户输入替换</text>
+  <text x="2844" y="2380" font-size="20" fill="#8b949e">注入 system prompt</text>
+
+  <!-- ══════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════ -->
+  <rect x="0" y="2440" width="3508" height="40" fill="#161b22"/>
+  <line x1="0" y1="2440" x2="3508" y2="2440" stroke="#30363d" stroke-width="1"/>
+  <text x="80" y="2466" font-size="22" fill="#6e7681">
+    R1 loadSkillsDir.ts:887 · commands.ts:563 · R3 Anthropic 2025-10-16 · OpenAI 2025-12-12 · R5 案例 9.1/9.2 · lena-v0.9
+  </text>
+  <text x="3428" y="2466" font-size="22" fill="#6e7681" text-anchor="end">
+    Ch 09 · Skills：可复用的能力单元 · 《从零构建你的 AI Agent》
+  </text>
+
+</svg>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #08090f; font-family: -apple-system,'PingFang SC',sans-serif; color: #fff; }
+.title { position: absolute; top: 70px; left: 100px; font-size: 15px; letter-spacing: 0.3em; color: #9966ff; text-transform: uppercase; }
+.heading { position: absolute; top: 120px; left: 100px; font-size: 54px; font-weight: 900; }
+
+.layers { position: absolute; top: 250px; left: 100px; right: 100px; display: flex; gap: 20px; align-items: stretch; }
+.layer {
+  flex: 1; border-radius: 10px; padding: 28px 24px;
+  display: flex; flex-direction: column;
+}
+.layer.l1 { background: rgba(68,102,255,0.06); border: 1px solid rgba(68,102,255,0.25); }
+.layer.l2 { background: rgba(0,150,255,0.06); border: 1px solid rgba(0,150,255,0.25); }
+.layer.l3 { background: rgba(0,200,100,0.06); border: 1px solid rgba(0,200,100,0.25); }
+.layer.l4 { background: rgba(255,80,80,0.06);  border: 1px solid rgba(255,80,80,0.25); }
+
+.layer-num { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 10px; opacity: 0.6; }
+.l1 .layer-num { color: #6688ff; }
+.l2 .layer-num { color: #44aaff; }
+.l3 .layer-num { color: #00cc66; }
+.l4 .layer-num { color: #ff6666; }
+
+.layer-name { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+.l1 .layer-name { color: #8899ff; }
+.l2 .layer-name { color: #66ccff; }
+.l3 .layer-name { color: #55ddaa; }
+.l4 .layer-name { color: #ff8888; }
+
+.layer-role { font-size: 13px; color: rgba(255,255,255,0.45); margin-bottom: 16px; line-height: 1.6; }
+.layer-tools { font-size: 12px; font-family: monospace; color: rgba(255,255,255,0.3); line-height: 1.8; }
+.layer-tools span { color: rgba(255,255,255,0.5); }
+
+.layer-output {
+  margin-top: auto; padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 11px; line-height: 1.7; color: rgba(255,255,255,0.3);
+  font-family: monospace;
+}
+.l1 .layer-output { color: rgba(136,153,255,0.5); }
+.l2 .layer-output { color: rgba(102,204,255,0.5); }
+.l3 .layer-output { color: rgba(85,221,170,0.5); }
+.l4 .layer-output { color: rgba(255,136,136,0.5); }
+
+.arrow-col {
+  width: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  color: rgba(153,102,255,0.4); font-size: 24px;
+}
+
+.why-row {
+  position: absolute; bottom: 60px; left: 100px; right: 100px;
+  display: flex; gap: 20px;
+}
+.why-item {
+  flex: 1; padding: 14px 18px;
+  background: rgba(153,102,255,0.04); border: 1px solid rgba(153,102,255,0.12);
+  border-radius: 6px; font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6;
+}
+.why-item strong { color: #cc88ff; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="title">TradingAgents · 角色扮演多 agent 通用套路</div>
+<div class="heading">四层 agent 层级：分析师 → 研究员 → 交易员 → 风控</div>
+
+<div class="layers">
+  <div class="layer l1">
+    <div class="layer-num">LAYER 1</div>
+    <div class="layer-name">分析师</div>
+    <div class="layer-role">专注技术指标分析<br>不看新闻，不看情绪</div>
+    <div class="layer-tools"><span>工具：</span>get_price<br>get_indicators<br>RSI / MACD / BB</div>
+    <div class="layer-output">输出：<br>RSI=42 (中性)<br>MACD 金叉<br>BB 中轨上方<br>多头置信度 0.72</div>
+  </div>
+
+  <div class="arrow-col">→</div>
+
+  <div class="layer l2">
+    <div class="layer-num">LAYER 2</div>
+    <div class="layer-name">研究员</div>
+    <div class="layer-role">基本面 + 新闻情绪<br>补充技术面的盲区</div>
+    <div class="layer-tools"><span>工具：</span>collect_news<br>onchain_data<br>Fear &amp; Greed Index</div>
+    <div class="layer-output">输出：<br>新闻情绪偏多<br>大户持仓 +3%<br>F&amp;G = 58<br>基本面支持多头</div>
+  </div>
+
+  <div class="arrow-col">→</div>
+
+  <div class="layer l3">
+    <div class="layer-num">LAYER 3</div>
+    <div class="layer-name">交易员</div>
+    <div class="layer-role">综合 L1+L2 制定策略<br>Opus 级别推理</div>
+    <div class="layer-tools"><span>工具：</span>place_order<br>close_position<br>get_positions</div>
+    <div class="layer-output">输出：<br>开多 BTC 0.1 张<br>入场 $103,200<br>止损 $101,648<br>止盈 $106,296</div>
+  </div>
+
+  <div class="arrow-col">→</div>
+
+  <div class="layer l4">
+    <div class="layer-num">LAYER 4</div>
+    <div class="layer-name">风控官</div>
+    <div class="layer-role">最后一道门<br>代码级硬编码，不可绕过</div>
+    <div class="layer-tools"><span>工具：</span>validate_risk<br>check_exposure<br>circuit_breaker</div>
+    <div class="layer-output">审核：<br>敞口 $103 ≤ $206 ✅<br>今日亏损 $0 ✅<br>熔断 OFF ✅<br>→ <strong>批准执行</strong></div>
+  </div>
+</div>
+
+<div class="why-row">
+  <div class="why-item"><strong>专注减少幻觉</strong>分析师只看技术，不会被新闻噪音干扰，决策更准</div>
+  <div class="why-item"><strong>并行提速</strong>L1 分析师 + L2 研究员可以并行执行，总时间减半</div>
+  <div class="why-item"><strong>职责可替换</strong>换策略只改 L3 交易员，L1/L2 不动；风控永远是 L4</div>
+  <div class="why-item"><strong>对应 hermesbot</strong>[案例 19.1] 的 Python 实现，用 Strands SDK 而非 LangGraph</div>
+</div>
+</body>
+</html>

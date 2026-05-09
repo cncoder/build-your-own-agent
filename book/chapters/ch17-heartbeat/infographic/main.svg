@@ -1,0 +1,249 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1587 2245" width="1587" height="2245">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap');
+      text { font-family: 'Inter', 'PingFang SC', system-ui, sans-serif; }
+    </style>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#08101f"/>
+      <stop offset="100%" stop-color="#060c16"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#63b3ed"/>
+      <stop offset="100%" stop-color="#4fd1c5"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#48bb78"/>
+      <stop offset="100%" stop-color="#68d391"/>
+    </linearGradient>
+    <linearGradient id="warnGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#f6ad55"/>
+      <stop offset="100%" stop-color="#fc8181"/>
+    </linearGradient>
+    <filter id="glow-blue">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1587" height="2245" fill="url(#bgGrad)"/>
+  <!-- Subtle grid -->
+  <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+    <path d="M80,0 L0,0 L0,80" fill="none" stroke="rgba(99,179,237,0.04)" stroke-width="1"/>
+  </pattern>
+  <rect width="1587" height="2245" fill="url(#grid)"/>
+
+  <!-- ─── Header ─────────────────────────────────────────────────────────── -->
+  <rect x="0" y="0" width="1587" height="220" fill="rgba(99,179,237,0.04)"/>
+  <line x1="0" y1="220" x2="1587" y2="220" stroke="rgba(99,179,237,0.2)" stroke-width="1"/>
+
+  <text x="793" y="80" text-anchor="middle" font-size="22" fill="rgba(99,179,237,0.7)" letter-spacing="4" font-weight="600">CH 13 · HEARTBEAT</text>
+  <text x="793" y="148" text-anchor="middle" font-size="56" fill="white" font-weight="900" letter-spacing="-1">让 Agent 主动找你</text>
+  <text x="793" y="196" text-anchor="middle" font-size="22" fill="rgba(226,232,240,0.5)">Reactive vs Proactive · active-hours · 4 子模块 · 独立告警</text>
+
+  <!-- ─── Part 1: Reactive vs Proactive ─────────────────────────────────── -->
+  <text x="793" y="284" text-anchor="middle" font-size="18" fill="rgba(99,179,237,0.6)" letter-spacing="3" font-weight="600">PART 1 · 设计哲学</text>
+
+  <!-- Left: Reactive box -->
+  <rect x="60" y="304" width="680" height="520" rx="20" fill="rgba(246,173,85,0.05)" stroke="rgba(246,173,85,0.3)" stroke-width="1.5"/>
+  <rect x="60" y="304" width="680" height="56" rx="20" fill="rgba(246,173,85,0.12)"/>
+  <rect x="60" y="340" width="680" height="20" rx="0" fill="rgba(246,173,85,0.12)"/>
+  <text x="400" y="340" text-anchor="middle" font-size="24" fill="#f6ad55" font-weight="700">Reactive Agent</text>
+  <text x="400" y="372" text-anchor="middle" font-size="16" fill="rgba(246,173,85,0.7)">被动等待命令</text>
+
+  <!-- Reactive timeline -->
+  <line x1="140" y1="420" x2="680" y2="420" stroke="rgba(246,173,85,0.3)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="150" y="410" font-size="13" fill="rgba(226,232,240,0.5)">用户</text>
+  <text x="150" y="436" font-size="13" fill="rgba(226,232,240,0.5)">Lena</text>
+
+  <rect x="200" y="454" width="90" height="28" rx="6" fill="rgba(246,173,85,0.15)" stroke="rgba(246,173,85,0.4)" stroke-width="1"/>
+  <text x="245" y="473" text-anchor="middle" font-size="14" fill="#f6ad55">发消息</text>
+  <line x1="245" y1="482" x2="245" y2="520" stroke="rgba(246,173,85,0.5)" stroke-width="1.5" marker-end="url(#arrow-warn)"/>
+  <rect x="200" y="520" width="90" height="28" rx="6" fill="rgba(246,173,85,0.1)" stroke="rgba(246,173,85,0.3)" stroke-width="1"/>
+  <text x="245" y="539" text-anchor="middle" font-size="14" fill="rgba(246,173,85,0.8)">回复</text>
+
+  <rect x="380" y="454" width="90" height="28" rx="6" fill="rgba(246,173,85,0.15)" stroke="rgba(246,173,85,0.4)" stroke-width="1"/>
+  <text x="425" y="473" text-anchor="middle" font-size="14" fill="#f6ad55">发消息</text>
+  <line x1="425" y1="482" x2="425" y2="520" stroke="rgba(246,173,85,0.5)" stroke-width="1.5"/>
+  <rect x="380" y="520" width="90" height="28" rx="6" fill="rgba(246,173,85,0.1)" stroke="rgba(246,173,85,0.3)" stroke-width="1"/>
+  <text x="425" y="539" text-anchor="middle" font-size="14" fill="rgba(246,173,85,0.8)">回复</text>
+
+  <!-- Waiting zone -->
+  <rect x="295" y="460" width="70" height="80" rx="6" fill="rgba(30,30,30,0.6)" stroke="rgba(100,100,100,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="330" y="496" text-anchor="middle" font-size="12" fill="rgba(100,100,100,0.8)">...</text>
+  <text x="330" y="514" text-anchor="middle" font-size="12" fill="rgba(100,100,100,0.8)">等待</text>
+
+  <!-- Limitations -->
+  <text x="400" y="590" text-anchor="middle" font-size="16" fill="rgba(246,173,85,0.9)" font-weight="600">核心局限</text>
+  <text x="130" y="618" font-size="15" fill="rgba(226,232,240,0.65)">• 你不问，Lena 不说</text>
+  <text x="130" y="644" font-size="15" fill="rgba(226,232,240,0.65)">• 你必须知道该问什么</text>
+  <text x="130" y="670" font-size="15" fill="rgba(226,232,240,0.65)">• 告警、日报无法主动推送</text>
+  <text x="130" y="696" font-size="15" fill="rgba(226,232,240,0.65)">• 本质是工具，不是助理</text>
+
+  <!-- Right: Proactive box -->
+  <rect x="847" y="304" width="680" height="520" rx="20" fill="rgba(104,211,145,0.05)" stroke="rgba(104,211,145,0.3)" stroke-width="1.5"/>
+  <rect x="847" y="304" width="680" height="56" rx="20" fill="rgba(104,211,145,0.12)"/>
+  <rect x="847" y="340" width="680" height="20" rx="0" fill="rgba(104,211,145,0.12)"/>
+  <text x="1187" y="340" text-anchor="middle" font-size="24" fill="#68d391" font-weight="700">Proactive Agent</text>
+  <text x="1187" y="372" text-anchor="middle" font-size="16" fill="rgba(104,211,145,0.7)">Heartbeat 主动触发</text>
+
+  <!-- Heartbeat tick arrows -->
+  <text x="920" y="430" font-size="13" fill="rgba(99,179,237,0.7)" font-family="monospace">08:00 tick</text>
+  <line x1="920" y1="440" x2="920" y2="465" stroke="rgba(99,179,237,0.7)" stroke-width="1.5"/>
+
+  <!-- Flow boxes -->
+  <rect x="880" y="468" width="148" height="34" rx="8" fill="rgba(99,179,237,0.12)" stroke="rgba(99,179,237,0.3)" stroke-width="1"/>
+  <text x="954" y="490" text-anchor="middle" font-size="13" fill="#63b3ed">isActiveHours?</text>
+  <line x1="954" y1="502" x2="954" y2="526" stroke="rgba(99,179,237,0.5)" stroke-width="1.5"/>
+  <text x="970" y="520" font-size="12" fill="rgba(104,211,145,0.8)">✓ Yes</text>
+
+  <rect x="880" y="528" width="148" height="34" rx="8" fill="rgba(99,179,237,0.12)" stroke="rgba(99,179,237,0.3)" stroke-width="1"/>
+  <text x="954" y="550" text-anchor="middle" font-size="13" fill="#63b3ed">generatePayload()</text>
+  <line x1="954" y1="562" x2="954" y2="586" stroke="rgba(99,179,237,0.5)" stroke-width="1.5"/>
+
+  <rect x="880" y="588" width="148" height="34" rx="8" fill="rgba(104,211,145,0.15)" stroke="rgba(104,211,145,0.4)" stroke-width="1"/>
+  <text x="954" y="610" text-anchor="middle" font-size="13" fill="#68d391">→ 用户 Telegram</text>
+
+  <!-- Proactive advantages -->
+  <text x="1187" y="590" text-anchor="middle" font-size="16" fill="rgba(104,211,145,0.9)" font-weight="600">核心优势</text>
+  <text x="920" y="618" font-size="15" fill="rgba(226,232,240,0.65)">• 你不说，Lena 主动开口</text>
+  <text x="920" y="644" font-size="15" fill="rgba(226,232,240,0.65)">• 信息主动权在 Agent</text>
+  <text x="920" y="670" font-size="15" fill="rgba(226,232,240,0.65)">• 日报/告警/进度自动推送</text>
+  <text x="920" y="696" font-size="15" fill="rgba(226,232,240,0.65)">• 本质是助理，不是工具</text>
+
+  <!-- VS divider -->
+  <circle cx="793" cy="564" r="36" fill="#0a0e1a" stroke="rgba(99,179,237,0.25)" stroke-width="2"/>
+  <text x="793" y="572" text-anchor="middle" font-size="20" fill="rgba(226,232,240,0.9)" font-weight="700">VS</text>
+
+  <!-- ─── Part 2: Heartbeat 4 子模块 ──────────────────────────────────── -->
+  <line x1="60" y1="870" x2="1527" y2="870" stroke="rgba(99,179,237,0.12)" stroke-width="1"/>
+  <text x="793" y="912" text-anchor="middle" font-size="18" fill="rgba(99,179,237,0.6)" letter-spacing="3" font-weight="600">PART 2 · HEARTBEAT 4 子模块协同</text>
+
+  <!-- Runner center box -->
+  <rect x="596" y="936" width="396" height="72" rx="14" fill="rgba(99,179,237,0.1)" stroke="rgba(99,179,237,0.4)" stroke-width="2"/>
+  <text x="794" y="964" text-anchor="middle" font-size="14" fill="rgba(99,179,237,0.7)" font-family="monospace">heartbeat-runner.ts</text>
+  <text x="794" y="990" text-anchor="middle" font-size="20" fill="#63b3ed" font-weight="700">HeartbeatRunner</text>
+
+  <!-- Sub-module: active-hours -->
+  <rect x="60" y="1072" width="320" height="148" rx="14" fill="rgba(104,211,145,0.07)" stroke="rgba(104,211,145,0.35)" stroke-width="1.5"/>
+  <text x="220" y="1110" text-anchor="middle" font-size="15" fill="#68d391" font-weight="700">active-hours</text>
+  <text x="220" y="1134" text-anchor="middle" font-size="13" fill="rgba(226,232,240,0.6)">时区感知 工作时间过滤</text>
+  <text x="80" y="1160" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• timezone: Asia/HK</text>
+  <text x="80" y="1178" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• weekdays: 8-22h</text>
+  <text x="80" y="1196" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• weekend: 10-20h</text>
+
+  <!-- Sub-module: events-filter -->
+  <rect x="430" y="1072" width="320" height="148" rx="14" fill="rgba(99,179,237,0.07)" stroke="rgba(99,179,237,0.35)" stroke-width="1.5"/>
+  <text x="590" y="1110" text-anchor="middle" font-size="15" fill="#63b3ed" font-weight="700">events-filter</text>
+  <text x="590" y="1134" text-anchor="middle" font-size="13" fill="rgba(226,232,240,0.6)">过滤哪些事件值得推送</text>
+  <text x="450" y="1160" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• high → 立即发</text>
+  <text x="450" y="1178" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• medium → rate-limit</text>
+  <text x="450" y="1196" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• low → digest 模式</text>
+
+  <!-- Sub-module: visibility -->
+  <rect x="840" y="1072" width="320" height="148" rx="14" fill="rgba(246,173,85,0.07)" stroke="rgba(246,173,85,0.35)" stroke-width="1.5"/>
+  <text x="1000" y="1110" text-anchor="middle" font-size="15" fill="#f6ad55" font-weight="700">visibility</text>
+  <text x="1000" y="1134" text-anchor="middle" font-size="13" fill="rgba(226,232,240,0.6)">用户在线状态感知</text>
+  <text x="860" y="1160" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• Discord online status</text>
+  <text x="860" y="1178" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• last seen</text>
+  <text x="860" y="1196" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• DND 模式</text>
+
+  <!-- Sub-module: reason -->
+  <rect x="1210" y="1072" width="320" height="148" rx="14" fill="rgba(159,122,234,0.07)" stroke="rgba(159,122,234,0.35)" stroke-width="1.5"/>
+  <text x="1370" y="1110" text-anchor="middle" font-size="15" fill="#b794f4" font-weight="700">reason</text>
+  <text x="1370" y="1134" text-anchor="middle" font-size="13" fill="rgba(226,232,240,0.6)">推送原因链路可追溯</text>
+  <text x="1230" y="1160" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• 为什么这条被发</text>
+  <text x="1230" y="1178" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• debug 证据链</text>
+  <text x="1230" y="1196" font-size="12" fill="rgba(226,232,240,0.5)" font-family="monospace">• audit log</text>
+
+  <!-- Connector lines from runner to sub-modules -->
+  <line x1="650" y1="1008" x2="220" y2="1072" stroke="rgba(104,211,145,0.35)" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <line x1="710" y1="1008" x2="590" y2="1072" stroke="rgba(99,179,237,0.35)" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <line x1="876" y1="1008" x2="1000" y2="1072" stroke="rgba(246,173,85,0.35)" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <line x1="936" y1="1008" x2="1370" y2="1072" stroke="rgba(159,122,234,0.35)" stroke-width="1.5" stroke-dasharray="6,3"/>
+
+  <!-- deliverOutboundPayloads arrow -->
+  <line x1="794" y1="1220" x2="794" y2="1280" stroke="rgba(99,179,237,0.5)" stroke-width="2"/>
+  <polygon points="794,1290 784,1270 804,1270" fill="rgba(99,179,237,0.5)"/>
+  <text x="830" y="1260" font-size="13" fill="rgba(99,179,237,0.7)" font-family="monospace">deliverOutboundPayloads()</text>
+
+  <!-- Channel outputs -->
+  <rect x="596" y="1296" width="396" height="52" rx="12" fill="rgba(99,179,237,0.08)" stroke="rgba(99,179,237,0.25)" stroke-width="1"/>
+  <text x="794" y="1318" text-anchor="middle" font-size="13" fill="rgba(99,179,237,0.7)" font-family="monospace">Telegram · Discord · 飞书 · HTTP</text>
+  <text x="794" y="1336" text-anchor="middle" font-size="12" fill="rgba(226,232,240,0.5)">所有注册 Channel</text>
+
+  <!-- ─── Part 3: nano-claw vs OpenClaw ──────────────────────────────────── -->
+  <line x1="60" y1="1390" x2="1527" y2="1390" stroke="rgba(99,179,237,0.12)" stroke-width="1"/>
+  <text x="793" y="1432" text-anchor="middle" font-size="18" fill="rgba(99,179,237,0.6)" letter-spacing="3" font-weight="600">PART 3 · NANO-CLAW vs OPENCLAW</text>
+
+  <!-- nano-claw box -->
+  <rect x="60" y="1452" width="680" height="340" rx="20" fill="rgba(99,179,237,0.04)" stroke="rgba(99,179,237,0.25)" stroke-width="1.5"/>
+  <text x="400" y="1494" text-anchor="middle" font-size="20" fill="#63b3ed" font-weight="700">nano-claw Heartbeat</text>
+  <text x="400" y="1518" text-anchor="middle" font-size="15" fill="rgba(99,179,237,0.6)" font-family="monospace">178 行 · 甜点级 · 教学用</text>
+
+  <text x="100" y="1560" font-size="14" fill="rgba(226,232,240,0.7)">✓  setTimeout 递归节拍器</text>
+  <text x="100" y="1588" font-size="14" fill="rgba(226,232,240,0.7)">✓  isActiveHours 时区检查</text>
+  <text x="100" y="1616" font-size="14" fill="rgba(226,232,240,0.7)">✓  EventEmitter 推送事件</text>
+  <text x="100" y="1644" font-size="14" fill="rgba(104,211,145,0.9)">✓  LLM payload 生成</text>
+  <text x="100" y="1672" font-size="14" fill="rgba(100,100,100,0.6)">✗  events-filter</text>
+  <text x="100" y="1700" font-size="14" fill="rgba(100,100,100,0.6)">✗  visibility / reason</text>
+
+  <rect x="120" y="1740" width="180" height="32" rx="8" fill="rgba(99,179,237,0.12)" stroke="rgba(99,179,237,0.3)" stroke-width="1"/>
+  <text x="210" y="762" text-anchor="middle" font-size="13" fill="#63b3ed">个人项目推荐</text>
+  <!-- note: absolute coords in SVG -->
+  <text x="210" y="1762" text-anchor="middle" font-size="13" fill="#63b3ed">个人项目首选</text>
+
+  <!-- OpenClaw box -->
+  <rect x="847" y="1452" width="680" height="340" rx="20" fill="rgba(104,211,145,0.04)" stroke="rgba(104,211,145,0.25)" stroke-width="1.5"/>
+  <text x="1187" y="1494" text-anchor="middle" font-size="20" fill="#68d391" font-weight="700">OpenClaw Heartbeat</text>
+  <text x="1187" y="1518" text-anchor="middle" font-size="15" fill="rgba(104,211,145,0.6)" font-family="monospace">~600 行 · 4 子模块 · 生产级</text>
+
+  <text x="887" y="1560" font-size="14" fill="rgba(226,232,240,0.7)">✓  全部 nano-claw 特性</text>
+  <text x="887" y="1588" font-size="14" fill="rgba(104,211,145,0.9)">✓  events-filter（priority/rate-limit）</text>
+  <text x="887" y="1616" font-size="14" fill="rgba(104,211,145,0.9)">✓  visibility（用户在线状态感知）</text>
+  <text x="887" y="1644" font-size="14" fill="rgba(104,211,145,0.9)">✓  reason（推送原因可追溯）</text>
+  <text x="887" y="1672" font-size="14" fill="rgba(104,211,145,0.9)">✓  多 Channel 并行 deliver</text>
+  <text x="887" y="1700" font-size="14" fill="rgba(104,211,145,0.9)">✓  agents.defaults.heartbeat 配置</text>
+
+  <rect x="920" y="1740" width="180" height="32" rx="8" fill="rgba(104,211,145,0.12)" stroke="rgba(104,211,145,0.3)" stroke-width="1"/>
+  <text x="1010" y="1762" text-anchor="middle" font-size="13" fill="#68d391">生产多 Channel 推荐</text>
+
+  <!-- ─── Part 4: 案例 13.2 Watchdog ────────────────────────────────────── -->
+  <line x1="60" y1="1840" x2="1527" y2="1840" stroke="rgba(99,179,237,0.12)" stroke-width="1"/>
+  <text x="793" y="1882" text-anchor="middle" font-size="18" fill="rgba(246,173,85,0.7)" letter-spacing="3" font-weight="600">PART 4 · WATCHDOG：生产级 HEARTBEAT 形态</text>
+
+  <!-- Watchdog circle -->
+  <circle cx="250" cy="2000" r="120" fill="rgba(246,173,85,0.05)" stroke="rgba(246,173,85,0.3)" stroke-width="2"/>
+  <text x="250" y="1985" text-anchor="middle" font-size="14" fill="#f6ad55" font-weight="700">Watchdog</text>
+  <text x="250" y="2008" text-anchor="middle" font-size="13" fill="rgba(246,173,85,0.7)">11 项检查</text>
+  <text x="250" y="2028" text-anchor="middle" font-size="13" fill="rgba(246,173,85,0.7)">每 60s 一轮</text>
+  <text x="250" y="2048" text-anchor="middle" font-size="12" fill="rgba(246,173,85,0.5)">launchd 守护</text>
+
+  <!-- Backoff schedule -->
+  <text x="520" y="1920" font-size="16" fill="rgba(226,232,240,0.8)" font-weight="700">指数退避告警</text>
+  <rect x="520" y="1934" width="440" height="138" rx="12" fill="rgba(246,173,85,0.05)" stroke="rgba(246,173,85,0.2)" stroke-width="1"/>
+  <text x="540" y="1962" font-size="13" fill="rgba(246,173,85,0.9)" font-family="monospace">60s → 5min → 15min → 30min → 1h</text>
+  <text x="540" y="1986" font-size="13" fill="rgba(226,232,240,0.5)">每次故障渐进加长等待时间</text>
+  <text x="540" y="2008" font-size="13" fill="rgba(226,232,240,0.5)">防止单次故障刷屏 Telegram</text>
+  <text x="540" y="2030" font-size="13" fill="rgba(104,211,145,0.7)">恢复后自动重置退避状态</text>
+  <text x="540" y="2054" font-size="13" fill="rgba(246,173,85,0.6)">出处：2026-04-18 单夜 23 轮 loop</text>
+
+  <!-- Independent alert channel -->
+  <text x="1020" y="1920" font-size="16" fill="rgba(226,232,240,0.8)" font-weight="700">独立告警通道（铁律）</text>
+  <rect x="1020" y="1934" width="480" height="138" rx="12" fill="rgba(252,129,129,0.05)" stroke="rgba(252,129,129,0.25)" stroke-width="1"/>
+  <text x="1040" y="1962" font-size="13" fill="rgba(252,129,129,0.9)">告警走独立 Telegram Bot</text>
+  <text x="1040" y="1986" font-size="13" fill="rgba(226,232,240,0.5)">不走 OpenClaw Gateway</text>
+  <text x="1040" y="2010" font-size="13" fill="rgba(226,232,240,0.5)">因为 OpenClaw 可能就是故障点</text>
+  <text x="1040" y="2034" font-size="13" fill="rgba(104,211,145,0.7)">独立通道 = 故障时的最后防线</text>
+  <text x="1040" y="2058" font-size="13" fill="rgba(246,173,85,0.5)">Anthropic 2026-04 推荐模式</text>
+
+  <!-- ─── Footer ─────────────────────────────────────────────────────────── -->
+  <line x1="0" y1="2180" x2="1587" y2="2180" stroke="rgba(99,179,237,0.15)" stroke-width="1"/>
+  <text x="793" y="2216" text-anchor="middle" font-size="14" fill="rgba(99,179,237,0.5)" font-family="monospace">《从零构建你的 AI Agent》· Ch 13 · Heartbeat</text>
+  <text x="793" y="2238" text-anchor="middle" font-size="12" fill="rgba(100,100,100,0.5)">lena-v1.3 · R2 nano-claw-comparison · R5 案例 13.1 &amp; 13.2</text>
+</svg>

@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A3: 1190×842px，深空霓虹风格 -->
+<svg width="1190" height="842" viewBox="0 0 1190 842" xmlns="http://www.w3.org/2000/svg"
+     font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#060612"/>
+      <stop offset="100%" stop-color="#080818"/>
+    </linearGradient>
+    <!-- Purple gradient -->
+    <linearGradient id="purpGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.07"/>
+    </linearGradient>
+    <!-- Cyan gradient -->
+    <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0891b2" stop-opacity="0.06"/>
+    </linearGradient>
+    <!-- Green gradient -->
+    <linearGradient id="greenGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#16a34a" stop-opacity="0.06"/>
+    </linearGradient>
+    <!-- Red gradient -->
+    <linearGradient id="redGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f87171" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0.06"/>
+    </linearGradient>
+    <!-- Arrow gradients -->
+    <linearGradient id="arrowH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="arrowV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <!-- Glows -->
+    <radialGradient id="glow-l" cx="20%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-r" cx="80%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Arrow markers -->
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#a855f7"/>
+    </marker>
+    <marker id="arrC" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#4ade80"/>
+    </marker>
+    <marker id="arrR" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#f87171"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1190" height="842" fill="url(#bg)"/>
+  <rect width="1190" height="842" fill="url(#glow-l)"/>
+  <rect width="1190" height="842" fill="url(#glow-r)"/>
+
+  <!-- Title bar -->
+  <text x="595" y="44" text-anchor="middle" font-size="28" font-weight="800" fill="#f1f5f9" letter-spacing="0.02em">MCP 协议全景图</text>
+  <text x="595" y="64" text-anchor="middle" font-size="14" fill="#64748b" letter-spacing="0.08em">Ch 15 · 万物皆可连接 · lena-v1.5</text>
+  <line x1="100" y1="76" x2="1090" y2="76" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LEFT: Lena MCP Client 5步流程 -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Column header -->
+  <text x="200" y="102" text-anchor="middle" font-size="13" fill="#a855f7" font-weight="700" letter-spacing="0.1em">LENA MCP CLIENT</text>
+
+  <!-- Step boxes -->
+  <!-- Step 1 -->
+  <rect x="60" y="112" width="280" height="54" rx="10" fill="url(#purpGrad)" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+  <circle cx="88" cy="139" r="14" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5"/>
+  <text x="88" y="144" text-anchor="middle" font-size="13" font-weight="800" fill="#a855f7">1</text>
+  <text x="112" y="134" font-size="13" font-weight="700" fill="#f1f5f9">create_subprocess_exec()</text>
+  <text x="112" y="152" font-size="11" fill="#64748b">spawn MCP server，stdin/stdout/stderr=PIPE</text>
+
+  <!-- Arrow -->
+  <line x1="200" y1="166" x2="200" y2="178" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 2 -->
+  <rect x="60" y="180" width="280" height="54" rx="10" fill="url(#purpGrad)" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+  <circle cx="88" cy="207" r="14" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5"/>
+  <text x="88" y="212" text-anchor="middle" font-size="13" font-weight="800" fill="#a855f7">2</text>
+  <text x="112" y="202" font-size="13" font-weight="700" fill="#f1f5f9">_initialize()</text>
+  <text x="112" y="220" font-size="11" fill="#64748b">握手：initialize → notifications/initialized</text>
+
+  <!-- Arrow -->
+  <line x1="200" y1="234" x2="200" y2="246" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 3 -->
+  <rect x="60" y="248" width="280" height="54" rx="10" fill="url(#purpGrad)" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+  <circle cx="88" cy="275" r="14" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5"/>
+  <text x="88" y="280" text-anchor="middle" font-size="13" font-weight="800" fill="#a855f7">3</text>
+  <text x="112" y="270" font-size="13" font-weight="700" fill="#f1f5f9">_call() — asyncio.Future</text>
+  <text x="112" y="288" font-size="11" fill="#64748b">自增 req_id，创建 Future 存 _pending[rid]</text>
+
+  <!-- Arrow -->
+  <line x1="200" y1="302" x2="200" y2="314" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 4 -->
+  <rect x="60" y="316" width="280" height="54" rx="10" fill="url(#purpGrad)" stroke="rgba(168,85,247,0.35)" stroke-width="1"/>
+  <circle cx="88" cy="343" r="14" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.5)" stroke-width="1.5"/>
+  <text x="88" y="348" text-anchor="middle" font-size="13" font-weight="800" fill="#a855f7">4</text>
+  <text x="112" y="338" font-size="13" font-weight="700" fill="#f1f5f9">_read_loop()</text>
+  <text x="112" y="356" font-size="11" fill="#64748b">读 stdout，解析 JSON，fut.set_result()</text>
+
+  <!-- Arrow -->
+  <line x1="200" y1="370" x2="200" y2="382" stroke="#f87171" stroke-width="2" marker-end="url(#arrR)"/>
+
+  <!-- Step 5 - highlighted red -->
+  <rect x="60" y="384" width="280" height="62" rx="10" fill="url(#redGrad)" stroke="rgba(248,113,113,0.5)" stroke-width="1.5"/>
+  <circle cx="88" cy="415" r="14" fill="rgba(248,113,113,0.25)" stroke="rgba(248,113,113,0.6)" stroke-width="1.5"/>
+  <text x="88" y="420" text-anchor="middle" font-size="13" font-weight="800" fill="#f87171">5</text>
+  <text x="112" y="408" font-size="13" font-weight="700" fill="#f87171">_stderr_loop() ← 最易遗忘</text>
+  <text x="112" y="426" font-size="11" fill="rgba(248,113,113,0.8)">单独排空 stderr，防 PIPE_BUF 满阻塞</text>
+  <text x="112" y="440" font-size="11" fill="rgba(248,113,113,0.6)">不排空 → 子进程死锁 → MCP 挂死</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- CENTER: stdio JSON-RPC 通信协议 -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Column header -->
+  <text x="595" y="102" text-anchor="middle" font-size="13" fill="#22d3ee" font-weight="700" letter-spacing="0.1em">STDIO JSON-RPC</text>
+
+  <!-- Protocol box -->
+  <rect x="400" y="112" width="390" height="334" rx="14" fill="rgba(34,211,238,0.04)" stroke="rgba(34,211,238,0.2)" stroke-width="1"/>
+
+  <!-- Request -->
+  <text x="425" y="138" font-size="12" fill="#22d3ee" font-weight="700">① 请求（有 id，需要响应）</text>
+  <rect x="418" y="144" width="354" height="76" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(34,211,238,0.15)" stroke-width="1"/>
+  <text x="434" y="162" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8">{"jsonrpc": "2.0",  "id": <tspan fill="#fb923c">42</tspan>,</text>
+  <text x="434" y="178" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8"> "method": <tspan fill="#4ade80">"tools/call"</tspan>,</text>
+  <text x="434" y="194" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8"> "params": {"name": <tspan fill="#4ade80">"read_file"</tspan>,...}}</text>
+  <text x="434" y="212" font-size="10" fill="#4a5568">↓ stdin → MCP server 处理 → stdout ↓</text>
+
+  <!-- Response -->
+  <text x="425" y="236" font-size="12" fill="#4ade80" font-weight="700">② 响应（id 匹配请求，Future.set_result）</text>
+  <rect x="418" y="242" width="354" height="76" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(74,222,128,0.15)" stroke-width="1"/>
+  <text x="434" y="260" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8">{"jsonrpc": "2.0",  "id": <tspan fill="#fb923c">42</tspan>,</text>
+  <text x="434" y="276" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8"> "result": {"content": [</text>
+  <text x="434" y="292" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8">   {"type":<tspan fill="#4ade80">"text"</tspan>,"text":<tspan fill="#4ade80">"hello\n"</tspan>}]}}</text>
+
+  <!-- Notification -->
+  <text x="425" y="336" font-size="12" fill="#fb923c" font-weight="700">③ 通知（无 id，不需要响应）</text>
+  <rect x="418" y="342" width="354" height="52" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(251,146,60,0.15)" stroke-width="1"/>
+  <text x="434" y="360" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8">{"jsonrpc": "2.0",</text>
+  <text x="434" y="376" font-size="11" font-family="'SF Mono','Fira Code',monospace" fill="#94a3b8"> "method": <tspan fill="#fb923c">"notifications/initialized"</tspan>}</text>
+
+  <!-- Channel labels -->
+  <text x="425" y="418" font-size="12" fill="#f1f5f9" font-weight="700">传输通道</text>
+  <rect x="418" y="424" width="354" height="14" rx="4" fill="rgba(0,0,0,0.3)"/>
+  <text x="434" y="435" font-size="11" fill="#4ade80">stdout</text>
+  <text x="484" y="435" font-size="11" fill="#64748b"> → JSON-RPC 消息</text>
+  <text x="620" y="435" font-size="11" fill="#f87171">stderr</text>
+  <text x="666" y="435" font-size="11" fill="#64748b"> → 日志（必须排空！）</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- RIGHT: MCP 生态圈 -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Column header -->
+  <text x="980" y="102" text-anchor="middle" font-size="13" fill="#4ade80" font-weight="700" letter-spacing="0.1em">MCP 生态圈</text>
+
+  <!-- FastMCP center box -->
+  <rect x="840" y="112" width="280" height="90" rx="12" fill="url(#greenGrad)" stroke="rgba(74,222,128,0.45)" stroke-width="1.5"/>
+  <text x="980" y="144" text-anchor="middle" font-size="18" font-weight="800" fill="#4ade80">FastMCP</text>
+  <text x="980" y="162" text-anchor="middle" font-size="12" fill="rgba(74,222,128,0.8)">70% MCP servers 底层</text>
+  <text x="980" y="180" text-anchor="middle" font-size="12" fill="rgba(74,222,128,0.7)">日下载 ~100万 · 已入官方 SDK</text>
+  <text x="980" y="196" text-anchor="middle" font-size="11" fill="#64748b">pip install mcp</text>
+
+  <!-- Server boxes -->
+  <!-- filesystem -->
+  <rect x="840" y="226" width="120" height="80" rx="10" fill="rgba(34,211,238,0.07)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+  <text x="900" y="248" text-anchor="middle" font-size="12" font-weight="700" fill="#22d3ee">filesystem</text>
+  <text x="900" y="264" text-anchor="middle" font-size="10" fill="#64748b">read_file</text>
+  <text x="900" y="278" text-anchor="middle" font-size="10" fill="#64748b">write_file</text>
+  <text x="900" y="292" text-anchor="middle" font-size="10" fill="#64748b">list_directory</text>
+
+  <!-- github -->
+  <rect x="980" y="226" width="120" height="80" rx="10" fill="rgba(168,85,247,0.07)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="1040" y="248" text-anchor="middle" font-size="12" font-weight="700" fill="#a855f7">github</text>
+  <text x="1040" y="264" text-anchor="middle" font-size="10" fill="#64748b">search_repos</text>
+  <text x="1040" y="278" text-anchor="middle" font-size="10" fill="#64748b">get_file</text>
+  <text x="1040" y="292" text-anchor="middle" font-size="10" fill="#64748b">create_issue</text>
+
+  <!-- brave-search -->
+  <rect x="840" y="320" width="120" height="72" rx="10" fill="rgba(251,146,60,0.07)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="900" y="342" text-anchor="middle" font-size="12" font-weight="700" fill="#fb923c">brave-search</text>
+  <text x="900" y="358" text-anchor="middle" font-size="10" fill="#64748b">web_search</text>
+  <text x="900" y="372" text-anchor="middle" font-size="10" fill="#64748b">需 API key</text>
+
+  <!-- other servers -->
+  <rect x="980" y="320" width="120" height="72" rx="10" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="1040" y="342" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">更多...</text>
+  <text x="1040" y="358" text-anchor="middle" font-size="10" fill="#4a5568">postgres</text>
+  <text x="1040" y="372" text-anchor="middle" font-size="10" fill="#4a5568">puppeteer...</text>
+
+  <!-- Arrows from FastMCP to servers -->
+  <line x1="900" y1="202" x2="900" y2="224" stroke="rgba(74,222,128,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="1040" y1="202" x2="1040" y2="224" stroke="rgba(74,222,128,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="900" y1="306" x2="900" y2="318" stroke="rgba(74,222,128,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="1040" y1="306" x2="1040" y2="318" stroke="rgba(74,222,128,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- Center arrows (client <-> protocol <-> ecosystem) -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Left panel to center -->
+  <line x1="340" y1="275" x2="398" y2="275" stroke="url(#arrowH)" stroke-width="2" marker-end="url(#arrC)"/>
+  <text x="368" y="268" text-anchor="middle" font-size="10" fill="#64748b">stdio</text>
+
+  <!-- Center to right panel -->
+  <line x1="792" y1="275" x2="838" y2="275" stroke="#4ade80" stroke-width="2" marker-end="url(#arrG)"/>
+  <text x="814" y="268" text-anchor="middle" font-size="10" fill="#64748b">spawn</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- BOTTOM LEFT: MCP vs Skills -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <rect x="60" y="480" width="380" height="144" rx="12" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="250" y="502" text-anchor="middle" font-size="13" font-weight="700" fill="#f1f5f9" letter-spacing="0.05em">MCP vs Skills</text>
+
+  <!-- MCP column -->
+  <text x="150" y="524" text-anchor="middle" font-size="12" font-weight="700" fill="#22d3ee">MCP（工具层）</text>
+  <text x="150" y="540" text-anchor="middle" font-size="11" fill="#64748b">JSON-RPC over stdio</text>
+  <text x="150" y="554" text-anchor="middle" font-size="11" fill="#64748b">子进程 spawn</text>
+  <text x="150" y="568" text-anchor="middle" font-size="11" fill="#64748b">外部服务/系统访问</text>
+  <text x="150" y="582" text-anchor="middle" font-size="11" fill="#22d3ee">filesystem / github / aws</text>
+
+  <!-- Divider -->
+  <line x1="250" y1="514" x2="250" y2="600" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Skills column -->
+  <text x="350" y="524" text-anchor="middle" font-size="12" font-weight="700" fill="#a855f7">Skills（能力单元）</text>
+  <text x="350" y="540" text-anchor="middle" font-size="11" fill="#64748b">Markdown 指令文档</text>
+  <text x="350" y="554" text-anchor="middle" font-size="11" fill="#64748b">注入 LLM 上下文</text>
+  <text x="350" y="568" text-anchor="middle" font-size="11" fill="#64748b">方法论/决策框架</text>
+  <text x="350" y="582" text-anchor="middle" font-size="11" fill="#a855f7">debugging / api-design</text>
+
+  <!-- Label -->
+  <text x="250" y="608" text-anchor="middle" font-size="11" fill="#64748b">两者互补，不是竞争</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- BOTTOM CENTER: 生产案例 + 安全警告 -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- 生产 case 15.1 -->
+  <rect x="460" y="480" width="270" height="108" rx="12" fill="rgba(34,211,238,0.05)" stroke="rgba(34,211,238,0.2)" stroke-width="1"/>
+  <text x="595" y="502" text-anchor="middle" font-size="12" font-weight="700" fill="#22d3ee">案例 15.1 · 生产 CC 配置</text>
+  <text x="595" y="518" text-anchor="middle" font-size="11" fill="#64748b">5 个 MCP namespace 全通权限</text>
+  <text x="480" y="536" font-size="10" font-family="'SF Mono',monospace" fill="#a855f7">mcp__context7__*</text>
+  <text x="480" y="550" font-size="10" font-family="'SF Mono',monospace" fill="#22d3ee">mcp__chrome-devtools__*</text>
+  <text x="480" y="564" font-size="10" font-family="'SF Mono',monospace" fill="#4ade80">mcp__aws-documentation__*</text>
+  <text x="480" y="578" font-size="10" font-family="'SF Mono',monospace" fill="#fb923c">mcp__aws-iac__*  mcp__eks__*</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- BOTTOM RIGHT: Safety Warning -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <rect x="750" y="480" width="380" height="144" rx="12" fill="rgba(248,113,113,0.07)" stroke="rgba(248,113,113,0.35)" stroke-width="1.5"/>
+  <text x="940" y="502" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171" letter-spacing="0.05em">⚠ MCP 安全警告</text>
+  <text x="766" y="522" font-size="11" fill="rgba(248,113,113,0.9)">• 子进程以你的用户权限运行，无沙箱</text>
+  <text x="766" y="540" font-size="11" fill="rgba(248,113,113,0.9)">• Prompt Injection：不可信工具输出可注入指令</text>
+  <text x="766" y="558" font-size="11" fill="rgba(248,113,113,0.9)">• Simon Willison（2025-04-09）可信 vs 不可信架构</text>
+  <text x="766" y="580" font-size="11" fill="#64748b">铁律：filesystem 只暴露 /tmp | 只装可信 server</text>
+  <text x="766" y="596" font-size="11" fill="#64748b">生产环境：容器隔离（下一章 Docker Sandbox）</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- BOTTOM: Footer -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <line x1="60" y1="646" x2="1130" y2="646" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <text x="595" y="668" text-anchor="middle" font-size="13" font-weight="700" fill="#f1f5f9">lena-v1.4 → v1.5 · 接入 filesystem / github / brave-search · 200 行 stdio JSON-RPC</text>
+  <text x="595" y="686" text-anchor="middle" font-size="11" fill="#64748b">《从零构建你的 AI Agent》Ch 15 · R2-openclaw-nanoclaw-comparison.md §5 · R3-ecosystem-2025.md §二</text>
+
+  <!-- Version tags -->
+  <rect x="160" y="704" width="120" height="22" rx="6" fill="rgba(168,85,247,0.1)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="220" y="719" text-anchor="middle" font-size="11" fill="#a855f7">Tool 统一性</text>
+
+  <rect x="296" y="704" width="80" height="22" rx="6" fill="rgba(248,113,113,0.1)" stroke="rgba(248,113,113,0.3)" stroke-width="1"/>
+  <text x="336" y="719" text-anchor="middle" font-size="11" fill="#f87171">Safety</text>
+
+  <rect x="392" y="704" width="100" height="22" rx="6" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+  <text x="442" y="719" text-anchor="middle" font-size="11" fill="#22d3ee">200 行实现</text>
+
+  <rect x="508" y="704" width="130" height="22" rx="6" fill="rgba(74,222,128,0.1)" stroke="rgba(74,222,128,0.3)" stroke-width="1"/>
+  <text x="573" y="719" text-anchor="middle" font-size="11" fill="#4ade80">FastMCP 100万/日</text>
+
+  <rect x="654" y="704" width="110" height="22" rx="6" fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.3)" stroke-width="1"/>
+  <text x="709" y="719" text-anchor="middle" font-size="11" fill="#fb923c">MCP vs Skills</text>
+
+  <rect x="780" y="704" width="110" height="22" rx="6" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.2)" stroke-width="1"/>
+  <text x="835" y="719" text-anchor="middle" font-size="11" fill="#a855f7">stderr 排空</text>
+
+</svg>

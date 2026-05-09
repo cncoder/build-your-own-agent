@@ -1,0 +1,105 @@
+name: Lena Eval CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  EVAL_PASS_THRESHOLD: "0.75"
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r code/lena-v0.21/requirements.txt
+
+      - name: Run eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # PR 阶段跑 20 条（节省成本），合并到 main 跑全量
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            SAMPLE_ARGS="--sample-size 20"
+          else
+            SAMPLE_ARGS=""
+          fi
+
+          python code/lena-v0.21/run_eval.py \
+            --dataset code/lena-v0.21/golden-dataset.json \
+            $SAMPLE_ARGS \
+            --output eval-report.json \
+            --baseline code/lena-v0.21/baseline/latest.json \
+            ${{ github.ref == 'refs/heads/main' && '--update-baseline' || '' }}
+
+      - name: Gate on score
+        run: |
+          python -c "
+          import json, sys
+          d = json.load(open('eval-report.json'))
+          score = d['summary']['composite']
+          threshold = float('${{ env.EVAL_PASS_THRESHOLD }}')
+          regressions = d['summary']['regressions']
+
+          print(f'Composite:   {score:.3f}')
+          print(f'Threshold:   {threshold}')
+          print(f'Regressions: {regressions}/{d[\"summary\"][\"total\"]}')
+
+          if score < threshold:
+              print(f'FAIL: composite {score:.3f} < threshold {threshold}')
+              sys.exit(1)
+
+          if regressions > 0:
+              print(f'WARNING: {regressions} regression(s) detected — review before merging')
+
+          print('PASS')
+          "
+
+      - name: Upload eval report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report-${{ github.run_id }}
+          path: eval-report.json
+
+      # PR 时在评论区显示结果摘要
+      - name: Comment eval result on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('eval-report.json', 'utf8'));
+            const s = report.summary;
+            const pass = s.composite >= parseFloat('${{ env.EVAL_PASS_THRESHOLD }}');
+            const icon = pass ? '✅' : '❌';
+
+            const body = `## Eval Report ${icon}
+
+            | 维度 | 分数 |
+            |------|------|
+            | Composite | ${s.composite.toFixed(3)} |
+            | Quality | ${s.quality.toFixed(3)} |
+            | Latency | ${s.latency.toFixed(3)} |
+            | Cost | ${s.cost.toFixed(3)} |
+            | Regressions | ${s.regressions}/${s.total} |
+            | 阈值 | ${{ env.EVAL_PASS_THRESHOLD }} |
+            | 状态 | ${pass ? 'PASS' : '**FAIL — 合并被阻断**'} |
+
+            [查看完整报告](../actions/runs/${{ github.run_id }})`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body,
+            });

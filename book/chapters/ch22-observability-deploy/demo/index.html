@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lena 运维仪表盘 · v1.8</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-primary: #040812;
+    --bg-secondary: #0d1117;
+    --bg-card: #161b22;
+    --border: #21262d;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --yellow: #d29922;
+    --orange: #f0883e;
+    --red: #f85149;
+    --purple: #bc8cff;
+  }
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'SF Pro Display', -apple-system, 'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ========== 顶栏 ========== */
+  .topbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 18px; letter-spacing: -0.3px;
+  }
+  .brand-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(63,185,80,0.7);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(63,185,80,0.7); }
+    50% { transform: scale(1.2); box-shadow: 0 0 14px rgba(63,185,80,0.9); }
+  }
+  .status-chips {
+    display: flex; gap: 12px;
+  }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 6px;
+    font-size: 13px;
+  }
+  .chip-label { color: var(--text-muted); }
+  .chip-val { font-weight: 600; font-family: 'SF Mono', monospace; }
+  .chip-val.green { color: var(--green); }
+  .chip-val.yellow { color: var(--yellow); }
+  .chip-val.blue { color: var(--blue); }
+
+  /* ========== 主内容 ========== */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+    padding: 16px 20px;
+    height: calc(100vh - 53px);
+  }
+
+  /* ========== 卡片 ========== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .card-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 100px;
+  }
+  .badge-green { background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.25); }
+  .badge-yellow { background: rgba(210,153,34,0.1); color: var(--yellow); border: 1px solid rgba(210,153,34,0.25); }
+  .badge-blue { background: rgba(88,166,255,0.1); color: var(--blue); border: 1px solid rgba(88,166,255,0.25); }
+
+  /* ========== 日志流 ========== */
+  .log-stream {
+    flex: 1; overflow-y: auto; padding: 8px 0;
+    scroll-behavior: smooth;
+  }
+  .log-stream::-webkit-scrollbar { width: 4px; }
+  .log-stream::-webkit-scrollbar-track { background: transparent; }
+  .log-stream::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+  .log-entry {
+    padding: 6px 16px;
+    display: grid; grid-template-columns: 70px 50px 80px 1fr;
+    gap: 10px; align-items: baseline;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px; line-height: 1.5;
+    border-bottom: 1px solid rgba(33,38,45,0.6);
+    transition: background 0.15s;
+  }
+  .log-entry:hover { background: rgba(255,255,255,0.03); }
+  .log-entry.new { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { background: rgba(63,185,80,0.08); } to { background: transparent; } }
+  .log-ts { color: var(--text-muted); font-size: 11px; }
+  .log-level { font-weight: 600; font-size: 11px; }
+  .log-level.info { color: var(--blue); }
+  .log-level.warn { color: var(--yellow); }
+  .log-level.error { color: var(--red); }
+  .log-level.debug { color: var(--text-muted); }
+  .log-span { color: var(--purple); font-size: 11px; }
+  .log-msg { color: var(--text-primary); }
+  .log-kv { color: var(--text-muted); font-size: 11px; }
+
+  /* ========== OTel Trace ========== */
+  .trace-panel {
+    flex: 1; padding: 12px 16px; overflow-y: auto;
+  }
+  .trace-item {
+    margin-bottom: 12px; cursor: pointer;
+  }
+  .trace-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.03); border-radius: 6px;
+    border: 1px solid var(--border);
+    transition: border-color 0.15s;
+  }
+  .trace-header:hover { border-color: #388bfd; }
+  .trace-header.active { border-color: #58a6ff; background: rgba(88,166,255,0.05); }
+  .trace-name { font-size: 13px; font-weight: 500; }
+  .trace-dur { font-size: 12px; color: var(--text-muted); font-family: 'SF Mono', monospace; }
+  .trace-bar-wrap { margin: 4px 0 4px 12px; }
+  .trace-bar {
+    height: 4px; border-radius: 100px;
+    background: linear-gradient(90deg, var(--blue), transparent);
+    transition: width 0.5s ease;
+  }
+  .span-list { margin: 4px 0 0 20px; display: none; }
+  .span-list.open { display: block; }
+  .span-item {
+    padding: 5px 10px; font-size: 12px; font-family: 'SF Mono', monospace;
+    border-left: 2px solid var(--border); margin-bottom: 4px;
+    color: var(--text-secondary);
+  }
+  .span-item .span-name { color: var(--green); }
+  .span-item .span-attrs { color: var(--text-muted); font-size: 11px; margin-left: 8px; }
+
+  /* ========== Budget ========== */
+  .budget-panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .budget-header-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .budget-pct { font-size: 42px; font-weight: 700; font-family: 'SF Mono', monospace; }
+  .budget-pct.normal { color: var(--green); }
+  .budget-pct.warning { color: var(--yellow); }
+  .budget-pct.throttle { color: var(--orange); }
+  .budget-pct.stopped { color: var(--red); }
+  .budget-usd { font-size: 13px; color: var(--text-muted); }
+
+  .budget-bar-wrap { position: relative; }
+  .budget-bar-bg {
+    height: 12px; background: var(--bg-secondary); border-radius: 100px;
+    overflow: hidden;
+  }
+  .budget-bar-fill {
+    height: 100%; border-radius: 100px;
+    transition: width 1s ease, background 0.5s;
+  }
+  .budget-bar-fill.normal { background: linear-gradient(90deg, #1f6feb, #3fb950); }
+  .budget-bar-fill.warning { background: linear-gradient(90deg, #1f6feb, #d29922); }
+  .budget-bar-fill.throttle { background: linear-gradient(90deg, #1f6feb, #f0883e); }
+  .budget-bar-fill.stopped { background: linear-gradient(90deg, #1f6feb, #f85149); }
+  .budget-marker {
+    position: absolute; top: 0; height: 100%; width: 1.5px;
+    background: rgba(255,255,255,0.3);
+  }
+  .budget-ticks {
+    display: flex; justify-content: space-between; margin-top: 4px;
+    font-size: 10px; color: var(--text-muted);
+  }
+
+  .state-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  }
+  .state-chip.normal { background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .state-chip.warning { background: rgba(210,153,34,0.1); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+  .state-chip.throttle { background: rgba(240,136,62,0.1); color: var(--orange); border: 1px solid rgba(240,136,62,0.3); }
+  .state-chip.stopped { background: rgba(248,81,73,0.1); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .state-chip::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  .budget-events { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .budget-event {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; padding: 6px 10px;
+    background: var(--bg-secondary); border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .budget-event .ev-time { color: var(--text-muted); font-family: 'SF Mono', monospace; font-size: 11px; }
+  .budget-event .ev-text { color: var(--text-secondary); flex: 1; }
+  .budget-event .ev-tag {
+    font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* ========== Span Detail Modal ========== */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 200; display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-card); border: 1px solid #388bfd;
+    border-radius: 12px; padding: 24px; max-width: 560px; width: 90%;
+    font-family: 'SF Mono', monospace; font-size: 13px;
+  }
+  .modal-title { color: var(--blue); font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .modal-body { color: var(--text-secondary); line-height: 1.8; }
+  .modal-close {
+    margin-top: 16px; padding: 8px 16px; background: rgba(56,139,253,0.1);
+    border: 1px solid rgba(56,139,253,0.3); color: var(--blue);
+    border-radius: 6px; cursor: pointer; font-size: 13px;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: rgba(56,139,253,0.2); }
+
+  /* ========== 控制条 ========== */
+  .controls {
+    padding: 10px 16px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px; flex-shrink: 0;
+  }
+  .btn {
+    padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg-secondary);
+    color: var(--text-secondary); transition: all 0.15s;
+  }
+  .btn:hover { background: var(--border); color: var(--text-primary); }
+  .btn.primary { background: rgba(63,185,80,0.1); color: var(--green); border-color: rgba(63,185,80,0.3); }
+  .btn.danger { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.3); }
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    Lena 运维仪表盘 · v1.8
+  </div>
+  <div class="status-chips">
+    <div class="chip">
+      <span class="chip-label">状态</span>
+      <span class="chip-val green" id="svc-status">Running</span>
+    </div>
+    <div class="chip">
+      <span class="chip-label">Token/Day</span>
+      <span class="chip-val blue" id="token-count">14,230</span>
+    </div>
+    <div class="chip">
+      <span class="chip-label">Cost/Day</span>
+      <span class="chip-val yellow" id="cost-today">$1.24</span>
+    </div>
+    <div class="chip">
+      <span class="chip-label">Uptime</span>
+      <span class="chip-val green">99.7%</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 左上：结构化日志流 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">结构化日志流</span>
+      <span class="card-badge badge-green" id="log-live">● LIVE</span>
+    </div>
+    <div class="log-stream" id="log-stream"></div>
+    <div class="controls">
+      <button class="btn primary" id="btn-add-log">注入日志</button>
+      <button class="btn danger" id="btn-error-log">注入 ERROR</button>
+      <button class="btn" id="btn-clear-log">清空</button>
+    </div>
+  </div>
+
+  <!-- 右上：OTel 追踪树 -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">OpenTelemetry 追踪</span>
+      <span class="card-badge badge-blue">点击展开 Span 详情</span>
+    </div>
+    <div class="trace-panel" id="trace-panel"></div>
+  </div>
+
+  <!-- 左下：Token Budget -->
+  <div class="card" style="grid-row: 2;">
+    <div class="card-header">
+      <span class="card-title">Token Budget 仪表盘</span>
+      <span class="card-badge badge-yellow" id="budget-badge">WARNING 82%</span>
+    </div>
+    <div class="budget-panel">
+      <div class="budget-header-row">
+        <span class="budget-pct warning" id="budget-pct">82%</span>
+        <span class="budget-usd" id="budget-usd">$4.10 / $5.00 今日预算</span>
+      </div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-bg">
+          <div class="budget-bar-fill warning" id="budget-fill" style="width: 82%"></div>
+        </div>
+        <div class="budget-marker" style="left: 80%"></div>
+        <div class="budget-marker" style="left: 90%"></div>
+        <div class="budget-ticks">
+          <span>$0</span><span>告警 80%</span><span>限速 90%</span><span>$5</span>
+        </div>
+      </div>
+      <div class="state-chip warning" id="state-chip">WARNING</div>
+      <div class="budget-events" id="budget-events">
+        <div class="budget-event">
+          <span class="ev-time">03:12:44</span>
+          <span class="ev-text">budget_state_change: NORMAL → WARNING</span>
+          <span class="ev-tag badge-yellow">⚠ 告警</span>
+        </div>
+        <div class="budget-event">
+          <span class="ev-time">02:45:01</span>
+          <span class="ev-text">llm_call model=claude-sonnet-4-6 cost=$0.082</span>
+          <span class="ev-tag" style="color:#6e7681">info</span>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btn-spend">模拟消费 $0.50</button>
+      <button class="btn primary" id="btn-reset">重置预算</button>
+    </div>
+  </div>
+
+  <!-- 右下：服务状态 -->
+  <div class="card" style="grid-row: 2;">
+    <div class="card-header">
+      <span class="card-title">Hooks 事件流</span>
+      <span class="card-badge badge-blue">14 种事件</span>
+    </div>
+    <div class="log-stream" id="hook-stream"></div>
+    <div class="controls">
+      <button class="btn" id="btn-hook">触发 PostToolUse Hook</button>
+      <button class="btn danger" id="btn-stop-hook">触发 Stop Hook</button>
+    </div>
+  </div>
+</div>
+
+<!-- Span 详情 Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Span 详情</div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-close" id="modal-close">关闭</button>
+  </div>
+</div>
+
+<script>
+// ===== 数据模拟 =====
+const MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5'];
+const TOOLS = ['Bash', 'Write', 'Read', 'WebFetch'];
+const EVENTS = ['PreToolUse', 'PostToolUse', 'SessionStart', 'Stop', 'Notification', 'UserPromptSubmit'];
+
+let totalTokens = 14230;
+let totalCost = 1.24;
+let budgetSpent = 4.10;
+const BUDGET_LIMIT = 5.0;
+
+function fmtTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+function randId() { return Math.random().toString(36).slice(2, 8); }
+function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+// ===== 日志流 =====
+const logStream = document.getElementById('log-stream');
+function addLog(level, event, kv, isNew = true) {
+  const el = document.createElement('div');
+  el.className = `log-entry${isNew ? ' new' : ''}`;
+  const kvStr = Object.entries(kv).map(([k,v]) => `${k}=<span style="color:#d2a8ff">${v}</span>`).join(' ');
+  el.innerHTML = `
+    <span class="log-ts">${fmtTime()}</span>
+    <span class="log-level ${level}">${level.toUpperCase()}</span>
+    <span class="log-span">${randId()}</span>
+    <span class="log-msg">${event} <span class="log-kv">${kvStr}</span></span>
+  `;
+  logStream.appendChild(el);
+  // 只保留最近 40 条
+  while (logStream.children.length > 40) logStream.removeChild(logStream.firstChild);
+  logStream.scrollTop = logStream.scrollHeight;
+}
+
+// 初始日志
+const initLogs = [
+  ['info', 'agent_start', {model: 'claude-sonnet-4-6', session: 'sess_a1b2'}],
+  ['info', 'llm_call', {model: 'claude-sonnet-4-6', tokens: 1234, latency_ms: 2100}],
+  ['info', 'tool_execute', {tool: 'Bash', exit_code: 0, duration_ms: 340}],
+  ['info', 'llm_call', {model: 'claude-sonnet-4-6', tokens: 980, latency_ms: 1280}],
+  ['warn', 'budget_warning', {used_pct: 0.80, spent_usd: 4.00}],
+  ['info', 'discord_send', {channel: 'general', chars: 512}],
+];
+initLogs.forEach(([lvl, ev, kv]) => addLog(lvl, ev, kv, false));
+
+document.getElementById('btn-add-log').onclick = () => {
+  const tool = TOOLS[randInt(0, TOOLS.length-1)];
+  addLog('info', 'tool_execute', {tool, latency_ms: randInt(50,500), exit_code: 0});
+};
+document.getElementById('btn-error-log').onclick = () => {
+  addLog('error', 'tool_fail', {tool: TOOLS[randInt(0,3)], error: 'permission_denied', retries: 3});
+};
+document.getElementById('btn-clear-log').onclick = () => { logStream.innerHTML = ''; };
+
+// ===== Trace 面板 =====
+const tracePanel = document.getElementById('trace-panel');
+const TRACES = [
+  {
+    id: 'tr_8d4e', name: 'user_message("帮我写周报")', dur: '3840ms',
+    pct: 100,
+    spans: [
+      {name: 'discord_receive', dur: '8ms', attrs: {channel: 'general'}},
+      {name: 'llm_call', dur: '2100ms', attrs: {model: 'claude-sonnet-4-6', input_tokens: 4230, output_tokens: 312}},
+      {name: 'tool_execute.bash', dur: '340ms', attrs: {command: 'python3 weekly_report.py', exit_code: 0}},
+      {name: 'llm_call', dur: '1280ms', attrs: {model: 'claude-sonnet-4-6', input_tokens: 4900}},
+      {name: 'discord_send', dur: '12ms', attrs: {chars: 1024}},
+    ]
+  },
+  {
+    id: 'tr_c3f2', name: 'user_message("查一下明天天气")', dur: '1240ms',
+    pct: 32,
+    spans: [
+      {name: 'llm_call', dur: '980ms', attrs: {model: 'claude-haiku-4-5', tokens: 320}},
+      {name: 'tool_execute.WebFetch', dur: '240ms', attrs: {url: 'api.weather.com', status: 200}},
+    ]
+  },
+  {
+    id: 'tr_a9b1', name: 'heartbeat_check()', dur: '45ms',
+    pct: 1,
+    spans: [
+      {name: 'health_check', dur: '12ms', attrs: {services: 'gateway,redis,watchdog'}},
+      {name: 'metrics_emit', dur: '8ms', attrs: {otel_endpoint: 'jaeger:4317'}},
+    ]
+  },
+];
+
+const openTraces = new Set();
+TRACES.forEach((trace, i) => {
+  const el = document.createElement('div');
+  el.className = 'trace-item';
+  el.innerHTML = `
+    <div class="trace-header" id="th-${i}">
+      <span class="trace-name">${trace.name}</span>
+      <span class="trace-dur">${trace.dur}</span>
+    </div>
+    <div class="trace-bar-wrap">
+      <div class="trace-bar" style="width:${trace.pct}%"></div>
+    </div>
+    <div class="span-list" id="sl-${i}">
+      ${trace.spans.map(s => `
+        <div class="span-item" data-trace="${i}" data-span='${JSON.stringify(s)}'>
+          <span class="span-name">${s.name}</span>
+          <span style="color:#f2cc60; margin-left:8px">${s.dur}</span>
+          <span class="span-attrs">${Object.entries(s.attrs).map(([k,v])=>`${k}=${v}`).join(' ')}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  tracePanel.appendChild(el);
+
+  el.querySelector(`#th-${i}`).addEventListener('click', () => {
+    const sl = el.querySelector(`#sl-${i}`);
+    const th = el.querySelector(`#th-${i}`);
+    if (openTraces.has(i)) {
+      sl.classList.remove('open'); th.classList.remove('active'); openTraces.delete(i);
+    } else {
+      sl.classList.add('open'); th.classList.add('active'); openTraces.add(i);
+    }
+  });
+});
+
+// Span 详情点击
+tracePanel.addEventListener('click', e => {
+  const si = e.target.closest('.span-item');
+  if (!si) return;
+  const s = JSON.parse(si.dataset.span);
+  const modal = document.getElementById('modal');
+  document.getElementById('modal-title').textContent = `Span: ${s.name}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="margin-bottom:12px">span_id: <span style="color:#d2a8ff">${randId()}</span></div>
+    <div style="margin-bottom:12px">parent_span_id: <span style="color:#79c0ff">${randId()}</span></div>
+    <div style="margin-bottom:12px">duration: <span style="color:#f2cc60">${s.dur}</span></div>
+    <div style="color:#8b949e; margin-top:12px">Attributes:</div>
+    ${Object.entries(s.attrs).map(([k,v]) => `<div style="padding-left:16px; color:#c9d1d9">${k}: <span style="color:#a5d6ff">${v}</span></div>`).join('')}
+    <div style="margin-top:16px; color:#6e7681; font-size:11px">
+      → 查看完整 trace 链路：Jaeger UI → Search → trace_id
+    </div>
+  `;
+  modal.classList.add('open');
+});
+document.getElementById('modal-close').onclick = () => document.getElementById('modal').classList.remove('open');
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+});
+
+// ===== Budget =====
+function getState(pct) {
+  if (pct >= 1.0) return 'stopped';
+  if (pct >= 0.9) return 'throttle';
+  if (pct >= 0.8) return 'warning';
+  return 'normal';
+}
+function renderBudget() {
+  const pct = Math.min(budgetSpent / BUDGET_LIMIT, 1.0);
+  const pctPct = Math.round(pct * 100);
+  const state = getState(pct);
+  const labels = { normal: 'NORMAL ✓', warning: 'WARNING ⚠', throttle: 'THROTTLE 🔥', stopped: 'STOPPED ✗' };
+
+  document.getElementById('budget-pct').textContent = pctPct + '%';
+  document.getElementById('budget-pct').className = `budget-pct ${state}`;
+  document.getElementById('budget-usd').textContent = `$${budgetSpent.toFixed(2)} / $${BUDGET_LIMIT.toFixed(2)} 今日预算`;
+  document.getElementById('budget-fill').style.width = pctPct + '%';
+  document.getElementById('budget-fill').className = `budget-bar-fill ${state}`;
+  document.getElementById('state-chip').textContent = labels[state];
+  document.getElementById('state-chip').className = `state-chip ${state}`;
+  document.getElementById('budget-badge').textContent = `${labels[state].split(' ')[0]} ${pctPct}%`;
+}
+renderBudget();
+
+document.getElementById('btn-spend').onclick = () => {
+  const prev = getState(budgetSpent / BUDGET_LIMIT);
+  budgetSpent = Math.min(budgetSpent + 0.5, 5.5);
+  const curr = getState(budgetSpent / BUDGET_LIMIT);
+  renderBudget();
+  addLog('info', 'budget_record', {delta_usd: 0.5, total: budgetSpent.toFixed(2), state: curr});
+  if (prev !== curr) {
+    addLog('warn', 'budget_state_change', {from: prev, to: curr});
+    const ev = document.createElement('div');
+    ev.className = 'budget-event';
+    ev.innerHTML = `<span class="ev-time">${fmtTime()}</span><span class="ev-text">状态变更 ${prev} → ${curr}</span><span class="ev-tag badge-yellow">⚠</span>`;
+    document.getElementById('budget-events').prepend(ev);
+  }
+};
+document.getElementById('btn-reset').onclick = () => {
+  budgetSpent = 0; renderBudget();
+  addLog('info', 'budget_daily_reset', {prev_spent: budgetSpent});
+};
+
+// ===== Hooks 流 =====
+const hookStream = document.getElementById('hook-stream');
+function addHook(event, detail, color = '#bc8cff') {
+  const el = document.createElement('div');
+  el.className = 'log-entry new';
+  el.innerHTML = `
+    <span class="log-ts">${fmtTime()}</span>
+    <span class="log-level info" style="color:${color}">${event}</span>
+    <span class="log-span">${randId()}</span>
+    <span class="log-msg" style="color:#c9d1d9">${detail}</span>
+  `;
+  hookStream.appendChild(el);
+  while (hookStream.children.length > 30) hookStream.removeChild(hookStream.firstChild);
+  hookStream.scrollTop = hookStream.scrollHeight;
+}
+
+[
+  ['SessionStart', 'session_id=sess_a1b2 model=claude-sonnet-4-6'],
+  ['UserPromptSubmit', 'prompt_len=48 filtered=false'],
+  ['PreToolUse', 'tool=Write decision=approve'],
+  ['PostToolUse', 'tool=Write file=report.py lint=pass'],
+].forEach(([ev, det]) => addHook(ev, det, '#bc8cff'));
+
+document.getElementById('btn-hook').onclick = () => {
+  const tool = TOOLS[randInt(0, TOOLS.length-1)];
+  addHook('PostToolUse', `tool=${tool} latency_ms=${randInt(50,500)} result=success`, '#bc8cff');
+  if (tool === 'Write') addHook('PostToolUse', `hook=lint_on_write.py tool=Write lint=ruff decision=approve`, '#3fb950');
+};
+document.getElementById('btn-stop-hook').onclick = () => {
+  addHook('Stop', 'session_id=sess_a1b2 reason=completed', '#d29922');
+  addHook('Stop', 'hook=notify_discord.py → Discord webhook sent', '#3fb950');
+};
+
+// ===== 自动刷新 =====
+setInterval(() => {
+  if (Math.random() < 0.4) {
+    const model = MODELS[randInt(0,1)];
+    const tokens = randInt(200, 2000);
+    addLog('info', 'llm_call', {model, tokens, latency_ms: randInt(500, 3000)});
+    totalTokens += tokens;
+    totalCost += tokens * 0.000003;
+    budgetSpent += tokens * 0.000003;
+    document.getElementById('token-count').textContent = totalTokens.toLocaleString();
+    document.getElementById('cost-today').textContent = '$' + totalCost.toFixed(2);
+    renderBudget();
+  }
+}, 3000);
+</script>
+</body>
+</html>

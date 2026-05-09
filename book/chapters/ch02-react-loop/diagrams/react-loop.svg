@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" width="800" height="320">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4a6080"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 11px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="320" fill="none"/>
+
+  <!-- User Query box -->
+  <rect x="20" y="130" width="130" height="50" rx="8" fill="#0c1220" stroke="#1a4060" stroke-width="1.5"/>
+  <text x="85" y="152" text-anchor="middle" class="label">用户查询</text>
+  <text x="85" y="170" text-anchor="middle" class="sublabel">User Query</text>
+
+  <!-- Thought box -->
+  <rect x="200" y="50" width="130" height="50" rx="8" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="265" y="72" text-anchor="middle" class="label">思考</text>
+  <text x="265" y="90" text-anchor="middle" class="sublabel">Thought</text>
+
+  <!-- Action box -->
+  <rect x="380" y="50" width="130" height="50" rx="8" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="445" y="72" text-anchor="middle" class="label">行动</text>
+  <text x="445" y="90" text-anchor="middle" class="sublabel">Action</text>
+
+  <!-- Observation box -->
+  <rect x="560" y="50" width="130" height="50" rx="8" fill="#0c1220" stroke="#00d4ff" stroke-width="1.5"/>
+  <text x="625" y="72" text-anchor="middle" class="label">观察</text>
+  <text x="625" y="90" text-anchor="middle" class="sublabel">Observation</text>
+
+  <!-- Final Answer box -->
+  <rect x="560" y="210" width="130" height="50" rx="8" fill="#0a2a14" stroke="#00ff88" stroke-width="1.5"/>
+  <text x="625" y="232" text-anchor="middle" class="label" fill="#00ff88">最终答案</text>
+  <text x="625" y="250" text-anchor="middle" class="sublabel">Final Answer</text>
+
+  <!-- LLM label -->
+  <rect x="180" y="165" width="330" height="40" rx="6" fill="#0c1a2a" stroke="#1a3050" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="345" y="190" text-anchor="middle" class="sublabel">LLM（语言模型驱动）</text>
+
+  <!-- Arrows: User → Thought -->
+  <line x1="150" y1="155" x2="197" y2="90" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Arrows: Thought → Action -->
+  <line x1="330" y1="75" x2="378" y2="75" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Arrows: Action → Observation -->
+  <line x1="510" y1="75" x2="558" y2="75" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Loop back: Observation → Thought (via top arc) -->
+  <path d="M 690 50 Q 760 10 760 130 Q 760 230 400 230 Q 250 230 250 165" fill="none" stroke="#4a6080" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-gray)"/>
+  <text x="755" y="130" text-anchor="middle" class="sublabel" transform="rotate(90,755,130)">继续循环</text>
+
+  <!-- Arrow: Observation → Final Answer (when done) -->
+  <line x1="625" y1="100" x2="625" y2="208" stroke="#00ff88" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="640" y="160" class="sublabel" fill="#00ff88">完成</text>
+
+  <!-- Loop label -->
+  <text x="400" y="295" text-anchor="middle" class="sublabel">每轮循环：模型推理 → 调用工具 → 获取结果 → 再推理，直至任务完成</text>
+
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">ReAct 循环（Reason + Act）</text>
+</svg>

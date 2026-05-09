@@ -1,0 +1,62 @@
+<svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" font-family="'SF Mono', monospace">
+  <defs>
+    <linearGradient id="archBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#060910;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#0b1225;stop-opacity:1"/>
+    </linearGradient>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="rgba(255,255,255,0.4)"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="500" fill="url(#archBg)" rx="12"/>
+  <text x="450" y="36" fill="white" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="1">lena-v2.0 Browser Agent 架构图</text>
+
+  <!-- 用户层 -->
+  <rect x="350" y="60" width="200" height="50" fill="rgba(0,180,255,0.1)" stroke="rgba(0,180,255,0.4)" stroke-width="1.5" rx="8"/>
+  <text x="450" y="80" fill="#00b4ff" font-size="12" text-anchor="middle" font-weight="bold">用户</text>
+  <text x="450" y="99" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">任务描述（自然语言）</text>
+
+  <line x1="450" y1="112" x2="450" y2="140" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Lena Browser Agent -->
+  <rect x="200" y="142" width="500" height="100" fill="rgba(180,100,255,0.08)" stroke="rgba(180,100,255,0.3)" stroke-width="1.5" rx="8"/>
+  <text x="450" y="166" fill="#b464ff" font-size="13" text-anchor="middle" font-weight="bold">LenaBrowserAgent</text>
+  <text x="450" y="184" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">browser-use Agent · Claude Sonnet / ChatBrowserUse</text>
+  <text x="450" y="202" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">DOM 感知 → LLM 决策 → ActionHistory</text>
+  <text x="450" y="220" fill="rgba(255,255,255,0.35)" font-size="10" text-anchor="middle">tab 保护 · 审批门控 · 6 条血泪防护</text>
+
+  <!-- 三层 -->
+  <line x1="280" y1="244" x2="180" y2="290" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="244" x2="450" y2="290" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="620" y1="244" x2="720" y2="290" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CDP -->
+  <rect x="60" y="292" width="220" height="80" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.3)" stroke-width="1.5" rx="8"/>
+  <text x="170" y="316" fill="#00b4ff" font-size="12" text-anchor="middle" font-weight="bold">Chrome CDP 9222</text>
+  <text x="170" y="334" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">abel-chrome profile</text>
+  <text x="170" y="352" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">原生 WebSocket · 截图 · DOM</text>
+
+  <!-- Playwright -->
+  <rect x="330" y="292" width="240" height="80" fill="rgba(180,100,255,0.08)" stroke="rgba(180,100,255,0.3)" stroke-width="1.5" rx="8"/>
+  <text x="450" y="316" fill="#b464ff" font-size="12" text-anchor="middle" font-weight="bold">Playwright</text>
+  <text x="450" y="334" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">browser-use 底层</text>
+  <text x="450" y="352" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">click / type / scroll / navigate</text>
+
+  <!-- Fallback -->
+  <rect x="610" y="292" width="220" height="80" fill="rgba(0,255,136,0.08)" stroke="rgba(0,255,136,0.3)" stroke-width="1.5" rx="8"/>
+  <text x="720" y="316" fill="#00ff88" font-size="12" text-anchor="middle" font-weight="bold">FallbackChain</text>
+  <text x="720" y="334" fill="rgba(255,255,255,0.5)" font-size="10" text-anchor="middle">RSSHub → opencli → CDP</text>
+  <text x="720" y="352" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">99% 综合成功率</text>
+
+  <!-- 真实浏览器 -->
+  <line x1="170" y1="374" x2="170" y2="410" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="450" y1="374" x2="450" y2="410" stroke="rgba(255,255,255,0.2)" stroke-width="1" marker-end="url(#arr)"/>
+
+  <rect x="100" y="412" width="600" height="50" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1" rx="8"/>
+  <text x="400" y="432" fill="rgba(255,255,255,0.4)" font-size="11" text-anchor="middle" font-weight="bold">真实 Chrome 浏览器（abel-chrome · CDP 9222）</text>
+  <text x="400" y="450" fill="rgba(255,255,255,0.25)" font-size="10" text-anchor="middle">已登录账号 · 真实 Cookie · 用户数据 Profile</text>
+
+  <!-- 标注 -->
+  <text x="450" y="488" fill="rgba(255,255,255,0.2)" font-size="10" text-anchor="middle">lena-v2.0 · Ch 20 Browser Agent</text>
+</svg>

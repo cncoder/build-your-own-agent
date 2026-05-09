@@ -1,0 +1,386 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1587 2245" width="1587" height="2245" style="font-family: 'JetBrains Mono', 'Consolas', monospace;">
+  <!-- A3 297×420mm @ 134.5dpi -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#060A12"/>
+      <stop offset="100%" style="stop-color:#090E18"/>
+    </linearGradient>
+    <linearGradient id="cyanLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0"/>
+    </linearGradient>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00E5FF;stop-opacity:0.06"/>
+      <stop offset="50%" style="stop-color:#B78AFF;stop-opacity:0.04"/>
+      <stop offset="100%" style="stop-color:#00E5FF;stop-opacity:0.06"/>
+    </linearGradient>
+    <filter id="gcyan">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="ggreen">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="ac" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#00E5FF" opacity="0.8"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#39E07A" opacity="0.8"/>
+    </marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#B78AFF" opacity="0.8"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1587" height="2245" fill="url(#bg)"/>
+  <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+    <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,229,255,0.025)" stroke-width="1"/>
+  </pattern>
+  <rect width="1587" height="2245" fill="url(#grid)"/>
+
+  <!-- 左右边缘发光 -->
+  <rect x="0" y="0" width="4" height="2245" fill="url(#cyanLine)" opacity="0.4"/>
+
+  <!-- ─────────────────────────
+    HEADER SECTION
+  ───────────────────────── -->
+  <rect x="60" y="60" width="1467" height="180" rx="16" fill="url(#headerGrad)" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+
+  <text x="793" y="108" text-anchor="middle" fill="#00E5FF" font-size="13" letter-spacing="4" opacity="0.7">CHAPTER 14 · 《从零构建你的 AI Agent》</text>
+  <text x="793" y="160" text-anchor="middle" fill="#F0F4FF" font-size="38" font-weight="700" letter-spacing="-1">Cron + Checkpoint + content-hash</text>
+  <text x="793" y="200" text-anchor="middle" fill="#5A7090" font-size="18" letter-spacing="1">生产级长任务三层架构 · A3 信息图</text>
+
+  <!-- ─────────────────────────
+    SECTION 1: CRON 触发时序
+  ───────────────────────── -->
+  <text x="793" y="296" text-anchor="middle" fill="#00E5FF" font-size="12" letter-spacing="3" opacity="0.7">① CRON TRIGGER TIMELINE · 每小时触发时序</text>
+  <line x1="200" y1="304" x2="1387" y2="304" stroke="rgba(0,229,255,0.1)" stroke-width="1"/>
+
+  <!-- 时间线主轴 -->
+  <line x1="120" y1="400" x2="1467" y2="400" stroke="rgba(0,229,255,0.25)" stroke-width="2"/>
+
+  <!-- 刻度和标签 -->
+  <!-- 0:00 -->
+  <circle cx="140" cy="400" r="14" fill="#39E07A" stroke="rgba(57,224,122,0.4)" stroke-width="2" filter="url(#ggreen)"/>
+  <text x="140" y="405" text-anchor="middle" fill="#000" font-size="10" font-weight="700">✓</text>
+  <text x="140" y="380" text-anchor="middle" fill="#39E07A" font-size="12">00:00</text>
+  <line x1="140" y1="414" x2="140" y2="460" stroke="rgba(57,224,122,0.3)" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="140" y="476" text-anchor="middle" fill="#2A4030" font-size="10">fetch ✓</text>
+
+  <!-- 1:00 to 2:00 -->
+  <circle cx="290" cy="400" r="9" fill="rgba(0,229,255,0.15)" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+  <text x="290" y="380" text-anchor="middle" fill="#3A6070" font-size="11">01:00</text>
+  <text x="290" y="476" text-anchor="middle" fill="#2A4050" font-size="9">fetch ✓</text>
+
+  <circle cx="440" cy="400" r="9" fill="rgba(0,229,255,0.15)" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+  <text x="440" y="380" text-anchor="middle" fill="#3A6070" font-size="11">02:00</text>
+  <text x="440" y="476" text-anchor="middle" fill="#2A4050" font-size="9">fetch ✓</text>
+
+  <!-- 崩溃 03:00 -->
+  <circle cx="590" cy="400" r="14" fill="rgba(255,107,43,0.18)" stroke="#FF6B2B" stroke-width="2.5"/>
+  <text x="590" y="405" text-anchor="middle" fill="#FF6B2B" font-size="11" font-weight="700">✗</text>
+  <text x="590" y="380" text-anchor="middle" fill="#FF6B2B" font-size="12">03:00</text>
+  <line x1="590" y1="386" x2="590" y2="340" stroke="#FF6B2B" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
+  <text x="590" y="330" text-anchor="middle" fill="#FF6B2B" font-size="12">💥 kill -9</text>
+  <text x="590" y="476" text-anchor="middle" fill="#FF6B2B" font-size="9">crash!</text>
+
+  <!-- 恢复箭头 -->
+  <path d="M 590 460 Q 640 500 690 460" fill="none" stroke="rgba(183,138,255,0.5)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ap)"/>
+  <text x="640" y="516" text-anchor="middle" fill="#B78AFF" font-size="11">↺ resume from checkpoint</text>
+
+  <!-- 04:00 恢复 -->
+  <circle cx="740" cy="400" r="12" fill="rgba(183,138,255,0.15)" stroke="#B78AFF" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="740" y="405" text-anchor="middle" fill="#B78AFF" font-size="11">↺</text>
+  <text x="740" y="380" text-anchor="middle" fill="#B78AFF" font-size="12">04:00</text>
+  <text x="740" y="476" text-anchor="middle" fill="#5A3060" font-size="9">resume</text>
+
+  <!-- 省略号 -->
+  <text x="900" y="408" text-anchor="middle" fill="#2A3A4A" font-size="20">· · ·</text>
+
+  <!-- 22:00 23:00 -->
+  <circle cx="1060" cy="400" r="9" fill="rgba(0,229,255,0.15)" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+  <text x="1060" y="380" text-anchor="middle" fill="#3A6070" font-size="11">22:00</text>
+
+  <circle cx="1210" cy="400" r="9" fill="rgba(0,229,255,0.15)" stroke="rgba(0,229,255,0.4)" stroke-width="1.5"/>
+  <text x="1210" y="380" text-anchor="middle" fill="#3A6070" font-size="11">23:00</text>
+
+  <!-- 00:00 总结 -->
+  <circle cx="1380" cy="400" r="16" fill="rgba(183,138,255,0.18)" stroke="#B78AFF" stroke-width="2" filter="url(#gcyan)"/>
+  <text x="1380" y="405" text-anchor="middle" fill="#B78AFF" font-size="12">🌙</text>
+  <text x="1380" y="380" text-anchor="middle" fill="#B78AFF" font-size="12">00:00</text>
+  <text x="1380" y="476" text-anchor="middle" fill="#5A3060" font-size="10">凌晨总结</text>
+
+  <!-- ─────────────────────────
+    SECTION 2: 状态机
+  ───────────────────────── -->
+  <text x="793" y="560" text-anchor="middle" fill="#B78AFF" font-size="12" letter-spacing="3" opacity="0.7">② TASK STATE MACHINE · 任务状态机</text>
+  <line x1="200" y1="568" x2="1387" y2="568" stroke="rgba(183,138,255,0.1)" stroke-width="1"/>
+
+  <!-- 状态节点（水平排列） -->
+  <!-- pending -->
+  <rect x="80" y="610" width="160" height="60" rx="10" fill="rgba(255,200,80,0.07)" stroke="rgba(255,200,80,0.3)" stroke-width="1.5"/>
+  <text x="160" y="637" text-anchor="middle" fill="#FFC850" font-size="16" font-weight="600">pending</text>
+  <text x="160" y="658" text-anchor="middle" fill="#5A4020" font-size="12">等待中</text>
+
+  <line x1="240" y1="640" x2="310" y2="640" stroke="rgba(255,200,80,0.5)" stroke-width="1.5" marker-end="url(#ac)"/>
+  <text x="275" y="630" text-anchor="middle" fill="#3A3020" font-size="10">start()</text>
+
+  <!-- running -->
+  <rect x="310" y="610" width="160" height="60" rx="10" fill="rgba(0,229,255,0.08)" stroke="#00E5FF" stroke-width="1.5"/>
+  <text x="390" y="637" text-anchor="middle" fill="#00E5FF" font-size="16" font-weight="600">running</text>
+  <text x="390" y="658" text-anchor="middle" fill="#3A6070" font-size="12">执行中</text>
+
+  <line x1="470" y1="640" x2="560" y2="640" stroke="rgba(0,229,255,0.5)" stroke-width="1.5" marker-end="url(#ac)"/>
+  <text x="515" y="628" text-anchor="middle" fill="#2A4050" font-size="10">save_checkpoint()</text>
+
+  <!-- checkpoint_saved -->
+  <rect x="560" y="610" width="200" height="60" rx="10" fill="rgba(0,160,180,0.07)" stroke="rgba(0,180,200,0.35)" stroke-width="1.5"/>
+  <text x="660" y="633" text-anchor="middle" fill="#0090AA" font-size="14" font-weight="600">checkpoint</text>
+  <text x="660" y="651" text-anchor="middle" fill="#0090AA" font-size="14" font-weight="600">_saved</text>
+  <text x="660" y="668" text-anchor="middle" fill="#2A4050" font-size="11">步骤已落盘</text>
+
+  <!-- checkpoint_saved → running loop -->
+  <path d="M 660 610 Q 660 570 525 570 Q 390 570 390 610" fill="none" stroke="rgba(0,229,255,0.35)" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ac)"/>
+  <text x="525" y="562" text-anchor="middle" fill="#2A4050" font-size="10">next_step()</text>
+
+  <line x1="760" y1="630" x2="860" y2="620" stroke="rgba(57,224,122,0.5)" stroke-width="1.5" marker-end="url(#ag)"/>
+  <text x="810" y="614" text-anchor="middle" fill="#2A4030" font-size="10">all done</text>
+
+  <!-- completed -->
+  <rect x="860" y="600" width="160" height="60" rx="10" fill="rgba(57,224,122,0.08)" stroke="#39E07A" stroke-width="2" filter="url(#ggreen)"/>
+  <text x="940" y="627" text-anchor="middle" fill="#39E07A" font-size="16" font-weight="600">completed</text>
+  <text x="940" y="648" text-anchor="middle" fill="#2A4030" font-size="12">✓ 完成</text>
+
+  <!-- running → failed -->
+  <path d="M 390 670 Q 390 730 760 730 Q 1100 730 1100 670" fill="none" stroke="rgba(255,107,43,0.4)" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ap)"/>
+  <text x="740" y="752" text-anchor="middle" fill="#6A3020" font-size="11">crash / error</text>
+
+  <!-- failed -->
+  <rect x="1100" y="610" width="160" height="60" rx="10" fill="rgba(255,107,43,0.07)" stroke="rgba(255,107,43,0.35)" stroke-width="1.5"/>
+  <text x="1180" y="637" text-anchor="middle" fill="#FF6B2B" font-size="16" font-weight="600">failed</text>
+  <text x="1180" y="658" text-anchor="middle" fill="#5A3020" font-size="12">失败</text>
+
+  <!-- failed → running (resume) -->
+  <path d="M 1100 660 Q 900 780 400 670" fill="none" stroke="rgba(183,138,255,0.4)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ac)"/>
+  <text x="750" y="796" text-anchor="middle" fill="#5A3060" font-size="12">↺ resume_from_checkpoint(load_completed_steps())</text>
+
+  <!-- ─────────────────────────
+    SECTION 3: 持久化存储结构
+  ───────────────────────── -->
+  <text x="793" y="870" text-anchor="middle" fill="#39E07A" font-size="12" letter-spacing="3" opacity="0.7">③ PERSISTENCE STRUCTURE · 持久化存储结构</text>
+  <line x1="200" y1="878" x2="1387" y2="878" stroke="rgba(57,224,122,0.1)" stroke-width="1"/>
+
+  <!-- SQLite 文件 -->
+  <rect x="80" y="910" width="1427" height="260" rx="14" fill="rgba(0,229,255,0.025)" stroke="rgba(0,229,255,0.12)" stroke-width="1"/>
+  <text x="300" y="936" text-anchor="middle" fill="#00E5FF" font-size="13" font-weight="600">data/lena.db</text>
+
+  <!-- task_state 表 -->
+  <rect x="100" y="950" width="600" height="200" rx="10" fill="rgba(0,229,255,0.04)" stroke="rgba(0,229,255,0.15)" stroke-width="1"/>
+  <text x="400" y="975" text-anchor="middle" fill="#00E5FF" font-size="14" font-weight="600">task_state</text>
+  <line x1="120" y1="985" x2="680" y2="985" stroke="rgba(0,229,255,0.12)" stroke-width="1"/>
+
+  <!-- 字段行 -->
+  <rect x="120" y="994" width="560" height="28" rx="4" fill="rgba(0,229,255,0.06)"/>
+  <text x="220" y="1013" fill="#00E5FF" font-size="13" font-weight="600">task_id</text>
+  <text x="400" y="1013" fill="#5AAABB" font-size="12">TEXT PRIMARY KEY</text>
+  <text x="620" y="1013" text-anchor="middle" fill="#3A5060" font-size="11">任务唯一标识</text>
+
+  <rect x="120" y="1026" width="560" height="28" rx="4"/>
+  <text x="220" y="1045" fill="#B78AFF" font-size="13" font-weight="600">status</text>
+  <text x="400" y="1045" fill="#7A6090" font-size="12">TEXT NOT NULL</text>
+  <text x="620" y="1045" text-anchor="middle" fill="#3A3050" font-size="11">pending/running/checkpoint_saved/completed/failed</text>
+
+  <rect x="120" y="1058" width="560" height="28" rx="4" fill="rgba(0,229,255,0.03)"/>
+  <text x="220" y="1077" fill="#39E07A" font-size="13" font-weight="600">checkpoint</text>
+  <text x="400" y="1077" fill="#3A6050" font-size="12">TEXT (JSON)</text>
+  <text x="620" y="1077" text-anchor="middle" fill="#2A4030" font-size="11">{"last_step": "fetch_hn"}</text>
+
+  <rect x="120" y="1090" width="560" height="28" rx="4"/>
+  <text x="220" y="1109" fill="#FFC850" font-size="13" font-weight="600">progress</text>
+  <text x="400" y="1109" fill="#5A4A20" font-size="12">INTEGER (0-100)</text>
+  <text x="620" y="1109" text-anchor="middle" fill="#3A3020" font-size="11">进度百分比</text>
+
+  <rect x="120" y="1122" width="560" height="28" rx="4" fill="rgba(0,229,255,0.03)"/>
+  <text x="220" y="1141" fill="#6A8090" font-size="13">updated_at</text>
+  <text x="400" y="1141" fill="#3A5060" font-size="12">TEXT NOT NULL</text>
+  <text x="620" y="1141" text-anchor="middle" fill="#2A3040" font-size="11">最后更新时间戳</text>
+
+  <!-- task_results 表 -->
+  <rect x="780" y="950" width="700" height="200" rx="10" fill="rgba(183,138,255,0.04)" stroke="rgba(183,138,255,0.15)" stroke-width="1"/>
+  <text x="1130" y="975" text-anchor="middle" fill="#B78AFF" font-size="14" font-weight="600">task_results</text>
+  <line x1="800" y1="985" x2="1460" y2="985" stroke="rgba(183,138,255,0.12)" stroke-width="1"/>
+
+  <rect x="800" y="994" width="640" height="28" rx="4" fill="rgba(183,138,255,0.06)"/>
+  <text x="900" y="1013" fill="#B78AFF" font-size="13" font-weight="600">task_id</text>
+  <text x="1060" y="1013" fill="#7A5A90" font-size="12">TEXT NOT NULL</text>
+  <text x="1360" y="1013" text-anchor="middle" fill="#3A2A50" font-size="11">关联 task_state</text>
+
+  <rect x="800" y="1026" width="640" height="28" rx="4"/>
+  <text x="900" y="1045" fill="#00E5FF" font-size="13" font-weight="600">step_id</text>
+  <text x="1060" y="1045" fill="#3A6070" font-size="12">TEXT NOT NULL</text>
+  <text x="1360" y="1045" text-anchor="middle" fill="#2A4050" font-size="11">"fetch_hn" / "fetch_github" / …</text>
+
+  <rect x="800" y="1058" width="640" height="28" rx="4" fill="rgba(183,138,255,0.03)"/>
+  <text x="900" y="1077" fill="#39E07A" font-size="13" font-weight="600">result_data</text>
+  <text x="1060" y="1077" fill="#3A5040" font-size="12">TEXT (JSON)</text>
+  <text x="1360" y="1077" text-anchor="middle" fill="#2A3030" font-size="11">{"source": "hn", "count": 12}</text>
+
+  <rect x="800" y="1090" width="640" height="28" rx="4"/>
+  <text x="900" y="1109" fill="#FFC850" font-size="13" font-weight="600">completed_at</text>
+  <text x="1060" y="1109" fill="#5A4A20" font-size="12">TEXT NOT NULL</text>
+
+  <!-- 幂等约束高亮 -->
+  <rect x="800" y="1122" width="640" height="28" rx="4" fill="rgba(255,107,43,0.06)" stroke="rgba(255,107,43,0.2)" stroke-width="1"/>
+  <text x="900" y="1141" fill="#FF6B2B" font-size="13" font-weight="600">UNIQUE</text>
+  <text x="1000" y="1141" fill="#FF6B2B" font-size="12">(task_id, step_id)</text>
+  <text x="1360" y="1141" text-anchor="middle" fill="#6A3020" font-size="11">⚡ 幂等保证，安全重试</text>
+
+  <!-- ─────────────────────────
+    SECTION 4: content-hash 缓存
+  ───────────────────────── -->
+  <text x="793" y="1230" text-anchor="middle" fill="#FF6B2B" font-size="12" letter-spacing="3" opacity="0.7">④ CONTENT-HASH CACHE · 案例 14.2 · 日报 TTS 断点续传</text>
+  <line x1="200" y1="1238" x2="1387" y2="1238" stroke="rgba(255,107,43,0.1)" stroke-width="1"/>
+
+  <!-- 流程框 -->
+  <!-- 输入 -->
+  <rect x="80" y="1270" width="200" height="80" rx="10" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="180" y="1302" text-anchor="middle" fill="#8A9AB0" font-size="15">voice</text>
+  <text x="180" y="1322" text-anchor="middle" fill="#8A9AB0" font-size="15">+ text</text>
+  <text x="180" y="1340" text-anchor="middle" fill="#4A5060" font-size="11">输入内容</text>
+
+  <line x1="280" y1="1310" x2="360" y2="1310" stroke="rgba(183,138,255,0.5)" stroke-width="2" marker-end="url(#ap)"/>
+
+  <!-- sha256 -->
+  <rect x="360" y="1270" width="200" height="80" rx="10" fill="rgba(183,138,255,0.08)" stroke="rgba(183,138,255,0.3)" stroke-width="1.5"/>
+  <text x="460" y="1302" text-anchor="middle" fill="#B78AFF" font-size="16" font-weight="600">sha256()</text>
+  <text x="460" y="1322" text-anchor="middle" fill="#6A4A90" font-size="12">voice + ":" + text</text>
+  <text x="460" y="1340" text-anchor="middle" fill="#4A3060" font-size="11">content hash</text>
+
+  <line x1="560" y1="1310" x2="640" y2="1310" stroke="rgba(183,138,255,0.5)" stroke-width="2" marker-end="url(#ap)"/>
+
+  <!-- 查缓存 -->
+  <rect x="640" y="1270" width="200" height="80" rx="10" fill="rgba(0,229,255,0.07)" stroke="rgba(0,229,255,0.25)" stroke-width="1.5"/>
+  <text x="740" y="1298" text-anchor="middle" fill="#00E5FF" font-size="14" font-weight="600">cache lookup</text>
+  <text x="740" y="1318" text-anchor="middle" fill="#3A6070" font-size="12">tts_cache/{key}.wav</text>
+  <text x="740" y="1336" text-anchor="middle" fill="#2A4050" font-size="11">存在？直接返回</text>
+
+  <!-- 命中 path -->
+  <line x1="840" y1="1290" x2="960" y2="1260" stroke="rgba(57,224,122,0.6)" stroke-width="2" marker-end="url(#ag)"/>
+  <rect x="960" y="1240" width="200" height="60" rx="10" fill="rgba(57,224,122,0.08)" stroke="rgba(57,224,122,0.3)" stroke-width="1.5"/>
+  <text x="1060" y="1266" text-anchor="middle" fill="#39E07A" font-size="15" font-weight="600">✓ Cache Hit</text>
+  <text x="1060" y="1286" text-anchor="middle" fill="#2A5030" font-size="11">直接返回，零计算</text>
+
+  <!-- 未命中 path -->
+  <line x1="840" y1="1330" x2="960" y2="1360" stroke="rgba(255,107,43,0.6)" stroke-width="2" marker-end="url(#ap)"/>
+  <rect x="960" y="1345" width="200" height="60" rx="10" fill="rgba(255,107,43,0.07)" stroke="rgba(255,107,43,0.3)" stroke-width="1.5"/>
+  <text x="1060" y="1371" text-anchor="middle" fill="#FF6B2B" font-size="15" font-weight="600">Cache Miss</text>
+  <text x="1060" y="1391" text-anchor="middle" fill="#5A3020" font-size="11">合成 + 写缓存</text>
+
+  <!-- 说明文字 -->
+  <rect x="1200" y="1260" width="367" height="160" rx="12" fill="rgba(183,138,255,0.04)" stroke="rgba(183,138,255,0.15)" stroke-width="1"/>
+  <text x="1383" y="1290" text-anchor="middle" fill="#B78AFF" font-size="13" font-weight="600">核心洞察</text>
+  <text x="1220" y="1318" fill="#7A6090" font-size="12">1. 跨天幂等</text>
+  <text x="1240" y="1338" fill="#5A4A70" font-size="11">同文本今天明天结果一样</text>
+  <text x="1240" y="1356" fill="#5A4A70" font-size="11">不浪费 GPU / API 额度</text>
+  <text x="1220" y="1380" fill="#7A6090" font-size="12">2. 断点续传</text>
+  <text x="1240" y="1400" fill="#5A4A70" font-size="11">重启后查缓存，已处理</text>
+  <text x="1240" y="1418" fill="#5A4A70" font-size="11">的 chunk 直接复用</text>
+
+  <!-- 生产数据 -->
+  <rect x="80" y="1400" width="400" height="100" rx="12" fill="rgba(255,107,43,0.04)" stroke="rgba(255,107,43,0.15)" stroke-width="1"/>
+  <text x="280" y="1428" text-anchor="middle" fill="#FF6B2B" font-size="12" letter-spacing="1">日报系统真实数据</text>
+  <text x="140" y="1456" fill="#8A6050" font-size="13">合成时间：</text>
+  <text x="300" y="1456" fill="#FF6B2B" font-size="14" font-weight="600">25–45 分钟 / 期</text>
+  <text x="140" y="1480" fill="#8A6050" font-size="13">脚本字数：</text>
+  <text x="300" y="1480" fill="#FF6B2B" font-size="14" font-weight="600">25000–30000 字</text>
+
+  <!-- ─────────────────────────
+    SECTION 5: LangGraph vs lena-v1.4
+  ───────────────────────── -->
+  <text x="793" y="1560" text-anchor="middle" fill="#B78AFF" font-size="12" letter-spacing="3" opacity="0.7">⑤ DESIGN REFERENCE · LangGraph Durable Execution vs lena-v1.4</text>
+  <line x1="200" y1="1568" x2="1387" y2="1568" stroke="rgba(183,138,255,0.1)" stroke-width="1"/>
+
+  <!-- 对比表格 -->
+  <rect x="80" y="1590" width="1427" height="360" rx="14" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- 表头 -->
+  <rect x="80" y="1590" width="1427" height="52" rx="14" fill="rgba(255,255,255,0.04)"/>
+  <text x="300" y="1622" text-anchor="middle" fill="#5A6A7A" font-size="14" letter-spacing="1">功能维度</text>
+  <text x="760" y="1622" text-anchor="middle" fill="#B78AFF" font-size="14" font-weight="600">LangGraph（完整框架）</text>
+  <text x="1280" y="1622" text-anchor="middle" fill="#00E5FF" font-size="14" font-weight="600">lena-v1.4（本章实现）</text>
+
+  <!-- 分割线 -->
+  <line x1="560" y1="1590" x2="560" y2="1950" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="1000" y1="1590" x2="1000" y2="1950" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- 数据行 -->
+  <g font-size="13">
+    <rect x="80" y="1642" width="1427" height="44" fill="rgba(0,229,255,0.02)"/>
+    <text x="300" y="1669" text-anchor="middle" fill="#5A6A7A">步骤级 checkpoint</text>
+    <text x="760" y="1669" text-anchor="middle" fill="#39E07A">✓ graph 每节点后保存</text>
+    <text x="1280" y="1669" text-anchor="middle" fill="#39E07A">✓ save_checkpoint() 每步</text>
+
+    <rect x="80" y="1686" width="1427" height="44"/>
+    <text x="300" y="1713" text-anchor="middle" fill="#5A6A7A">崩溃恢复</text>
+    <text x="760" y="1713" text-anchor="middle" fill="#39E07A">✓ resume_from_checkpoint</text>
+    <text x="1280" y="1713" text-anchor="middle" fill="#39E07A">✓ load_completed_steps()</text>
+
+    <rect x="80" y="1730" width="1427" height="44" fill="rgba(0,229,255,0.02)"/>
+    <text x="300" y="1757" text-anchor="middle" fill="#5A6A7A">存储后端</text>
+    <text x="760" y="1757" text-anchor="middle" fill="#B78AFF">SQLite / Redis / PostgreSQL</text>
+    <text x="1280" y="1757" text-anchor="middle" fill="#00E5FF">SQLite（Python 标准库）</text>
+
+    <rect x="80" y="1774" width="1427" height="44"/>
+    <text x="300" y="1801" text-anchor="middle" fill="#5A6A7A">分布式 / 多租户</text>
+    <text x="760" y="1801" text-anchor="middle" fill="#39E07A">✓</text>
+    <text x="1280" y="1801" text-anchor="middle" fill="#FF6B2B">—（单机）</text>
+
+    <rect x="80" y="1818" width="1427" height="44" fill="rgba(0,229,255,0.02)"/>
+    <text x="300" y="1845" text-anchor="middle" fill="#5A6A7A">零依赖安装</text>
+    <text x="760" y="1845" text-anchor="middle" fill="#FF6B2B">— (pip install langgraph)</text>
+    <text x="1280" y="1845" text-anchor="middle" fill="#39E07A">✓ Python 标准库</text>
+
+    <rect x="80" y="1862" width="1427" height="44"/>
+    <text x="300" y="1889" text-anchor="middle" fill="#5A6A7A">代码量</text>
+    <text x="760" y="1889" text-anchor="middle" fill="#FFC850">数千行（框架）</text>
+    <text x="1280" y="1889" text-anchor="middle" fill="#FFC850">~100 行（本章实现）</text>
+
+    <rect x="80" y="1906" width="1427" height="44" fill="rgba(0,229,255,0.02)"/>
+    <text x="300" y="1933" text-anchor="middle" fill="#5A6A7A">适用场景</text>
+    <text x="760" y="1933" text-anchor="middle" fill="#7A6090">复杂 graph、分布式、多 agent</text>
+    <text x="1280" y="1933" text-anchor="middle" fill="#4A7090">单机长任务、教学、原型</text>
+  </g>
+
+  <!-- ─────────────────────────
+    FOOTER: 三句话总结
+  ───────────────────────── -->
+  <rect x="80" y="1990" width="1427" height="200" rx="16" fill="rgba(0,229,255,0.03)" stroke="rgba(0,229,255,0.12)" stroke-width="1.5"/>
+  <text x="793" y="2028" text-anchor="middle" fill="#00E5FF" font-size="13" letter-spacing="3" opacity="0.7">KEY TAKEAWAYS · 三句话</text>
+
+  <rect x="120" y="2048" width="420" height="72" rx="10" fill="rgba(0,229,255,0.06)" stroke="rgba(0,229,255,0.2)" stroke-width="1"/>
+  <text x="330" y="2076" text-anchor="middle" fill="#00E5FF" font-size="15" font-weight="600">cron</text>
+  <text x="330" y="2096" text-anchor="middle" fill="#5A8090" font-size="13">解决「什么时候跑」</text>
+  <text x="330" y="2112" text-anchor="middle" fill="#3A6070" font-size="11">croniter 精确计算触发时间</text>
+
+  <rect x="580" y="2048" width="420" height="72" rx="10" fill="rgba(183,138,255,0.06)" stroke="rgba(183,138,255,0.2)" stroke-width="1"/>
+  <text x="790" y="2076" text-anchor="middle" fill="#B78AFF" font-size="15" font-weight="600">checkpoint</text>
+  <text x="790" y="2096" text-anchor="middle" fill="#6A5090" font-size="13">解决「跑到哪了」</text>
+  <text x="790" y="2112" text-anchor="middle" fill="#4A3070" font-size="11">SQLite task_state 每步落盘</text>
+
+  <rect x="1040" y="2048" width="420" height="72" rx="10" fill="rgba(57,224,122,0.06)" stroke="rgba(57,224,122,0.2)" stroke-width="1"/>
+  <text x="1250" y="2076" text-anchor="middle" fill="#39E07A" font-size="15" font-weight="600">content-hash</text>
+  <text x="1250" y="2096" text-anchor="middle" fill="#4A7060" font-size="13">解决「有没有跑过」</text>
+  <text x="1250" y="2112" text-anchor="middle" fill="#2A4030" font-size="11">sha256 缓存，跨天幂等</text>
+
+  <text x="793" y="2172" text-anchor="middle" fill="#2A3A4A" font-size="13" letter-spacing="1">
+    三者组合，才是生产级长任务的完整解
+  </text>
+
+  <!-- 版权 -->
+  <text x="793" y="2218" text-anchor="middle" fill="#1A2A3A" font-size="12" letter-spacing="1">
+    《从零构建你的 AI Agent：Claude Code &amp; OpenClaw 深度实战》· Ch 14 · A3 信息图
+  </text>
+
+</svg>

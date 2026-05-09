@@ -1,0 +1,22 @@
+{
+  "name": "lena-v0.15",
+  "version": "0.15.0",
+  "description": "Lena v0.15 — 常驻 Gateway + Telegram/Console 双 channel",
+  "type": "module",
+  "scripts": {
+    "start": "tsx main.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/node-telegram-bot-api": "^0.64.7",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

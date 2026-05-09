@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 03 OpenTelemetry</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+  }
+  .slide {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    padding: 60px 100px 48px;
+    gap: 40px;
+  }
+  .header { flex-shrink: 0; }
+  .tag { font-size: 12px; letter-spacing: 0.15em; color: #3fb950; text-transform: uppercase; margin-bottom: 14px; }
+  h1 { font-size: 52px; font-weight: 700; letter-spacing: -1px; }
+  h1 span { color: #3fb950; }
+  .subtitle { font-size: 20px; color: #8b949e; margin-top: 8px; }
+
+  /* 四概念 */
+  .four-concepts {
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px;
+    flex: 1;
+  }
+  .concept {
+    background: rgba(22,27,34,0.7); border-radius: 12px; padding: 28px 28px;
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative; overflow: hidden;
+  }
+  .concept::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .concept.trace::before { background: #3fb950; }
+  .concept.span::before { background: #58a6ff; }
+  .concept.metric::before { background: #d29922; }
+  .concept.log::before { background: #f85149; }
+
+  .concept-title {
+    font-size: 24px; font-weight: 700; letter-spacing: -0.5px;
+  }
+  .concept.trace .concept-title { color: #3fb950; }
+  .concept.span .concept-title { color: #58a6ff; }
+  .concept.metric .concept-title { color: #d29922; }
+  .concept.log .concept-title { color: #f85149; }
+
+  .concept-desc {
+    font-size: 15px; color: #8b949e; line-height: 1.6;
+    flex: 1;
+  }
+  .concept-example {
+    font-size: 13px; font-family: 'SF Mono', monospace;
+    background: rgba(0,0,0,0.4); border-radius: 6px;
+    padding: 10px 14px; color: #c9d1d9; line-height: 1.6;
+  }
+
+  /* 连接箭头 */
+  .connect-row {
+    display: flex; align-items: center; gap: 12px; margin: 0;
+    justify-content: center;
+    font-size: 14px; color: #3fb950;
+  }
+  .connect-arrow {
+    font-size: 18px; color: #30363d;
+  }
+  .connect-label {
+    font-size: 13px; color: #6e7681; letter-spacing: 0.05em;
+  }
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <div class="tag">OpenTelemetry · 四概念</div>
+    <h1>Trace / Span / Metric / Log<span> — 一图理清</span></h1>
+    <p class="subtitle">三者通过 trace_id / span_id 关联，从单条日志可追溯完整调用链</p>
+  </div>
+
+  <div class="four-concepts">
+    <!-- Trace -->
+    <div class="concept trace">
+      <div class="concept-title">Trace</div>
+      <div class="concept-desc">
+        一次完整用户请求的<strong style="color:#e6edf3">全旅程</strong>。
+        有唯一 <code style="color:#3fb950">trace_id</code>，
+        跨越所有服务边界，从入口到出口。
+      </div>
+      <div class="concept-example">
+trace_id = "8d4e7a2b..."<br>
+从 "用户发出消息"<br>
+→ 到 "Lena 返回最终回复"
+      </div>
+    </div>
+
+    <!-- Span -->
+    <div class="concept span">
+      <div class="concept-title">Span</div>
+      <div class="concept-desc">
+        Trace 内的<strong style="color:#e6edf3">单个操作</strong>，有开始/结束时间、
+        属性键值对，可以有父子关系，形成树状结构。
+      </div>
+      <div class="concept-example">
+span_id = "f3c1..."<br>
+parent = "8d4e..."<br>
+duration_ms = 2100<br>
+model = "claude-sonnet-4-6"
+      </div>
+    </div>
+
+    <!-- Metric -->
+    <div class="concept metric">
+      <div class="concept-title">Metric</div>
+      <div class="concept-desc">
+        数值随时间的变化，三种类型：
+        <strong style="color:#e6edf3">Counter</strong>（累加），
+        <strong style="color:#e6edf3">Gauge</strong>（当前值），
+        <strong style="color:#e6edf3">Histogram</strong>（分布）。
+      </div>
+      <div class="concept-example">
+Counter: 总 LLM 调用次数<br>
+Gauge: 当前 token 使用量<br>
+Histogram: P99 延迟分布
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="concept log">
+      <div class="concept-title">Log</div>
+      <div class="concept-desc">
+        单个事件的快照。结构化日志（structlog JSON）
+        带 <code style="color:#f85149">trace_id</code> 和 <code style="color:#f85149">span_id</code>，
+        可在 Trace 详情里展开。
+      </div>
+      <div class="concept-example">
+{<br>
+  "event": "llm_call",<br>
+  "trace_id": "8d4e...",<br>
+  "span_id": "f3c1..."<br>
+}
+      </div>
+    </div>
+  </div>
+
+  <div class="connect-row">
+    <span class="connect-label">structlog JSON 日志</span>
+    <span class="connect-arrow">→</span>
+    <span class="connect-label">带 trace_id / span_id 关联</span>
+    <span class="connect-arrow">→</span>
+    <span class="connect-label">从日志跳到完整调用链</span>
+    <span class="connect-arrow">→</span>
+    <span style="color:#3fb950; font-size:14px">Jaeger UI · AWS X-Ray · Honeycomb</span>
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · OpenTelemetry</div>
+</body>
+</html>

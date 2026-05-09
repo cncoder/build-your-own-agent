@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 52px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+.content { position: absolute; top: 220px; left: 80px; right: 80px; bottom: 60px; display: flex; gap: 60px; }
+
+/* comparison table */
+.compare { flex: 1.4; }
+.compare-title { font-size: 12px; letter-spacing: 0.25em; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 12px; letter-spacing: 0.15em; color: rgba(255,255,255,0.3); text-align: left; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+td { font-size: 14px; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); vertical-align: top; }
+td:first-child { color: #fff; font-weight: 600; }
+tr.row-shell td { background: rgba(51,170,255,0.04); }
+tr.row-docker td { background: rgba(0,204,85,0.04); }
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 2px; }
+.tag-good { background: rgba(0,204,85,0.15); color: #00cc55; }
+.tag-warn { background: rgba(255,150,0,0.12); color: #ff9966; }
+.tag-bad { background: rgba(255,50,50,0.12); color: #ff6666; }
+
+/* decision tree */
+.tree { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.tree-title { font-size: 12px; letter-spacing: 0.25em; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 4px; }
+
+.dt-node {
+  background: #0f1418; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px; padding: 12px 16px;
+}
+.dt-q { font-size: 14px; color: #fff; margin-bottom: 8px; }
+.dt-branches { display: flex; gap: 12px; }
+.dt-branch { flex: 1; }
+.dt-cond { font-size: 11px; letter-spacing: 0.15em; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
+.dt-result { font-size: 13px; padding: 8px 12px; border-radius: 3px; }
+.r-shell { background: rgba(51,170,255,0.1); color: #55aaff; border: 1px solid rgba(51,170,255,0.2); }
+.r-docker { background: rgba(0,204,85,0.1); color: #00cc55; border: 1px solid rgba(0,204,85,0.2); }
+.r-both { background: rgba(255,200,0,0.06); color: #ffcc44; border: 1px solid rgba(255,200,0,0.15); font-size: 12px; }
+
+.summary-row {
+  display: flex; gap: 16px; margin-top: 8px;
+}
+.sum-card { flex: 1; padding: 12px 16px; border-radius: 4px; }
+.sum-shell { background: rgba(51,170,255,0.08); border: 1px solid rgba(51,170,255,0.2); }
+.sum-docker { background: rgba(0,204,85,0.08); border: 1px solid rgba(0,204,85,0.2); }
+.sum-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+.sum-shell .sum-title { color: #55aaff; }
+.sum-docker .sum-title { color: #00cc55; }
+.sum-text { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">何时用哪个</div>
+<div class="page-num">08 / 11</div>
+
+<div class="title-area">
+  <h2>正则过滤 vs Docker</h2>
+  <div class="sub">本地开发 vs 生产多租户——决策树</div>
+</div>
+
+<div class="content">
+  <div class="compare">
+    <div class="compare-title">对比表</div>
+    <table>
+      <tr>
+        <th>维度</th>
+        <th>ShellSandbox 正则过滤</th>
+        <th>Docker Sandbox</th>
+      </tr>
+      <tr class="row-shell">
+        <td>原理</td>
+        <td>黑名单拦截危险命令</td>
+        <td>隔离执行环境</td>
+      </tr>
+      <tr class="row-shell">
+        <td>绕过难度</td>
+        <td><span class="tag tag-bad">低</span> Base64/Python/Perl 等多种绕过</td>
+        <td><span class="tag tag-good">高</span> 需要内核漏洞或容器逃逸技术</td>
+      </tr>
+      <tr class="row-shell">
+        <td>部署复杂度</td>
+        <td><span class="tag tag-good">低</span> 无依赖，200 行 Python</td>
+        <td><span class="tag tag-warn">中</span> 需要 Docker 环境</td>
+      </tr>
+      <tr class="row-shell">
+        <td>启动延迟</td>
+        <td><span class="tag tag-good">极低</span> 毫秒级</td>
+        <td><span class="tag tag-warn">低-中</span> 容器创建 0.3s-2s</td>
+      </tr>
+      <tr class="row-shell">
+        <td>多租户隔离</td>
+        <td><span class="tag tag-bad">无</span> 同进程执行</td>
+        <td><span class="tag tag-good">强</span> 独立容器</td>
+      </tr>
+      <tr class="row-shell">
+        <td>OpenClaw 实现</td>
+        <td>nanoClaw ShellSandbox (sandbox.py:179-393)</td>
+        <td>docker.ts (41 文件)</td>
+      </tr>
+      <tr class="row-shell">
+        <td>适用场景</td>
+        <td><span style="color:#55aaff">本地开发、信任代码</span></td>
+        <td><span style="color:#00cc55">生产、任意代码执行</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="tree">
+    <div class="tree-title">决策树</div>
+
+    <div class="dt-node">
+      <div class="dt-q">执行什么代码？</div>
+      <div class="dt-branches">
+        <div class="dt-branch">
+          <div class="dt-cond">我自己写的脚本</div>
+          <div class="dt-result r-shell">ShellSandbox 正则过滤</div>
+        </div>
+        <div class="dt-branch">
+          <div class="dt-cond">来自外部/用户提供</div>
+          <div class="dt-result r-docker">Docker Sandbox</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dt-node">
+      <div class="dt-q">有多少用户？</div>
+      <div class="dt-branches">
+        <div class="dt-branch">
+          <div class="dt-cond">只有我自己</div>
+          <div class="dt-result r-shell">ShellSandbox 即可</div>
+        </div>
+        <div class="dt-branch">
+          <div class="dt-cond">多用户 / 对外服务</div>
+          <div class="dt-result r-docker">必须 Docker</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dt-node">
+      <div class="dt-q">安全级别要求？</div>
+      <div class="dt-branches">
+        <div class="dt-branch">
+          <div class="dt-cond">低风险 / 信任环境</div>
+          <div class="dt-result r-shell">正则 + HITL 审批</div>
+        </div>
+        <div class="dt-branch">
+          <div class="dt-cond">高风险 / 不信任代码</div>
+          <div class="dt-result r-docker">Docker + seccomp</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="sum-card sum-shell">
+        <div class="sum-title">ShellSandbox 适合</div>
+        <div class="sum-text">本地开发 · nanoClaw · 个人工具<br>Ch10 已实现，开箱即用</div>
+      </div>
+      <div class="sum-card sum-docker">
+        <div class="sum-title">Docker 适合</div>
+        <div class="sum-text">生产多租户 · 任意代码执行<br>lena-v1.6 · OpenClaw 41 文件</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

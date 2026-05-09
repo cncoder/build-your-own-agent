@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono','Fira Code',monospace; color: #e0e8ff; }
+.bg { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,200,50,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,200,50,0.03) 1px,transparent 1px); background-size: 60px 60px; }
+.slide { position: absolute; inset: 0; padding: 70px 80px; display: flex; flex-direction: column; }
+h1 { font-size: 52px; font-weight: 900; margin-bottom: 8px; }
+h1 em { color: #ffc832; font-style: normal; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+.cols { display: flex; gap: 40px; flex: 1; }
+.left { flex: 1.2; }
+.right { flex: 0.8; display: flex; flex-direction: column; gap: 20px; }
+pre { background: #060d14; border: 1px solid rgba(255,200,50,0.15); border-radius: 10px; padding: 26px; font-size: 14.5px; line-height: 1.7; color: #c8d8f0; height: 100%; overflow: hidden; }
+.kw { color: #ffc832; }
+.str { color: #88ddaa; }
+.cm { color: #445566; }
+.fn { color: #64b4ff; }
+.tip { background: rgba(255,200,50,0.06); border: 1px solid rgba(255,200,50,0.2); border-radius: 12px; padding: 22px 26px; }
+.tip-title { font-size: 13px; letter-spacing: 0.2em; color: #ffc832; margin-bottom: 10px; text-transform: uppercase; }
+.tip-body { font-size: 18px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+.tip-body strong { color: #ffc832; }
+.ref { font-size: 13px; color: rgba(255,200,50,0.5); margin-top: 6px; }
+</style></head>
+<body>
+<div class="bg"></div>
+<div class="slide">
+  <h1><em>VERIFICATION_AGENT</em> Nudge 机制</h1>
+  <p class="sub">Claude Code 内置的实时 Eval：每次 TodoWrite 触发自动验证 · TodoWriteTool.ts:107</p>
+  <div class="cols">
+    <div class="left">
+<pre><span class="cm"># self_verify.py — 借鉴 CC nudge 机制</span>
+
+SELF_VERIFY_PROMPT = <span class="str">"""
+你刚完成了：{task_description}
+你的输出：{output}
+
+评估（0-10 分）：
+- completeness 完整性
+- accuracy     准确性
+- format       格式
+
+&lt; 8 分列出具体缺少什么。
+"""</span>
+
+<span class="kw">class</span> SelfVerifier:
+    <span class="kw">def</span> <span class="fn">verify</span>(<span class="kw">self</span>, task: str, output: str):
+        result = <span class="fn">haiku.complete</span>(SELF_VERIFY_PROMPT)
+
+        <span class="kw">if</span> result.completeness &lt; <span class="str">8</span>:
+            <span class="kw">raise</span> IncompleteTaskError(
+                result.missing_items
+            )
+        <span class="kw">return</span> result
+
+<span class="cm"># 在每个长任务完成后调用</span>
+verifier = SelfVerifier()
+result = verifier.<span class="fn">verify</span>(
+    task=<span class="str">"帮用户分析代码性能"</span>,
+    output=agent_output
+)
+<span class="cm"># 不达标时自动重试，而不是交付</span></pre>
+    </div>
+    <div class="right">
+      <div class="tip">
+        <div class="tip-title">CC 生产实践</div>
+        <div class="tip-body">
+          feature flag <strong>VERIFICATION_AGENT</strong> 开启时<br>
+          TodoWrite 每次操作触发 verification nudge<br>
+          内置 verification agent 重新检查完成状态
+        </div>
+        <div class="ref">R1 Claude Code Architecture · TodoWriteTool.ts:107</div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">设计启示</div>
+        <div class="tip-body">
+          1. Eval 可以是<strong>实时的</strong>，不必批量离线<br>
+          2. 触发点可以是<strong>每次工具调用</strong><br>
+          3. 评判者可以是 agent <strong>自身的子 agent</strong>
+        </div>
+      </div>
+      <div class="tip">
+        <div class="tip-title">abel 血泪案例</div>
+        <div class="tip-body">
+          EI 报告任务 sub-agent 说了 8 次<br>
+          "马上出 PDF"——但没有 self-verify<br>
+          结果 6 小时没有任何输出
+        </div>
+        <div class="ref">案例 8.1 — 铁律：说"马上出"→同一 turn 必须出</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

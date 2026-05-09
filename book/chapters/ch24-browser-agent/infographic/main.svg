@@ -1,0 +1,328 @@
+<svg viewBox="0 0 1200 1600" xmlns="http://www.w3.org/2000/svg" font-family="'SF Pro Display', -apple-system, sans-serif">
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#04060d;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#070b18;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#040810;stop-opacity:1"/>
+    </linearGradient>
+    <!-- 发光滤镜 -->
+    <filter id="glow-blue" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- 卡片渐变 -->
+    <linearGradient id="cardBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(0,180,255,0.12)"/>
+      <stop offset="100%" style="stop-color:rgba(0,180,255,0.03)"/>
+    </linearGradient>
+    <linearGradient id="cardGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(0,255,136,0.12)"/>
+      <stop offset="100%" style="stop-color:rgba(0,255,136,0.03)"/>
+    </linearGradient>
+    <linearGradient id="cardPurple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(180,100,255,0.12)"/>
+      <stop offset="100%" style="stop-color:rgba(180,100,255,0.03)"/>
+    </linearGradient>
+    <linearGradient id="cardOrange" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,146,64,0.12)"/>
+      <stop offset="100%" style="stop-color:rgba(255,146,64,0.03)"/>
+    </linearGradient>
+    <linearGradient id="timelineBar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00b4ff"/>
+      <stop offset="100%" style="stop-color:#00ff88"/>
+    </linearGradient>
+    <marker id="arrowW" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="rgba(255,255,255,0.3)"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="rgba(0,180,255,0.7)"/>
+    </marker>
+  </defs>
+
+  <!-- 主背景 -->
+  <rect width="1200" height="1600" fill="url(#mainBg)"/>
+
+  <!-- 背景光晕 -->
+  <circle cx="200" cy="200" r="300" fill="rgba(0,180,255,0.04)" filter="url(#glow-soft)"/>
+  <circle cx="1000" cy="800" r="250" fill="rgba(0,255,136,0.03)" filter="url(#glow-soft)"/>
+  <circle cx="600" cy="1300" r="200" fill="rgba(180,100,255,0.03)" filter="url(#glow-soft)"/>
+
+  <!-- ===== 标题区 ===== -->
+  <text x="600" y="58" fill="rgba(0,180,255,0.6)" font-size="11" text-anchor="middle" letter-spacing="5" font-family="'SF Mono', monospace">第 20 章 · 实战大结局 · 2026-05-05</text>
+  <text x="600" y="110" fill="white" font-size="52" font-weight="800" text-anchor="middle" letter-spacing="-2">Browser Agent</text>
+  <text x="600" y="148" fill="rgba(240,244,255,0.45)" font-size="18" text-anchor="middle">三条路径 · 四大挑战 · 六大支柱 · 从 Lena 到互联网</text>
+
+  <!-- 分隔线 -->
+  <line x1="100" y1="168" x2="1100" y2="168" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- ===== Section 1: 三条路径 ===== -->
+  <text x="60" y="210" fill="rgba(0,180,255,0.5)" font-size="10" letter-spacing="4" font-family="'SF Mono', monospace">SECTION 01</text>
+  <text x="60" y="238" fill="white" font-size="22" font-weight="700">三条浏览器路径选型矩阵</text>
+
+  <!-- CDP 卡片 -->
+  <rect x="60" y="255" width="340" height="220" fill="url(#cardBlue)" rx="12" stroke="rgba(0,180,255,0.25)" stroke-width="1"/>
+  <rect x="60" y="255" width="340" height="3" fill="#00b4ff" rx="2"/>
+  <text x="240" y="290" fill="#00b4ff" font-size="18" font-weight="700" text-anchor="middle" filter="url(#glow-blue)">Chrome CDP</text>
+  <text x="240" y="312" fill="rgba(255,255,255,0.4)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">最底层 · 最快 · Chrome 专属</text>
+  <line x1="80" y1="322" x2="380" y2="322" stroke="rgba(0,180,255,0.15)" stroke-width="1"/>
+  <text x="80" y="346" fill="rgba(255,255,255,0.7)" font-size="12">✓ WebSocket 直连 CDP 9222</text>
+  <text x="80" y="368" fill="rgba(255,255,255,0.7)" font-size="12">✓ abel-chrome profile 天然登录态</text>
+  <text x="80" y="390" fill="rgba(255,255,255,0.7)" font-size="12">✓ 截图采集最高性能</text>
+  <text x="80" y="412" fill="rgba(255,255,255,0.4)" font-size="12">✗ 需手动 DOM 解析，无 LLM</text>
+  <rect x="80" y="430" width="280" height="28" fill="rgba(0,180,255,0.12)" rx="14" stroke="rgba(0,180,255,0.3)" stroke-width="1"/>
+  <text x="220" y="449" fill="#00b4ff" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">精确采集 · 截图 · 动态渲染抓取</text>
+
+  <!-- Playwright 卡片 -->
+  <rect x="430" y="255" width="340" height="220" fill="url(#cardPurple)" rx="12" stroke="rgba(180,100,255,0.25)" stroke-width="1"/>
+  <rect x="430" y="255" width="340" height="3" fill="#b464ff" rx="2"/>
+  <text x="600" y="290" fill="#b464ff" font-size="18" font-weight="700" text-anchor="middle" filter="url(#glow-blue)">Playwright</text>
+  <text x="600" y="312" fill="rgba(255,255,255,0.4)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">中层 · 可靠 · 跨浏览器</text>
+  <line x1="450" y1="322" x2="750" y2="322" stroke="rgba(180,100,255,0.15)" stroke-width="1"/>
+  <text x="450" y="346" fill="rgba(255,255,255,0.7)" font-size="12">✓ Chromium / Firefox / Safari</text>
+  <text x="450" y="368" fill="rgba(255,255,255,0.7)" font-size="12">✓ 自动等待 · 网络拦截</text>
+  <text x="450" y="390" fill="rgba(255,255,255,0.7)" font-size="12">✓ 稳定可靠，跨浏览器测试</text>
+  <text x="450" y="412" fill="rgba(255,255,255,0.4)" font-size="12">✗ 步骤需预定义，无 LLM 感知</text>
+  <rect x="450" y="430" width="280" height="28" fill="rgba(180,100,255,0.12)" rx="14" stroke="rgba(180,100,255,0.3)" stroke-width="1"/>
+  <text x="590" y="449" fill="#b464ff" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">E2E 测试 · 表单 · 下载</text>
+
+  <!-- browser-use 卡片 -->
+  <rect x="800" y="255" width="340" height="220" fill="url(#cardGreen)" rx="12" stroke="rgba(0,255,136,0.25)" stroke-width="1"/>
+  <rect x="800" y="255" width="340" height="3" fill="#00ff88" rx="2"/>
+  <text x="970" y="290" fill="#00ff88" font-size="18" font-weight="700" text-anchor="middle" filter="url(#glow-green)">browser-use</text>
+  <text x="970" y="312" fill="rgba(255,255,255,0.4)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">高层 · LLM 感知 · 92k ⭐</text>
+  <line x1="820" y1="322" x2="1120" y2="322" stroke="rgba(0,255,136,0.15)" stroke-width="1"/>
+  <text x="820" y="346" fill="rgba(255,255,255,0.7)" font-size="12">✓ 自动 DOM 感知（50-200元素）</text>
+  <text x="820" y="368" fill="rgba(255,255,255,0.7)" font-size="12">✓ LLM 动态决策每一步</text>
+  <text x="820" y="390" fill="rgba(255,255,255,0.7)" font-size="12">✓ ChatBrowserUse 专用模型 3-5x</text>
+  <text x="820" y="412" fill="rgba(255,255,255,0.4)" font-size="12">✗ 延迟高，依赖 LLM 调用</text>
+  <rect x="820" y="430" width="280" height="28" fill="rgba(0,255,136,0.12)" rx="14" stroke="rgba(0,255,136,0.3)" stroke-width="1"/>
+  <text x="960" y="449" fill="#00ff88" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">智能任务 · 目标驱动 · 动态决策</text>
+
+  <!-- 智能化递增箭头 -->
+  <line x1="60" y1="510" x2="1140" y2="510" stroke="rgba(255,165,0,0.3)" stroke-width="1.5" marker-end="url(#arrowW)"/>
+  <text x="600" y="528" fill="rgba(255,165,0,0.5)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">智能化程度递增 →</text>
+
+  <!-- ===== Section 2: browser-use 核心循环 ===== -->
+  <line x1="60" y1="548" x2="1140" y2="548" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="60" y="578" fill="rgba(0,255,136,0.5)" font-size="10" letter-spacing="4" font-family="'SF Mono', monospace">SECTION 02</text>
+  <text x="60" y="606" fill="white" font-size="22" font-weight="700">browser-use 核心循环</text>
+  <text x="60" y="630" fill="rgba(255,255,255,0.35)" font-size="12">截图/DOM 提取 → LLM 分析 → 动作决策 → Playwright 执行 → 结果验证</text>
+
+  <!-- 循环节点 -->
+  <!-- 感知 -->
+  <rect x="60" y="648" width="220" height="100" fill="rgba(0,180,255,0.08)" rx="10" stroke="rgba(0,180,255,0.3)" stroke-width="1.5"/>
+  <text x="170" y="688" fill="#00b4ff" font-size="14" font-weight="700" text-anchor="middle">① 感知</text>
+  <text x="170" y="710" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">截图 + DOM 提取</text>
+  <text x="170" y="728" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle" font-family="'SF Mono', monospace">可交互元素列表</text>
+
+  <line x1="282" y1="698" x2="318" y2="698" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" marker-end="url(#arrowW)"/>
+
+  <!-- LLM 决策 -->
+  <rect x="320" y="648" width="220" height="100" fill="rgba(180,100,255,0.08)" rx="10" stroke="rgba(180,100,255,0.3)" stroke-width="1.5"/>
+  <text x="430" y="688" fill="#b464ff" font-size="14" font-weight="700" text-anchor="middle">② LLM 决策</text>
+  <text x="430" y="710" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">Claude / ChatBrowserUse</text>
+  <text x="430" y="728" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle" font-family="'SF Mono', monospace">action + selector + value</text>
+
+  <line x1="542" y1="698" x2="578" y2="698" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" marker-end="url(#arrowW)"/>
+
+  <!-- Playwright 执行 -->
+  <rect x="580" y="648" width="220" height="100" fill="rgba(255,146,64,0.08)" rx="10" stroke="rgba(255,146,64,0.3)" stroke-width="1.5"/>
+  <text x="690" y="688" fill="#ff9240" font-size="14" font-weight="700" text-anchor="middle">③ Playwright 执行</text>
+  <text x="690" y="710" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">click / type / scroll</text>
+  <text x="690" y="728" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle" font-family="'SF Mono', monospace">真实浏览器操作</text>
+
+  <line x1="802" y1="698" x2="838" y2="698" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" marker-end="url(#arrowW)"/>
+
+  <!-- 验证 -->
+  <rect x="840" y="648" width="220" height="100" fill="rgba(0,255,136,0.08)" rx="10" stroke="rgba(0,255,136,0.3)" stroke-width="1.5"/>
+  <text x="950" y="688" fill="#00ff88" font-size="14" font-weight="700" text-anchor="middle">④ 结果验证</text>
+  <text x="950" y="710" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle">截图对比 · 文字匹配</text>
+  <text x="950" y="728" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle" font-family="'SF Mono', monospace">done? → 返回 / 继续</text>
+
+  <!-- 回环箭头 -->
+  <path d="M 950 748 Q 950 790 600 790 Q 250 790 170 748" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowW)"/>
+  <text x="560" y="810" fill="rgba(255,255,255,0.3)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">循环直到 done() · 最多 50 步</text>
+
+  <!-- History 标注 -->
+  <rect x="1080" y="655" width="110" height="60" fill="rgba(255,255,100,0.06)" rx="8" stroke="rgba(255,255,100,0.2)" stroke-width="1"/>
+  <text x="1135" y="680" fill="rgba(255,255,100,0.7)" font-size="10" text-anchor="middle">ActionHistory</text>
+  <text x="1135" y="698" fill="rgba(255,255,100,0.5)" font-size="9" text-anchor="middle">跨步骤记忆</text>
+
+  <!-- ===== Section 3: 典型任务拆解 ===== -->
+  <line x1="60" y1="832" x2="1140" y2="832" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="60" y="862" fill="rgba(180,100,255,0.5)" font-size="10" letter-spacing="4" font-family="'SF Mono', monospace">SECTION 03</text>
+  <text x="60" y="890" fill="white" font-size="22" font-weight="700">典型任务拆解：订深圳→上海高铁</text>
+
+  <!-- 10步流程 -->
+  <rect x="60" y="905" width="750" height="200" fill="rgba(255,255,255,0.02)" rx="10" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+  <!-- 步骤节点 -->
+  <g font-family="'SF Mono', monospace" font-size="10">
+    <!-- 行1 -->
+    <rect x="80" y="920" width="110" height="40" fill="rgba(0,180,255,0.15)" rx="6" stroke="rgba(0,180,255,0.4)" stroke-width="1"/>
+    <text x="135" y="936" fill="#00b4ff" text-anchor="middle" font-size="9">步骤1</text>
+    <text x="135" y="952" fill="white" text-anchor="middle">navigate</text>
+    <line x1="192" y1="940" x2="215" y2="940" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="218" y="920" width="110" height="40" fill="rgba(255,255,255,0.06)" rx="6" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+    <text x="273" y="936" fill="rgba(255,255,255,0.5)" text-anchor="middle" font-size="9">步骤2</text>
+    <text x="273" y="952" fill="rgba(255,255,255,0.8)" text-anchor="middle">wait_load</text>
+    <line x1="330" y1="940" x2="353" y2="940" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="356" y="920" width="110" height="40" fill="rgba(180,100,255,0.12)" rx="6" stroke="rgba(180,100,255,0.3)" stroke-width="1"/>
+    <text x="411" y="936" fill="#b464ff" text-anchor="middle" font-size="9">步骤3</text>
+    <text x="411" y="952" fill="white" text-anchor="middle">click(出发站)</text>
+    <line x1="468" y1="940" x2="491" y2="940" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="494" y="920" width="110" height="40" fill="rgba(180,100,255,0.12)" rx="6" stroke="rgba(180,100,255,0.3)" stroke-width="1"/>
+    <text x="549" y="936" fill="#b464ff" text-anchor="middle" font-size="9">步骤4</text>
+    <text x="549" y="952" fill="white" text-anchor="middle">type(深圳北)</text>
+    <line x1="606" y1="940" x2="629" y2="940" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="632" y="920" width="110" height="40" fill="rgba(180,100,255,0.12)" rx="6" stroke="rgba(180,100,255,0.3)" stroke-width="1"/>
+    <text x="687" y="936" fill="#b464ff" text-anchor="middle" font-size="9">步骤5</text>
+    <text x="687" y="952" fill="white" text-anchor="middle">type(上海)</text>
+
+    <!-- 行2 -->
+    <rect x="80" y="978" width="110" height="40" fill="rgba(255,146,64,0.12)" rx="6" stroke="rgba(255,146,64,0.3)" stroke-width="1"/>
+    <text x="135" y="994" fill="#ff9240" text-anchor="middle" font-size="9">步骤6</text>
+    <text x="135" y="1010" fill="white" text-anchor="middle">click(日期)</text>
+    <line x1="192" y1="998" x2="215" y2="998" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="218" y="978" width="110" height="40" fill="rgba(255,146,64,0.12)" rx="6" stroke="rgba(255,146,64,0.3)" stroke-width="1"/>
+    <text x="273" y="994" fill="#ff9240" text-anchor="middle" font-size="9">步骤7</text>
+    <text x="273" y="1010" fill="white" text-anchor="middle">click(明天)</text>
+    <line x1="330" y1="998" x2="353" y2="998" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="356" y="978" width="110" height="40" fill="rgba(0,255,136,0.12)" rx="6" stroke="rgba(0,255,136,0.3)" stroke-width="1"/>
+    <text x="411" y="994" fill="#00ff88" text-anchor="middle" font-size="9">步骤8</text>
+    <text x="411" y="1010" fill="white" text-anchor="middle">click(查询)</text>
+    <line x1="468" y1="998" x2="491" y2="998" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="494" y="978" width="110" height="40" fill="rgba(0,255,136,0.08)" rx="6" stroke="rgba(0,255,136,0.2)" stroke-width="1"/>
+    <text x="549" y="994" fill="#00ff88" text-anchor="middle" font-size="9">步骤9</text>
+    <text x="549" y="1010" fill="rgba(255,255,255,0.8)" text-anchor="middle">wait_results</text>
+    <line x1="606" y1="998" x2="629" y2="998" stroke="rgba(255,255,255,0.3)" stroke-width="1" marker-end="url(#arrowW)"/>
+
+    <rect x="632" y="978" width="110" height="40" fill="rgba(0,255,136,0.2)" rx="6" stroke="rgba(0,255,136,0.5)" stroke-width="1.5"/>
+    <text x="687" y="994" fill="#00ff88" text-anchor="middle" font-size="9">步骤10</text>
+    <text x="687" y="1010" fill="white" text-anchor="middle" font-weight="700">done(G4...)</text>
+  </g>
+
+  <!-- Safety 说明 -->
+  <rect x="60" y="1070" width="750" height="30" fill="rgba(255,64,96,0.08)" rx="6" stroke="rgba(255,64,96,0.2)" stroke-width="1"/>
+  <text x="435" y="1091" fill="rgba(255,64,96,0.8)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace">⚠ Safety 铁律：只查询，不购票。购票前调用 ask_human 暂停，等待人工确认</text>
+
+  <!-- 三层fallback（右侧） -->
+  <rect x="840" y="905" width="300" height="200" fill="rgba(255,255,255,0.02)" rx="10" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <text x="990" y="930" fill="rgba(255,255,255,0.5)" font-size="11" text-anchor="middle" font-family="'SF Mono', monospace" letter-spacing="3">三层 FALLBACK</text>
+  <rect x="860" y="942" width="260" height="36" fill="rgba(0,255,136,0.1)" rx="6" stroke="rgba(0,255,136,0.25)" stroke-width="1"/>
+  <text x="990" y="955" fill="#00ff88" font-size="11" text-anchor="middle" font-weight="700">层 1: RSSHub</text>
+  <text x="990" y="971" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">无需登录 · 速度最快 · 成功率 90%</text>
+  <rect x="860" y="986" width="260" height="36" fill="rgba(0,180,255,0.08)" rx="6" stroke="rgba(0,180,255,0.2)" stroke-width="1"/>
+  <text x="990" y="999" fill="#00b4ff" font-size="11" text-anchor="middle" font-weight="700">层 2: opencli 本地工具</text>
+  <text x="990" y="1015" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">本地 MCP · 无网络依赖 · 成功率 70%</text>
+  <rect x="860" y="1030" width="260" height="36" fill="rgba(180,100,255,0.08)" rx="6" stroke="rgba(180,100,255,0.2)" stroke-width="1"/>
+  <text x="990" y="1043" fill="#b464ff" font-size="11" text-anchor="middle" font-weight="700">层 3: CDP + browser-use</text>
+  <text x="990" y="1059" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">最强能力 · 完整交互 · 成功率 40%</text>
+  <rect x="880" y="1075" width="220" height="24" fill="rgba(255,255,255,0.06)" rx="12" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="990" y="1092" fill="white" font-size="11" text-anchor="middle" font-weight="700" font-family="'SF Mono', monospace">组合成功率 → 99%</text>
+
+  <!-- ===== Section 4: 六大支柱 ===== -->
+  <line x1="60" y1="1120" x2="1140" y2="1120" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="60" y="1150" fill="rgba(255,146,64,0.5)" font-size="10" letter-spacing="4" font-family="'SF Mono', monospace">SECTION 04</text>
+  <text x="60" y="1178" fill="white" font-size="22" font-weight="700">六大支柱在 Browser Agent 中的体现</text>
+
+  <!-- 支柱网格 3x2 -->
+  <g>
+    <!-- Tool Universality -->
+    <rect x="60" y="1195" width="340" height="90" fill="rgba(0,180,255,0.06)" rx="10" stroke="rgba(0,180,255,0.2)" stroke-width="1"/>
+    <text x="100" y="1224" fill="#00b4ff" font-size="14" font-weight="700">🔧 Tool Universality</text>
+    <text x="100" y="1246" fill="rgba(255,255,255,0.5)" font-size="11">click / type / scroll / screenshot</text>
+    <text x="100" y="1266" fill="rgba(255,255,255,0.35)" font-size="11">浏览器能力 = 工具集，任何操作都可工具化</text>
+
+    <!-- Planning -->
+    <rect x="430" y="1195" width="340" height="90" fill="rgba(180,100,255,0.06)" rx="10" stroke="rgba(180,100,255,0.2)" stroke-width="1"/>
+    <text x="470" y="1224" fill="#b464ff" font-size="14" font-weight="700">🧠 Planning 自主拆解</text>
+    <text x="470" y="1246" fill="rgba(255,255,255,0.5)" font-size="11">目标清晰，步骤由 LLM 动态决定</text>
+    <text x="470" y="1266" fill="rgba(255,255,255,0.35)" font-size="11">ActionHistory 维护跨步骤上下文</text>
+
+    <!-- Long-horizon -->
+    <rect x="800" y="1195" width="340" height="90" fill="rgba(255,146,64,0.06)" rx="10" stroke="rgba(255,146,64,0.2)" stroke-width="1"/>
+    <text x="840" y="1224" fill="#ff9240" font-size="14" font-weight="700">⏳ Long-horizon 执行</text>
+    <text x="840" y="1246" fill="rgba(255,255,255,0.5)" font-size="11">10+ 步骤，跨 3 个页面跳转</text>
+    <text x="840" y="1266" fill="rgba(255,255,255,0.35)" font-size="11">max_steps=50 防止无限循环</text>
+
+    <!-- Memory -->
+    <rect x="60" y="1300" width="340" height="90" fill="rgba(0,255,136,0.06)" rx="10" stroke="rgba(0,255,136,0.2)" stroke-width="1"/>
+    <text x="100" y="1329" fill="#00ff88" font-size="14" font-weight="700">💾 Memory 世界模型</text>
+    <text x="100" y="1351" fill="rgba(255,255,255,0.5)" font-size="11">abel-chrome Cookie = 登录态记忆</text>
+    <text x="100" y="1371" fill="rgba(255,255,255,0.35)" font-size="11">ActionHistory = 跨步骤工作记忆</text>
+
+    <!-- Safety -->
+    <rect x="430" y="1300" width="340" height="90" fill="rgba(255,64,96,0.06)" rx="10" stroke="rgba(255,64,96,0.2)" stroke-width="1"/>
+    <text x="470" y="1329" fill="#ff4060" font-size="14" font-weight="700">🛡️ Safety 可控性</text>
+    <text x="470" y="1351" fill="rgba(255,255,255,0.5)" font-size="11">tab 保护铁律 · 高风险操作审批门控</text>
+    <text x="470" y="1371" fill="rgba(255,255,255,0.35)" font-size="11">ask_human 工具 · 不自动执行购票</text>
+
+    <!-- Specialization -->
+    <rect x="800" y="1300" width="340" height="90" fill="rgba(0,180,255,0.06)" rx="10" stroke="rgba(0,180,255,0.2)" stroke-width="1"/>
+    <text x="840" y="1329" fill="#00b4ff" font-size="14" font-weight="700">🔀 Specialization</text>
+    <text x="840" y="1351" fill="rgba(255,255,255,0.5)" font-size="11">从 lena 通用 base 派生 Browser 专用</text>
+    <text x="840" y="1371" fill="rgba(255,255,255,0.35)" font-size="11">新增浏览器工具集，继承记忆/安全</text>
+  </g>
+
+  <!-- ===== 底部：版本演进 ===== -->
+  <line x1="60" y1="1412" x2="1140" y2="1412" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- 时间线 -->
+  <line x1="60" y1="1460" x2="1140" y2="1460" stroke="url(#timelineBar)" stroke-width="2"/>
+
+  <g font-family="'SF Mono', monospace" font-size="10" text-anchor="middle">
+    <circle cx="100" cy="1460" r="5" fill="rgba(255,255,255,0.3)"/>
+    <text x="100" y="1478" fill="rgba(255,255,255,0.4)">v0.1</text>
+    <text x="100" y="1492" fill="rgba(255,255,255,0.25)" font-size="9">50行</text>
+
+    <circle cx="265" cy="1460" r="5" fill="rgba(255,255,255,0.35)"/>
+    <text x="265" y="1478" fill="rgba(255,255,255,0.45)">v0.5</text>
+    <text x="265" y="1492" fill="rgba(255,255,255,0.25)" font-size="9">工具+记忆</text>
+
+    <circle cx="430" cy="1460" r="5" fill="rgba(255,255,255,0.4)"/>
+    <text x="430" y="1478" fill="rgba(255,255,255,0.5)">v0.9</text>
+    <text x="430" y="1492" fill="rgba(255,255,255,0.25)" font-size="9">安全</text>
+
+    <circle cx="600" cy="1460" r="5" fill="rgba(255,255,255,0.5)"/>
+    <text x="600" y="1478" fill="rgba(255,255,255,0.6)">v1.3</text>
+    <text x="600" y="1492" fill="rgba(255,255,255,0.25)" font-size="9">Heartbeat</text>
+
+    <circle cx="770" cy="1460" r="5" fill="rgba(255,255,255,0.6)"/>
+    <text x="770" y="1478" fill="rgba(255,255,255,0.7)">v1.6</text>
+    <text x="770" y="1492" fill="rgba(255,255,255,0.25)" font-size="9">MCP+Docker</text>
+
+    <circle cx="935" cy="1460" r="5" fill="rgba(255,255,255,0.7)"/>
+    <text x="935" y="1478" fill="rgba(255,255,255,0.8)">v1.9</text>
+    <text x="935" y="1492" fill="rgba(255,255,255,0.25)" font-size="9">SpecKit</text>
+
+    <circle cx="1100" cy="1460" r="10" fill="#00ff88" filter="url(#glow-green)"/>
+    <text x="1100" y="1478" fill="#00ff88" font-weight="700" font-size="12">v2.0</text>
+    <text x="1100" y="1494" fill="rgba(0,255,136,0.6)" font-size="9">Browser Agent</text>
+  </g>
+
+  <!-- 版本号说明 -->
+  <text x="600" y="1530" fill="rgba(255,255,255,0.25)" font-size="12" text-anchor="middle" font-family="'SF Mono', monospace">lena-v0.1 → v2.0 · 50行 → 3000行 · 50行代码 → 能浏览互联网的通用 agent</text>
+
+  <!-- 结语 -->
+  <text x="600" y="1565" fill="rgba(255,255,255,0.35)" font-size="13" text-anchor="middle" font-style="italic">agent 的边界，就是你想象力的边界</text>
+
+  <!-- 底部版权 -->
+  <text x="600" y="1590" fill="rgba(255,255,255,0.15)" font-size="10" text-anchor="middle" font-family="'SF Mono', monospace">《从零构建你的 AI Agent》· Ch 20 · lena-v2.0 · 2026-05-05</text>
+</svg>

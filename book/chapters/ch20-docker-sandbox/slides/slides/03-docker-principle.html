@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 56px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+/* layered arch diagram */
+.arch { position: absolute; top: 220px; left: 80px; right: 80px; bottom: 80px; display: flex; align-items: center; justify-content: center; gap: 60px; }
+
+.layers { flex: 1.2; position: relative; }
+.layer {
+  border-radius: 6px; position: relative; padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.l1 { background: rgba(0,80,30,0.12); border: 1.5px solid rgba(0,204,85,0.25); height: 580px; }
+.l2 { background: rgba(0,80,30,0.15); border: 1.5px solid rgba(0,204,85,0.35); height: 490px; position: absolute; top: 45px; left: 0; right: 0; }
+.l3 { background: rgba(0,80,30,0.2); border: 1.5px dashed rgba(255,102,0,0.4); height: 400px; position: absolute; top: 90px; left: 0; right: 0; }
+.l4 { background: rgba(0,30,60,0.5); border: 1.5px solid rgba(51,170,255,0.4); height: 310px; position: absolute; top: 135px; left: 0; right: 0; }
+
+.layer-label {
+  position: absolute; font-size: 13px; letter-spacing: 0.15em;
+  white-space: nowrap;
+}
+.layer-label.host { top: 16px; left: 28px; color: rgba(0,204,85,0.7); }
+.layer-label.docker { top: 61px; left: 28px; color: #00aaff; }
+.layer-label.seccomp { top: 106px; left: 28px; color: #ff8844; }
+.layer-label.container { top: 150px; left: 28px; color: #33aaff; }
+
+.inner-content {
+  position: absolute; top: 220px; left: 40px; right: 40px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.exec-row { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.exec-dot { width: 6px; height: 6px; border-radius: 50%; background: #33aaff; flex-shrink: 0; }
+.exec-text { color: rgba(255,255,255,0.55); }
+
+.block-x {
+  position: absolute; top: 106px; right: 28px;
+  background: rgba(255,50,50,0.12); border: 1px solid rgba(255,50,50,0.3);
+  padding: 4px 12px; border-radius: 3px;
+  font-size: 12px; color: #ff5555;
+}
+
+/* right side: properties list */
+.props { flex: 1; display: flex; flex-direction: column; gap: 20px; justify-content: center; }
+.prop-item { display: flex; gap: 20px; align-items: flex-start; }
+.prop-icon { width: 36px; height: 36px; border: 1px solid rgba(0,204,85,0.3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; color: #00cc55; }
+.prop-title { font-size: 16px; color: #fff; font-weight: 600; margin-bottom: 4px; }
+.prop-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+
+.rm-note {
+  position: absolute; bottom: 20px; right: 28px;
+  font-size: 12px; color: rgba(0,204,85,0.5); letter-spacing: 0.15em;
+}
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">Docker 原理</div>
+<div class="page-num">03 / 11</div>
+
+<div class="title-area">
+  <h2>Docker 容器隔离原理</h2>
+  <div class="sub">代码在笼子里跑——出不来就安全了</div>
+</div>
+
+<div class="arch">
+  <div class="layers">
+    <!-- Host -->
+    <div class="layer l1">
+      <span class="layer-label host">宿主机 (Host OS)</span>
+      <!-- Docker Engine -->
+      <div class="layer l2">
+        <span class="layer-label docker">Docker Engine</span>
+        <!-- seccomp/AppArmor -->
+        <div class="layer l3">
+          <span class="layer-label seccomp">seccomp + AppArmor 约束层</span>
+          <span class="block-x">禁用系统调用</span>
+          <!-- Container -->
+          <div class="layer l4">
+            <span class="layer-label container">容器 (Ephemeral)</span>
+            <div class="inner-content">
+              <div class="exec-row"><div class="exec-dot"></div><div class="exec-text">任意代码执行</div></div>
+              <div class="exec-row"><div class="exec-dot"></div><div class="exec-text">CPU ≤ 0.5 core</div></div>
+              <div class="exec-row"><div class="exec-dot"></div><div class="exec-text">内存 ≤ 256 MB</div></div>
+              <div class="exec-row"><div class="exec-dot"></div><div class="exec-text">网络 = none</div></div>
+              <div class="exec-row"><div class="exec-dot"></div><div class="exec-text">文件系统隔离</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rm-note">--rm → 执行后立即销毁</div>
+  </div>
+
+  <div class="props">
+    <div class="prop-item">
+      <div class="prop-icon">FS</div>
+      <div><div class="prop-title">文件系统隔离</div><div class="prop-desc">容器看不到宿主机文件<br>根文件系统只读 + tmpfs /tmp</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-icon">NS</div>
+      <div><div class="prop-title">进程命名空间</div><div class="prop-desc">独立 PID 空间<br>容器内进程看不到宿主机进程</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-icon">NET</div>
+      <div><div class="prop-title">网络隔离</div><div class="prop-desc">network=none 完全断网<br>代码无法发起网络连接</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-icon">RM</div>
+      <div><div class="prop-title">即时销毁 (--rm)</div><div class="prop-desc">执行完毕容器立即销毁<br>每次执行都是全新环境</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

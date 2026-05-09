@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 56px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+.content { position: absolute; top: 230px; left: 80px; right: 80px; bottom: 60px; display: flex; gap: 80px; }
+
+/* flow diagram */
+.flow-col { flex: 1.2; display: flex; flex-direction: column; gap: 0; }
+.flow-step {
+  display: flex; align-items: stretch; gap: 0;
+}
+.step-line { width: 2px; background: rgba(0,204,85,0.3); margin: 0 27px; flex-shrink: 0; }
+.step-dot { width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(0,204,85,0.5); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; color: #00cc55; background: rgba(0,204,85,0.08); }
+.step-dot.active { background: rgba(0,204,85,0.2); border-color: #00cc55; }
+.step-dot.reset { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.3); background: transparent; }
+.step-body { flex: 1; padding: 8px 0 24px 20px; }
+.step-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.step-detail { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+.step-code { display: inline-block; background: rgba(0,204,85,0.08); border: 1px solid rgba(0,204,85,0.2); padding: 2px 8px; border-radius: 3px; font-size: 12px; color: #00cc55; margin-top: 6px; }
+
+/* right panel */
+.right-col { flex: 1; display: flex; flex-direction: column; gap: 24px; justify-content: center; }
+
+.code-impl {
+  background: #0f1418; border: 1px solid rgba(0,204,85,0.2);
+  border-left: 3px solid #00cc55; padding: 20px; border-radius: 4px;
+}
+.code-comment { font-size: 12px; color: rgba(255,255,255,0.25); margin-bottom: 10px; }
+.code-line { font-size: 13px; color: #00cc55; margin: 3px 0; }
+.code-line .kw { color: #ffd700; }
+.code-line .str { color: #ff9966; }
+.code-line .comment { color: rgba(255,255,255,0.25); }
+
+.balance-box {
+  background: rgba(255,200,0,0.04); border: 1px solid rgba(255,200,0,0.15);
+  padding: 20px; border-radius: 4px;
+}
+.balance-title { font-size: 12px; letter-spacing: 0.2em; color: #ffcc44; margin-bottom: 12px; }
+.balance-row { display: flex; gap: 16px; align-items: center; }
+.bal-side { flex: 1; text-align: center; }
+.bal-label { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; margin-bottom: 6px; }
+.bal-value { font-size: 16px; color: #fff; }
+.bal-sep { color: rgba(255,200,0,0.4); font-size: 20px; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">exec-approvals</div>
+<div class="page-num">06 / 11</div>
+
+<div class="title-area">
+  <h2>exec-approvals session 记忆</h2>
+  <div class="sub">批准一次，同类操作自动通过——对应 infra/exec-approvals.ts</div>
+</div>
+
+<div class="content">
+  <div class="flow-col">
+    <div class="flow-step">
+      <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+        <div class="step-dot">1</div>
+        <div class="step-line" style="flex:1;"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">首次执行请求</div>
+        <div class="step-detail">Lena 要执行 python3 process_image.py<br>弹出审批弹窗给用户确认</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+        <div class="step-dot active">2</div>
+        <div class="step-line" style="flex:1;"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">用户批准</div>
+        <div class="step-detail">记录命令模式到内存</div>
+        <div class="step-code">{session_id, pattern: "python3 *.py"}</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+        <div class="step-dot active">3</div>
+        <div class="step-line" style="flex:1;"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">相同模式 → 自动通过</div>
+        <div class="step-detail">100 张图片每张执行<br>不再询问，直接进入沙箱执行</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">
+        <div class="step-dot reset">4</div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">session 结束 → 全部清除</div>
+        <div class="step-detail">对话关闭，批准记录归零<br>下次新对话重新从零开始</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="code-impl">
+      <div class="code-comment">// exec-approvals.ts 核心逻辑</div>
+      <div class="code-line"><span class="kw">class</span> ExecApprovalStore {</div>
+      <div class="code-line">&nbsp;&nbsp;<span class="kw">private</span> approvals = <span class="kw">new</span> Map&lt;string, Set&gt;()</div>
+      <div class="code-line"></div>
+      <div class="code-line">&nbsp;&nbsp;isApproved(sessionId, cmdPattern) {</div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> this.approvals.get(sessionId)?.has(cmdPattern)</div>
+      <div class="code-line">&nbsp;&nbsp;}</div>
+      <div class="code-line">&nbsp;&nbsp;approve(sessionId, cmdPattern) {</div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 记忆：pattern 而非完整命令</span></div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;this.approvals.get(sessionId).add(cmdPattern)</div>
+      <div class="code-line">&nbsp;&nbsp;}</div>
+      <div class="code-line">&nbsp;&nbsp;clearSession(sessionId) {</div>
+      <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;this.approvals.delete(sessionId) <span class="comment">// session 结束重置</span></div>
+      <div class="code-line">&nbsp;&nbsp;}</div>
+      <div class="code-line">}</div>
+    </div>
+
+    <div class="balance-box">
+      <div class="balance-title">Design Note · 便利性 vs 安全性</div>
+      <div class="balance-row">
+        <div class="bal-side">
+          <div class="bal-label">永久记忆</div>
+          <div class="bal-value" style="color:#ff6666">攻击者批准一次<br>永久生效</div>
+        </div>
+        <div class="bal-sep">⟷</div>
+        <div class="bal-side">
+          <div class="bal-label">每次都审批</div>
+          <div class="bal-value" style="color:#ff9966">100 次操作<br>100 次弹窗</div>
+        </div>
+        <div class="bal-sep">→</div>
+        <div class="bal-side">
+          <div class="bal-label" style="color:#00cc55">session 级</div>
+          <div class="bal-value" style="color:#00cc55">会话内便利<br>结束后重置</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

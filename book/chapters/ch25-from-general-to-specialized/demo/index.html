@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lena 派生工坊 — 《从零构建你的 AI Agent》终章</title>
+<style>
+  :root {
+    --bg: #080c18;
+    --panel: #0f1623;
+    --panel2: #141d2e;
+    --border: #1e2d45;
+    --accent: #3b82f6;
+    --accent2: #8b5cf6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.7rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.4rem;
+  }
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.88rem; margin-bottom: 2rem; }
+
+  /* ── Domain Selector ── */
+  .selector-row {
+    max-width: 860px;
+    margin: 0 auto 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .domain-card {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .domain-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .domain-card.selected { border-color: var(--accent2); background: #1a1a2e; }
+  .domain-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+  .domain-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+  .domain-tagline { font-size: 0.75rem; color: var(--muted); }
+
+  /* ── Detail Panel ── */
+  #detail {
+    max-width: 860px;
+    margin: 0 auto;
+    display: none;
+  }
+  #detail.visible { display: block; }
+
+  .detail-header {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+    border-bottom: none;
+  }
+  .detail-header h2 { font-size: 1.3rem; margin-bottom: 0.4rem; }
+  .detail-header p { font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
+
+  .detail-body {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 0 0 12px 12px;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 640px) { .detail-body { grid-template-columns: 1fr; } }
+
+  .section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 2px;
+  }
+  .chip-tool  { background: #1e3a5f; color: #60a5fa; }
+  .chip-skill { background: #1a3a2a; color: #34d399; }
+  .chip-prune { background: #3a1e1e; color: #f87171; text-decoration: line-through; opacity: 0.7; }
+
+  .safety-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .safety-label { font-size: 0.8rem; width: 60px; }
+  .safety-track { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .safety-fill { height: 100%; border-radius: 99px; }
+
+  .topology-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    margin-top: 0.5rem;
+  }
+
+  .cmd-block {
+    background: #0a0e1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-size: 0.8rem;
+    color: #a5f3fc;
+    margin-top: 0.5rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ── Lena Evolution ASCII ── */
+  .evolution {
+    max-width: 860px;
+    margin: 2rem auto 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .evolution h3 { font-size: 1rem; margin-bottom: 1rem; color: var(--accent); }
+  .evo-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.82rem;
+  }
+  .evo-ver { width: 60px; color: var(--accent2); font-weight: 600; }
+  .evo-bar { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .evo-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 99px; transition: width 0.4s; }
+  .evo-score { width: 50px; text-align: right; color: var(--muted); }
+  .evo-cap { font-size: 0.72rem; color: var(--muted); width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<h1>Lena 派生工坊</h1>
+<p class="subtitle">选择目标领域 → 查看技能栈差异 → 获取派生命令</p>
+
+<!-- Domain selector -->
+<div class="selector-row" id="selectorRow"></div>
+
+<!-- Detail panel -->
+<div id="detail">
+  <div class="detail-header">
+    <h2 id="dName"></h2>
+    <p id="dDesc"></p>
+  </div>
+  <div class="detail-body">
+    <div>
+      <div class="section-title">新增工具</div>
+      <div id="dTools"></div>
+      <div class="section-title" style="margin-top:1rem">新增 Skills</div>
+      <div id="dSkills"></div>
+      <div class="section-title" style="margin-top:1rem">已削减模块</div>
+      <div id="dPrune"></div>
+    </div>
+    <div>
+      <div class="section-title">安全等级</div>
+      <div id="dSafety"></div>
+      <div class="section-title" style="margin-top:1rem">运行拓扑</div>
+      <div id="dTopology"></div>
+      <div class="section-title" style="margin-top:1rem">派生命令</div>
+      <div class="cmd-block" id="dCmd"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Evolution bar -->
+<div class="evolution">
+  <h3>Lena 进化轨迹：综合聪明度</h3>
+  <div id="evoList"></div>
+</div>
+
+<script>
+const DOMAINS = [
+  {
+    key: 'quant',
+    icon: '📈',
+    name: '量化 Lena',
+    tagline: '技术指标 + 策略分析',
+    desc: '量化交易分析助手，专注技术指标计算、策略回测解读、实时行情查询。为速度削减了 Docker sandbox（执行延迟目标 <50ms）。',
+    tools: ['technical_indicators','exchange_api','backtest_runner'],
+    skills: ['market-analysis','risk-management'],
+    prune: ['docker_sandbox'],
+    safety: 'moderate',
+    topology: 'single',
+  },
+  {
+    key: 'news',
+    icon: '📰',
+    name: '新闻 Lena',
+    tagline: 'RSS 聚合 + 播客生成',
+    desc: '新闻播报助手，多 agent 协作：主 agent 调度编辑子 agent（筛选、改写）和主播子 agent（TTS 脚本生成），每日自动产出播客。',
+    tools: ['rss_reader','headline_extractor','tts_synthesizer'],
+    skills: ['news-broadcast','editorial-judgment'],
+    prune: [],
+    safety: 'standard',
+    topology: 'multi',
+  },
+  {
+    key: 'devops',
+    icon: '⚙️',
+    name: 'DevOps Lena',
+    tagline: 'AWS + K8s 运维',
+    desc: '云运维助手，所有写操作强制二次确认。安全等级比通用 Lena 更严格，不削减任何安全层，而是在工具层面加入额外约束。',
+    tools: ['aws_cli','kubectl','terraform_plan'],
+    skills: ['aws-incident-response','k8s-deployment'],
+    prune: [],
+    safety: 'strict',
+    topology: 'single',
+  },
+  {
+    key: 'browser',
+    icon: '🌐',
+    name: '浏览器 Lena',
+    tagline: 'CDP + 视觉感知',
+    desc: '浏览器自动化助手，单 agent 深推理模式。因为浏览器 CDP session 是全局状态，并发子 agent 会产生 session 冲突，故削减 multi_agent 模块。',
+    tools: ['cdp_navigate','dom_extract','take_screenshot','fill_form','click_element'],
+    skills: ['web-navigation'],
+    prune: ['multi_agent'],
+    safety: 'standard',
+    topology: 'single',
+  },
+];
+
+const SAFETY_LEVELS = {
+  strict:   { label: '严格', score: 100, color: '#fbbf24', note: '所有写操作强制二次确认' },
+  standard: { label: '标准', score: 70,  color: '#3b82f6', note: '不可逆操作需确认' },
+  moderate: { label: '适中', score: 50,  color: '#10b981', note: '读操作自由，写操作确认' },
+};
+
+const TOPOLOGY_LABELS = {
+  single: { icon: '🧠', label: '单 agent 深推理', note: '适合需要连续状态感知的任务' },
+  multi:  { icon: '🤝', label: '多 agent 协作',   note: '适合可并发分工的任务' },
+};
+
+const EVO_DATA = [
+  { ver: 'v0.1',  score: 0.6, cap: '仅 API 调用，无工具，无记忆' },
+  { ver: 'v0.3',  score: 2.4, cap: '50行 agent loop，单工具' },
+  { ver: 'v0.6',  score: 4.1, cap: '工具系统 + 并发' },
+  { ver: 'v0.9',  score: 5.8, cap: '记忆 + RAG + Context 压缩' },
+  { ver: 'v0.12', score: 6.9, cap: 'Planning + Subagent + Skills' },
+  { ver: 'v0.14', score: 7.8, cap: '安全双章完成' },
+  { ver: 'v0.18', score: 8.3, cap: 'always-on + cron + heartbeat' },
+  { ver: 'v0.22', score: 8.7, cap: 'MCP + Docker + Evals + 可观测性' },
+  { ver: 'v0.24', score: 8.9, cap: 'Browser Agent，全能力收官' },
+];
+
+// Render domain cards
+const row = document.getElementById('selectorRow');
+DOMAINS.forEach(d => {
+  const card = document.createElement('div');
+  card.className = 'domain-card';
+  card.innerHTML = `<div class="domain-icon">${d.icon}</div><div class="domain-name">${d.name}</div><div class="domain-tagline">${d.tagline}</div>`;
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    showDetail(d);
+  });
+  row.appendChild(card);
+});
+
+function showDetail(d) {
+  document.getElementById('dName').textContent = `${d.icon}  ${d.name}`;
+  document.getElementById('dDesc').textContent = d.desc;
+
+  document.getElementById('dTools').innerHTML = d.tools.map(t =>
+    `<span class="chip chip-tool">${t}</span>`).join('');
+  document.getElementById('dSkills').innerHTML = d.skills.map(s =>
+    `<span class="chip chip-skill">${s}</span>`).join('');
+  document.getElementById('dPrune').innerHTML = d.prune.length
+    ? d.prune.map(p => `<span class="chip chip-prune">${p}</span>`).join('')
+    : '<span style="color:#475569;font-size:0.78rem">无削减（保持完整通用能力）</span>';
+
+  const sl = SAFETY_LEVELS[d.safety];
+  document.getElementById('dSafety').innerHTML = `
+    <div class="safety-bar">
+      <span class="safety-label">${sl.label}</span>
+      <div class="safety-track"><div class="safety-fill" style="width:${sl.score}%;background:${sl.color}"></div></div>
+      <span style="font-size:0.78rem;color:${sl.color}">${sl.score}%</span>
+    </div>
+    <div style="font-size:0.78rem;color:#64748b">${sl.note}</div>`;
+
+  const tl = TOPOLOGY_LABELS[d.topology];
+  document.getElementById('dTopology').innerHTML = `
+    <div class="topology-badge">${tl.icon} ${tl.label}</div>
+    <div style="font-size:0.75rem;color:#64748b;margin-top:0.4rem">${tl.note}</div>`;
+
+  document.getElementById('dCmd').textContent =
+    `python3 lena_spawn.py --domain ${d.key} --from v0.24\n\n# 生成目录：lena-${d.key}/\n# 包含：agent.py + tools/ + skills/ + README.md`;
+
+  document.getElementById('detail').classList.add('visible');
+  document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Render evolution bars
+const evoList = document.getElementById('evoList');
+EVO_DATA.forEach(e => {
+  const pct = (e.score / 10 * 100).toFixed(0);
+  const div = document.createElement('div');
+  div.className = 'evo-line';
+  div.innerHTML = `
+    <span class="evo-ver">${e.ver}</span>
+    <div class="evo-bar"><div class="evo-fill" style="width:${pct}%"></div></div>
+    <span class="evo-score">${e.score}/10</span>
+    <span class="evo-cap">${e.cap}</span>`;
+  evoList.appendChild(div);
+});
+</script>
+</body>
+</html>

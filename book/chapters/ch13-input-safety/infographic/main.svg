@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 900 1200" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <!-- Background -->
+  <rect width="900" height="1200" fill="#f0ece4"/>
+
+  <!-- Grid lines (subtle Bauhaus) -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M60 0 L0 0 0 60" fill="none" stroke="#c8c8c8" stroke-width="0.5" opacity="0.4"/>
+    </pattern>
+  </defs>
+  <rect width="900" height="1200" fill="url(#grid)"/>
+
+  <!-- Left accent bar -->
+  <rect x="0" y="0" width="12" height="1200" fill="#0a0a0a"/>
+
+  <!-- Header -->
+  <rect x="12" y="0" width="888" height="160" fill="#0a0a0a"/>
+  <text x="60" y="56" font-size="13" fill="#9a9a9a" letter-spacing="4" font-family="Courier New, monospace">CH 10 · SAFETY · AGENT 安全纵深防御图</text>
+  <text x="60" y="110" font-size="52" font-weight="900" fill="#f8f8f8" letter-spacing="-2">DEFENSE IN DEPTH</text>
+  <rect x="60" y="130" width="80" height="5" fill="#cc2200"/>
+
+  <!-- LAYER LABELS (right side) -->
+  <text x="780" y="108" font-size="14" fill="#5a5a5a" font-family="Courier New, monospace" text-anchor="end">lena-v1.0</text>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1: THREE-LAYER CONCENTRIC
+  ═══════════════════════════════════════════ -->
+  <text x="60" y="218" font-size="13" fill="#5a5a5a" letter-spacing="3" font-family="Courier New, monospace">三层防御同心圆</text>
+
+  <!-- Layer 1 outer: PromptGuard (red dashed) -->
+  <ellipse cx="450" cy="410" rx="360" ry="200" fill="none" stroke="#cc2200" stroke-width="3" stroke-dasharray="12,6"/>
+  <text x="450" y="233" font-size="16" font-weight="700" fill="#cc2200" text-anchor="middle" letter-spacing="2" font-family="Courier New, monospace">LAYER 1 · PROMPTGUARD</text>
+  <text x="450" y="254" font-size="12" fill="#7a1400" text-anchor="middle" font-family="Courier New, monospace">NFKC 归一化 · 随机边界 ID · 30 注入模式</text>
+
+  <!-- Layer 2 mid: ShellSandbox (black) -->
+  <ellipse cx="450" cy="410" rx="255" ry="142" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-dasharray="12,6"/>
+  <text x="450" y="293" font-size="16" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="2" font-family="Courier New, monospace">LAYER 2 · SHELLSANDBOX</text>
+  <text x="450" y="312" font-size="12" fill="#5a5a5a" text-anchor="middle" font-family="Courier New, monospace">BLOCKED(30) · CONFIRM(15) · EXECUTE</text>
+
+  <!-- Layer 3 inner: Permission Modes (filled) -->
+  <ellipse cx="450" cy="410" rx="150" ry="84" fill="#0a0a0a"/>
+  <text x="450" y="400" font-size="14" font-weight="700" fill="#f8f8f8" text-anchor="middle" font-family="Courier New, monospace">PERMISSION</text>
+  <text x="450" y="420" font-size="14" font-weight="700" fill="#f8f8f8" text-anchor="middle" font-family="Courier New, monospace">MODES</text>
+  <text x="450" y="440" font-size="11" fill="#9a9a9a" text-anchor="middle" font-family="Courier New, monospace">+ HITL</text>
+
+  <!-- Attack arrows (red) -->
+  <path d="M 40 360 L 170 390" stroke="#cc2200" stroke-width="2.5" marker-end="url(#red-arrow)"/>
+  <text x="28" y="354" font-size="12" fill="#cc2200" font-family="Courier New, monospace">恶意</text>
+  <text x="28" y="368" font-size="12" fill="#cc2200" font-family="Courier New, monospace">工具结果</text>
+
+  <path d="M 860 290 L 740 340" stroke="#cc2200" stroke-width="2.5" marker-end="url(#red-arrow)"/>
+  <text x="862" y="286" font-size="12" fill="#cc2200" font-family="Courier New, monospace">注入</text>
+  <text x="862" y="300" font-size="12" fill="#cc2200" font-family="Courier New, monospace">HTML</text>
+
+  <path d="M 60 500 L 200 440" stroke="#cc2200" stroke-width="2.5" marker-end="url(#red-arrow)"/>
+  <text x="28" y="506" font-size="12" fill="#cc2200" font-family="Courier New, monospace">伪造</text>
+  <text x="28" y="520" font-size="12" fill="#cc2200" font-family="Courier New, monospace">系统指令</text>
+
+  <defs>
+    <marker id="red-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L10,3 z" fill="#cc2200"/>
+    </marker>
+    <marker id="black-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L10,3 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- Divider -->
+  <line x1="60" y1="632" x2="840" y2="632" stroke="#1a1a1a" stroke-width="2"/>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 2: SHELLSANDBOX FILTER FLOW
+  ═══════════════════════════════════════════ -->
+  <text x="60" y="668" font-size="13" fill="#5a5a5a" letter-spacing="3" font-family="Courier New, monospace">ShellSandbox 三层过滤流程</text>
+
+  <!-- Input box -->
+  <rect x="340" y="684" width="220" height="48" fill="#2d2d2d"/>
+  <text x="450" y="712" font-size="15" font-weight="700" fill="#f0ece4" text-anchor="middle">命令输入</text>
+
+  <!-- Arrow down -->
+  <line x1="450" y1="732" x2="450" y2="755" stroke="#5a5a5a" stroke-width="2" marker-end="url(#black-arrow)"/>
+
+  <!-- BLOCKED -->
+  <rect x="240" y="756" width="420" height="56" fill="#cc2200"/>
+  <text x="450" y="783" font-size="16" font-weight="700" fill="white" text-anchor="middle" letter-spacing="1">BLOCKED · 30 条正则 → 直接拒绝</text>
+  <text x="450" y="801" font-size="12" fill="rgba(255,255,255,0.7)" text-anchor="middle" font-family="Courier New, monospace">rm -rf /* · mkfs · dd if=/dev/ · kill -9 -1</text>
+
+  <!-- Reject label -->
+  <text x="692" y="787" font-size="12" fill="#cc2200" font-family="Courier New, monospace">→ 直接拒绝</text>
+
+  <!-- Arrow down -->
+  <line x1="450" y1="812" x2="450" y2="835" stroke="#5a5a5a" stroke-width="2" marker-end="url(#black-arrow)"/>
+
+  <!-- CONFIRM -->
+  <rect x="240" y="836" width="420" height="56" fill="#1a1a1a"/>
+  <text x="450" y="863" font-size="16" font-weight="700" fill="white" text-anchor="middle" letter-spacing="1">CONFIRM · 15 操作 → 等待确认</text>
+  <text x="450" y="881" font-size="12" fill="#9a9a9a" text-anchor="middle" font-family="Courier New, monospace">rm · git commit/push · curl · pip install</text>
+
+  <!-- Confirm label -->
+  <text x="692" y="867" font-size="12" fill="#1a1a1a" font-family="Courier New, monospace">→ 人工审批</text>
+
+  <!-- Arrow down -->
+  <line x1="450" y1="892" x2="450" y2="915" stroke="#5a5a5a" stroke-width="2" marker-end="url(#black-arrow)"/>
+
+  <!-- EXECUTE -->
+  <rect x="240" y="916" width="420" height="56" fill="#2d2d2d" stroke="#5a5a5a" stroke-width="1"/>
+  <text x="450" y="943" font-size="16" font-weight="700" fill="#f0ece4" text-anchor="middle" letter-spacing="1">EXECUTE · 受限环境运行</text>
+  <text x="450" y="961" font-size="12" fill="#9a9a9a" text-anchor="middle" font-family="Courier New, monospace">PATH 白名单 · HOME→workspace · 超时 30s</text>
+
+  <!-- Execute label -->
+  <text x="692" y="947" font-size="12" fill="#5a5a5a" font-family="Courier New, monospace">→ 受控执行</text>
+
+  <!-- Arrow down -->
+  <line x1="450" y1="972" x2="450" y2="993" stroke="#5a5a5a" stroke-width="2" marker-end="url(#black-arrow)"/>
+
+  <!-- Result -->
+  <rect x="340" y="994" width="220" height="44" fill="#5a5a5a"/>
+  <text x="450" y="1020" font-size="14" fill="#f8f8f8" text-anchor="middle">返回结果</text>
+
+  <!-- Divider -->
+  <line x1="60" y1="1060" x2="840" y2="1060" stroke="#c8c8c8" stroke-width="1"/>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 3: TIMELINE (Simon Willison)
+  ═══════════════════════════════════════════ -->
+  <text x="60" y="1092" font-size="13" fill="#5a5a5a" letter-spacing="3" font-family="Courier New, monospace">真实事故时间线（Simon Willison 案例集）</text>
+
+  <!-- Timeline line -->
+  <line x1="100" y1="1130" x2="840" y2="1130" stroke="#1a1a1a" stroke-width="2"/>
+
+  <!-- Event 1 -->
+  <circle cx="200" cy="1130" r="8" fill="#cc2200"/>
+  <text x="200" y="1118" font-size="11" fill="#cc2200" text-anchor="middle" font-family="Courier New, monospace">2023</text>
+  <text x="200" y="1152" font-size="12" fill="#1a1a1a" text-anchor="middle">首批注入</text>
+  <text x="200" y="1166" font-size="11" fill="#5a5a5a" text-anchor="middle">案例记录开始</text>
+
+  <!-- Event 2 -->
+  <circle cx="420" cy="1130" r="8" fill="#cc2200"/>
+  <text x="420" y="1118" font-size="11" fill="#cc2200" text-anchor="middle" font-family="Courier New, monospace">2024</text>
+  <text x="420" y="1152" font-size="12" fill="#1a1a1a" text-anchor="middle">3000 封邮件</text>
+  <text x="420" y="1166" font-size="11" fill="#5a5a5a" text-anchor="middle">自动删除事故</text>
+
+  <!-- Event 3 -->
+  <circle cx="620" cy="1130" r="8" fill="#cc2200"/>
+  <text x="620" y="1118" font-size="11" fill="#cc2200" text-anchor="middle" font-family="Courier New, monospace">2024</text>
+  <text x="620" y="1152" font-size="12" fill="#1a1a1a" text-anchor="middle">攻击性文章</text>
+  <text x="620" y="1166" font-size="11" fill="#5a5a5a" text-anchor="middle">自动发布事故</text>
+
+  <!-- Event 4: now -->
+  <circle cx="820" cy="1130" r="8" fill="#1a1a1a"/>
+  <text x="820" y="1118" font-size="11" fill="#1a1a1a" text-anchor="middle" font-family="Courier New, monospace">2026</text>
+  <text x="820" y="1152" font-size="12" fill="#1a1a1a" text-anchor="middle">lena-v1.0</text>
+  <text x="820" y="1166" font-size="11" fill="#5a5a5a" text-anchor="middle">防御基线建立</text>
+
+  <!-- Footer -->
+  <rect x="12" y="1185" width="888" height="15" fill="#1a1a1a" opacity="0.3"/>
+  <text x="60" y="1196" font-size="10" fill="#5a5a5a" font-family="Courier New, monospace">simonwillison.net/tags/agents/ · R2 nanoClaw security/ · R4-pedagogy.md §3.4 · lena-v1.0</text>
+</svg>

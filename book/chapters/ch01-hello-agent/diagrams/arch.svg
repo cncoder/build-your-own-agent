@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1433;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="llmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a2a4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1f3a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="agentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0a3a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a0d50;stop-opacity:1" />
+    </linearGradient>
+    <filter id="neon-blue">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="neon-purple">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-text">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4a9eff"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#a855f7"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="680" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="600" y="42" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="22" font-weight="bold" fill="#e2e8f0" filter="url(#glow-text)">LLM vs Agent — 核心心智模型</text>
+  <text x="600" y="65" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#64748b">Ch 1 · 《从零构建你的 AI Agent》</text>
+
+  <!-- Divider line -->
+  <line x1="600" y1="80" x2="600" y2="640" stroke="#1e293b" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="600" y="630" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#334155">vs</text>
+
+  <!-- ===== LEFT PANEL: LLM ===== -->
+  <rect x="20" y="82" width="560" height="550" rx="16" fill="url(#llmGrad)" stroke="#1e3a5f" stroke-width="1.5"/>
+
+  <!-- LLM Panel Title -->
+  <text x="300" y="115" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="18" font-weight="bold" fill="#4a9eff" filter="url(#neon-blue)">LLM（函数）</text>
+  <text x="300" y="138" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#60a5fa">无状态 · 单次调用 · 纯语言 I/O</text>
+
+  <!-- LLM Box -->
+  <rect x="100" y="165" width="400" height="80" rx="12" fill="#0f172a" stroke="#4a9eff" stroke-width="1.5" filter="url(#neon-blue)"/>
+  <text x="300" y="200" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="15" fill="#93c5fd">[ LLM 黑盒 ]</text>
+  <text x="300" y="222" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#4a6fa5">神经网络权重 · 知识截止日期前</text>
+
+  <!-- Input arrow -->
+  <line x1="40" y1="205" x2="95" y2="205" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="38" y="195" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#94a3b8">prompt</text>
+  <text x="38" y="218" text-anchor="end" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#60a5fa">"明天天气?"</text>
+
+  <!-- Output arrow -->
+  <line x1="504" y1="205" x2="555" y2="205" stroke="#4a9eff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="560" y="195" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#94a3b8">回复</text>
+  <text x="560" y="218" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#60a5fa">"我无法查实时</text>
+  <text x="560" y="232" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#60a5fa">天气…"</text>
+
+  <!-- LLM Characteristics -->
+  <rect x="60" y="270" width="460" height="160" rx="10" fill="#0a1525" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="290" y="294" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#64748b">特点</text>
+
+  <text x="80" y="320" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#64748b">❌  无状态 — 每次调用独立，不记得上次说什么</text>
+  <text x="80" y="342" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#64748b">❌  无工具 — 只能生成文字，不能查实时信息</text>
+  <text x="80" y="364" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#64748b">❌  无循环 — 一问一答，不能多步规划</text>
+  <text x="80" y="386" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#64748b">❌  知识截止 — 训练数据有截止日期</text>
+  <text x="80" y="410" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#64748b">✅  极快 — 单次调用毫秒级</text>
+
+  <!-- Code Example -->
+  <rect x="60" y="450" width="460" height="150" rx="10" fill="#050a14" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="80" y="472" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#4a6fa5"># 函数调用模型</text>
+  <text x="80" y="491" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#93c5fd">result = llm(prompt)  <tspan fill="#4a6fa5"># 结束了</tspan></text>
+  <text x="80" y="512" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#475569"># 没有工具，没有循环</text>
+  <text x="80" y="533" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#475569"># 没有记忆，没有主动性</text>
+  <text x="80" y="558" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#334155">类比：一次函数调用 f(x) → y</text>
+  <text x="80" y="578" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#334155">f 不会主动问"你还有别的问题吗"</text>
+
+  <!-- ===== RIGHT PANEL: Agent ===== -->
+  <rect x="620" y="82" width="560" height="550" rx="16" fill="url(#agentGrad)" stroke="#4a1570" stroke-width="1.5"/>
+
+  <!-- Agent Panel Title -->
+  <text x="900" y="115" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="18" font-weight="bold" fill="#a855f7" filter="url(#neon-purple)">Agent（程序）</text>
+  <text x="900" y="138" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#c084fc">循环 · 工具 · 记忆 · 主动性</text>
+
+  <!-- Agent Loop Diagram -->
+  <!-- Loop box -->
+  <rect x="650" y="155" width="520" height="280" rx="12" fill="#0a0520" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="760" y="175" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#7e22ce">while True:  # ← 循环是 agent 的核心</text>
+
+  <!-- LLM node inside agent -->
+  <rect x="710" y="185" width="180" height="55" rx="8" fill="#150830" stroke="#a855f7" stroke-width="1"/>
+  <text x="800" y="210" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#c084fc">LLM 决策</text>
+  <text x="800" y="230" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#7e22ce">"下一步做什么？"</text>
+
+  <!-- Tool call node -->
+  <rect x="930" y="185" width="200" height="55" rx="8" fill="#0a1505" stroke="#34d399" stroke-width="1"/>
+  <text x="1030" y="210" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#34d399">工具执行</text>
+  <text x="1030" y="230" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#059669">get_time() / web_search()</text>
+
+  <!-- Decision diamond -->
+  <polygon points="800,250 850,280 800,310 750,280" fill="#1a0a3a" stroke="#a855f7" stroke-width="1.2"/>
+  <text x="800" y="278" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#c084fc">tool?</text>
+  <text x="800" y="293" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="9" fill="#7e22ce">tool_use</text>
+
+  <!-- Decision arrows -->
+  <!-- Yes to tools -->
+  <line x1="850" y1="280" x2="925" y2="212" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+  <text x="895" y="254" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#a855f7">是</text>
+
+  <!-- Tool result back to memory -->
+  <line x1="1030" y1="242" x2="1030" y2="370" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="1030" y1="370" x2="800" y2="370" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+  <!-- Memory node -->
+  <rect x="680" y="350" width="240" height="50" rx="8" fill="#0a1505" stroke="#34d399" stroke-width="1"/>
+  <text x="800" y="373" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#34d399">messages[ ]  记忆</text>
+  <text x="800" y="390" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#059669">tool_result 追加进上下文</text>
+
+  <!-- Memory back to LLM -->
+  <line x1="710" y1="365" x2="710" y2="212" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="670" y="295" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#34d399">回到</text>
+  <text x="667" y="308" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#34d399">LLM</text>
+
+  <!-- No = return -->
+  <line x1="800" y1="310" x2="800" y2="415" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <text x="808" y="370" font-family="'SF Mono', Monaco, monospace" font-size="10" fill="#60a5fa">否</text>
+  <rect x="720" y="418" width="160" height="30" rx="6" fill="#0a1525" stroke="#60a5fa" stroke-width="1"/>
+  <text x="800" y="438" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#60a5fa">返回最终回复</text>
+
+  <!-- Agent Characteristics -->
+  <rect x="650" y="460" width="510" height="145" rx="10" fill="#050214" stroke="#4a1570" stroke-width="1"/>
+  <text x="905" y="483" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="13" fill="#7e22ce">特点</text>
+
+  <text x="668" y="506" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#a855f7">✅  有循环 — 多步决策，直到任务完成</text>
+  <text x="668" y="526" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#34d399">✅  有工具 — 调用 API、读文件、执行代码</text>
+  <text x="668" y="546" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#60a5fa">✅  有记忆 — 上一步的结果影响下一步</text>
+  <text x="668" y="566" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#fbbf24">✅  有主动性 — 可以主动触发任务（Ch13 Heartbeat）</text>
+  <text x="668" y="590" font-family="'SF Mono', Monaco, monospace" font-size="11" fill="#475569">类比：一段程序 while task.pending: think() → act() → observe()</text>
+
+  <!-- Bottom Quote -->
+  <rect x="100" y="636" width="1000" height="28" rx="8" fill="#0d1433" stroke="#1e293b" stroke-width="1"/>
+  <text x="600" y="655" text-anchor="middle" font-family="'SF Mono', Monaco, monospace" font-size="12" fill="#64748b">LLM 是大脑  ·  Loop 是心跳  ·  Tools 是双手  ·  Memory 是经历</text>
+</svg>

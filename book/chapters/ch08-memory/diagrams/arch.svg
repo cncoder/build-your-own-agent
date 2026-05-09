@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="560" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'PingFang SC', sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#22d3ee" opacity="0.9"/>
+    </marker>
+    <marker id="arr-p" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#a855f7" opacity="0.9"/>
+    </marker>
+    <marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4ade80" opacity="0.9"/>
+    </marker>
+  </defs>
+  <rect width="900" height="560" fill="#070714" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="36" text-anchor="middle" font-size="18" font-weight="700" fill="#f1f5f9">lena-v0.6 记忆架构图</text>
+  <line x1="60" y1="52" x2="840" y2="52" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <!-- User -->
+  <rect x="60" y="80" width="120" height="50" rx="10" fill="rgba(168,85,247,0.12)" stroke="rgba(168,85,247,0.35)" stroke-width="1.5"/>
+  <text x="120" y="110" text-anchor="middle" font-size="14" fill="#a855f7" font-weight="600">👤 用户输入</text>
+
+  <!-- Arrow user -> agent -->
+  <line x1="180" y1="105" x2="240" y2="105" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arr-p)"/>
+
+  <!-- Agent core -->
+  <rect x="242" y="68" width="200" height="220" rx="12" fill="rgba(34,211,238,0.05)" stroke="rgba(34,211,238,0.25)" stroke-width="1.5"/>
+  <text x="342" y="92" text-anchor="middle" font-size="13" fill="#22d3ee" font-weight="700">Agent Loop</text>
+
+  <!-- messages[] box inside agent -->
+  <rect x="262" y="102" width="160" height="50" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(34,211,238,0.2)" stroke-width="1"/>
+  <text x="342" y="125" text-anchor="middle" font-size="12" fill="#22d3ee">messages[]</text>
+  <text x="342" y="142" text-anchor="middle" font-size="10" fill="#64748b">当前对话 (in-memory)</text>
+
+  <!-- LLM box inside agent -->
+  <rect x="262" y="164" width="160" height="50" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(168,85,247,0.2)" stroke-width="1"/>
+  <text x="342" y="187" text-anchor="middle" font-size="12" fill="#a855f7">LLM (claude-3-5)</text>
+  <text x="342" y="203" text-anchor="middle" font-size="10" fill="#64748b">with system prompt</text>
+
+  <!-- Tools box inside agent -->
+  <rect x="262" y="226" width="160" height="50" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(74,222,128,0.2)" stroke-width="1"/>
+  <text x="342" y="249" text-anchor="middle" font-size="12" fill="#4ade80">Tools</text>
+  <text x="342" y="265" text-anchor="middle" font-size="10" fill="#64748b">save_memory, get_time...</text>
+
+  <!-- Arrow agent -> response -->
+  <line x1="180" y1="105" x2="242" y2="200" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="442" y1="200" x2="500" y2="105" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Response -->
+  <rect x="500" y="80" width="120" height="50" rx="10" fill="rgba(74,222,128,0.12)" stroke="rgba(74,222,128,0.35)" stroke-width="1.5"/>
+  <text x="560" y="110" text-anchor="middle" font-size="14" fill="#4ade80" font-weight="600">💬 响应</text>
+  <line x1="442" y1="105" x2="500" y2="105" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr-g)"/>
+
+  <!-- ===== SHORT TERM ===== -->
+  <rect x="60" y="330" width="260" height="130" rx="12" fill="rgba(34,211,238,0.05)" stroke="rgba(34,211,238,0.2)" stroke-width="1.5"/>
+  <rect x="60" y="330" width="260" height="3" rx="1.5" fill="rgba(34,211,238,0.5)"/>
+  <text x="190" y="356" text-anchor="middle" font-size="13" fill="#22d3ee" font-weight="700">⚡ 短期记忆 · SQLite</text>
+  <text x="190" y="376" text-anchor="middle" font-size="11" fill="#64748b">memory/store.py</text>
+  <text x="190" y="400" text-anchor="middle" font-size="11" fill="rgba(226,232,240,0.6)">sessions 表 + messages 表</text>
+  <text x="190" y="418" text-anchor="middle" font-size="11" fill="rgba(226,232,240,0.6)">JSON content · 零依赖</text>
+  <text x="190" y="440" text-anchor="middle" font-size="11" fill="#4ade80">✓ 重启可恢复同会话历史</text>
+  <text x="190" y="456" text-anchor="middle" font-size="10" fill="#fb923c">⚠️ compaction → 摘要不可信</text>
+
+  <!-- Arrow agent <-> short term -->
+  <line x1="280" y1="288" x2="190" y2="330" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+  <text x="218" y="314" font-size="9" fill="#64748b" text-anchor="middle">load / append</text>
+
+  <!-- ===== LONG TERM ===== -->
+  <rect x="360" y="330" width="280" height="200" rx="12" fill="rgba(168,85,247,0.05)" stroke="rgba(168,85,247,0.2)" stroke-width="1.5"/>
+  <rect x="360" y="330" width="280" height="3" rx="1.5" fill="rgba(168,85,247,0.5)"/>
+  <text x="500" y="356" text-anchor="middle" font-size="13" fill="#a855f7" font-weight="700">🗄️ 长期记忆 · 文件系统</text>
+  <text x="500" y="376" text-anchor="middle" font-size="11" fill="#64748b">memory/memdir.py</text>
+
+  <!-- MEMORY.md badge -->
+  <rect x="375" y="390" width="100" height="50" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(168,85,247,0.3)" stroke-width="1"/>
+  <text x="425" y="413" text-anchor="middle" font-size="11" fill="#a855f7">MEMORY.md</text>
+  <text x="425" y="430" text-anchor="middle" font-size="9" fill="#64748b">索引 · 快速扫描</text>
+
+  <!-- Arrow to mem files -->
+  <line x1="475" y1="415" x2="510" y2="415" stroke="#a855f7" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-p)"/>
+
+  <!-- mem files badge -->
+  <rect x="512" y="390" width="112" height="50" rx="8" fill="rgba(0,0,0,0.4)" stroke="rgba(74,222,128,0.25)" stroke-width="1"/>
+  <text x="568" y="413" text-anchor="middle" font-size="11" fill="#4ade80">mem_*.md</text>
+  <text x="568" y="430" text-anchor="middle" font-size="9" fill="#64748b">YAML frontmatter</text>
+
+  <text x="500" y="468" text-anchor="middle" font-size="11" fill="#4ade80">✓ 跨 restart 永久有效</text>
+  <text x="500" y="486" text-anchor="middle" font-size="11" fill="#4ade80">✓ 可检查 可编辑 零依赖</text>
+  <text x="500" y="504" text-anchor="middle" font-size="10" fill="rgba(226,232,240,0.5)">~/.lena/projects/&lt;slug&gt;/memory/</text>
+  <text x="500" y="520" text-anchor="middle" font-size="10" fill="rgba(226,232,240,0.5)">CC 路径: ~/.claude/projects/&lt;slug&gt;/memory/</text>
+
+  <!-- Arrow agent -> long term (save_memory tool) -->
+  <line x1="340" y1="248" x2="440" y2="330" stroke="#4ade80" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-g)"/>
+  <text x="400" y="294" font-size="9" fill="#4ade80" text-anchor="middle">save_memory</text>
+
+  <!-- Arrow long term -> system prompt (auto load) -->
+  <line x1="500" y1="330" x2="342" y2="164" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arr)" opacity="0.8"/>
+  <text x="468" y="255" font-size="9" fill="#fb923c" text-anchor="middle">自动加载</text>
+  <text x="468" y="268" font-size="9" fill="#fb923c" text-anchor="middle">format_for_prompt()</text>
+
+  <!-- ===== System prompt detail ===== -->
+  <rect x="680" y="220" width="180" height="200" rx="10" fill="rgba(0,0,0,0.35)" stroke="rgba(74,222,128,0.2)" stroke-width="1"/>
+  <text x="770" y="244" text-anchor="middle" font-size="12" fill="#4ade80" font-weight="700">system prompt</text>
+  <rect x="695" y="256" width="150" height="22" rx="5" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.15)" stroke-width="0.5"/>
+  <text x="770" y="271" text-anchor="middle" font-size="9" fill="#22d3ee">session_guidance</text>
+  <rect x="695" y="284" width="150" height="28" rx="5" fill="rgba(168,85,247,0.2)" stroke="rgba(168,85,247,0.4)" stroke-width="1"/>
+  <text x="770" y="296" text-anchor="middle" font-size="9" fill="#a855f7" font-weight="700">memory (CLAUDE.md)</text>
+  <text x="770" y="308" text-anchor="middle" font-size="8" fill="#a855f7">← 长期记忆在这里</text>
+  <rect x="695" y="318" width="150" height="22" rx="5" fill="rgba(34,211,238,0.08)" stroke="rgba(34,211,238,0.15)" stroke-width="0.5"/>
+  <text x="770" y="333" text-anchor="middle" font-size="9" fill="#22d3ee">env_info + tools</text>
+  <rect x="695" y="346" width="150" height="28" rx="5" fill="rgba(251,146,60,0.1)" stroke="rgba(251,146,60,0.25)" stroke-width="0.8"/>
+  <text x="770" y="358" text-anchor="middle" font-size="9" fill="#fb923c" font-weight="700">Recitation</text>
+  <text x="770" y="370" text-anchor="middle" font-size="8" fill="#fb923c">末尾重申 · 防漂移</text>
+  <line x1="695" y1="384" x2="845" y2="384" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+  <text x="770" y="402" text-anchor="middle" font-size="9" fill="#64748b">prompts.ts:492 (CC 源码)</text>
+
+  <!-- Arrow syst prompt ref -->
+  <line x1="680" y1="315" x2="642" y2="200" stroke="rgba(74,222,128,0.4)" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Manus quote bottom -->
+  <rect x="60" y="500" width="240" height="44" rx="8" fill="rgba(251,191,36,0.05)" stroke="rgba(251,191,36,0.15)" stroke-width="1"/>
+  <text x="180" y="519" text-anchor="middle" font-size="10" fill="#fbbf24">"文件系统是无限外部记忆"</text>
+  <text x="180" y="534" text-anchor="middle" font-size="9" fill="#64748b">— Manus Context Engineering</text>
+</svg>

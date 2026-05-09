@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 10% 50%, #001020 0%, #050810 55%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,150,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,150,255,0.025) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; padding: 72px 160px 60px; display: flex; gap: 80px; }
+.left { width: 680px; flex-shrink: 0; display: flex; flex-direction: column; }
+.right { flex: 1; display: flex; flex-direction: column; }
+
+h2 { font-size: 48px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.01em; }
+.sub { font-size: 18px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+
+/* Timeline diagram */
+.timeline-wrap { flex: 1; position: relative; }
+.tl-header { display: flex; margin-bottom: 12px; }
+.tl-axis-label { font-size: 12px; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; text-transform: uppercase; }
+.tl-time-axis { flex: 1; display: flex; justify-content: space-between; padding-left: 140px; }
+.tl-time-axis span { font-size: 12px; color: rgba(255,255,255,0.2); font-variant-numeric: tabular-nums; }
+
+.tl-row { display: flex; align-items: center; margin-bottom: 14px; }
+.tl-label { width: 140px; flex-shrink: 0; font-size: 14px; color: rgba(255,255,255,0.4); }
+.tl-track { flex: 1; height: 38px; position: relative; background: rgba(255,255,255,0.02); border-radius: 6px; }
+
+.tl-bar {
+  position: absolute; height: 30px; top: 4px;
+  border-radius: 6px; display: flex; align-items: center;
+  padding: 0 14px; font-size: 13px; font-weight: 500;
+  white-space: nowrap; transition: all 0.3s;
+}
+.bar-api    { background: rgba(100,100,255,0.25); border: 1px solid rgba(100,100,255,0.4); color: #9090ff; }
+.bar-t1     { background: rgba(0,200,255,0.25); border: 1px solid rgba(0,200,255,0.5); color: #00c8ff; }
+.bar-t2     { background: rgba(0,200,150,0.25); border: 1px solid rgba(0,200,150,0.5); color: #00c896; }
+.bar-t3     { background: rgba(0,200,80,0.25);  border: 1px solid rgba(0,200,80,0.5);  color: #00c850; }
+.bar-t4     { background: rgba(100,200,0,0.2);  border: 1px solid rgba(100,200,0,0.4); color: #7cbc30; }
+.bar-t5     { background: rgba(200,180,0,0.2);  border: 1px solid rgba(200,180,0,0.4); color: #bca000; }
+
+/* Add tool arrows */
+.arrow-row { display: flex; align-items: flex-start; margin-bottom: 0; }
+
+/* Vertical arrow lines */
+.marker {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  border-left: 1px dashed rgba(0,200,255,0.3);
+}
+.marker-label {
+  position: absolute; top: -22px; font-size: 11px; color: rgba(0,200,255,0.6);
+  white-space: nowrap; transform: translateX(-50%);
+}
+
+/* Key insight */
+.insight {
+  margin-top: 24px; padding: 20px 24px;
+  background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.2);
+  border-radius: 12px;
+}
+.insight p { font-size: 17px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+.insight strong { color: #00c8ff; }
+.insight code { font-family: "SF Mono", monospace; color: #c3e88d; font-size: 14px; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; }
+
+/* Right: code */
+.code-block {
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(0,200,255,0.12);
+  border-radius: 14px; padding: 28px 32px; flex: 1;
+  overflow: hidden; position: relative;
+}
+.code-block::before {
+  content: 'StreamingToolExecutor.ts:40';
+  position: absolute; top: 12px; right: 16px;
+  font-size: 11px; color: rgba(0,200,255,0.35); font-family: "SF Mono", monospace; letter-spacing: 0.05em;
+}
+pre { font-family: "SF Mono", "Fira Code", monospace; font-size: 16px; line-height: 1.8; }
+.kw  { color: #c792ea; }
+.fn  { color: #82aaff; }
+.str { color: #c3e88d; }
+.cmt { color: rgba(255,255,255,0.2); }
+.key { color: #f78c6c; }
+.num { color: #f78c6c; }
+.hl  { background: rgba(0,200,255,0.08); border-left: 2px solid #00c8ff; margin: 0 -32px; padding: 0 30px; display: block; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <div class="left">
+    <h2>流式抢跑机制</h2>
+    <p class="sub">tool_use 块到达即执行，不等 end_turn</p>
+
+    <div class="timeline-wrap">
+      <div class="tl-header">
+        <div style="width:140px"></div>
+        <div class="tl-time-axis">
+          <span>0s</span><span>0.5s</span><span>1.0s</span><span>1.5s</span><span>2.0s</span>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <span class="tl-label">LLM API</span>
+        <div class="tl-track" style="position:relative">
+          <div class="tl-bar bar-api" style="left:0%; width:75%">SSE 流式传输（end_turn 在 t=1.5s）</div>
+          <!-- markers -->
+          <div class="marker" style="left:22%"><span class="marker-label">addTool #1</span></div>
+          <div class="marker" style="left:40%"><span class="marker-label">addTool #2</span></div>
+          <div class="marker" style="left:55%"><span class="marker-label">addTool #3</span></div>
+        </div>
+      </div>
+
+      <div class="tl-row">
+        <span class="tl-label" style="color:#00c8ff">Tool-1</span>
+        <div class="tl-track">
+          <div class="tl-bar bar-t1" style="left:22%; width:50%">web_search "天气"</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <span class="tl-label" style="color:#00c896">Tool-2</span>
+        <div class="tl-track">
+          <div class="tl-bar bar-t2" style="left:40%; width:45%">web_search "AI 新闻"</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <span class="tl-label" style="color:#00c850">Tool-3</span>
+        <div class="tl-track">
+          <div class="tl-bar bar-t3" style="left:55%; width:40%">web_search "BTC"</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <p>关键：<code>query.ts:842</code> — tool_use 块<strong>流式到达</strong>时立即调用 <code>addTool(block)</code>，此时 LLM 响应还没完成。</p>
+    </div>
+  </div>
+
+  <div class="right">
+    <div style="font-size:14px; color:rgba(255,255,255,0.35); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:16px;">CC 源码实现</div>
+    <div class="code-block">
+      <pre><span class="kw">class</span> <span class="fn">StreamingToolExecutor</span> {
+  <span class="kw">private</span> pending: Map&lt;string, Promise&gt; <span class="kw">=</span> <span class="kw">new</span> Map()
+
+  <span class="cmt">// query.ts:842 — tool_use 块流式到达时调用</span>
+<span class="hl">  <span class="fn">addTool</span>(block: ToolUseBlock): void {</span>
+<span class="hl">    <span class="kw">if</span> (this.pending.size &gt;= MAX_CONCURRENCY) {</span>
+<span class="hl">      this.queue.push(block)  <span class="cmt">// 超上限排队</span></span>
+<span class="hl">      <span class="kw">return</span></span>
+<span class="hl">    }</span>
+<span class="hl">    <span class="cmt">// 立即启动，不等流结束！</span></span>
+<span class="hl">    <span class="kw">const</span> promise = this.executeTool(block)</span>
+<span class="hl">    this.pending.set(block.id, promise)</span>
+<span class="hl">  }</span>
+
+  <span class="cmt">// 流结束后调用，等待全部工具完成</span>
+  <span class="kw">async</span> <span class="fn">getRemainingResults</span>(): AsyncGenerator {
+    <span class="kw">for</span> (<span class="kw">const</span> [id, promise] <span class="kw">of</span> this.pending) {
+      <span class="kw">const</span> result = <span class="kw">await</span> promise
+      <span class="kw">yield</span> buildToolResult(result)
+    }
+  }
+}</pre>
+    </div>
+    <div style="margin-top:20px; padding:16px 24px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:10px; display:flex; gap:40px;">
+      <div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:4px">无抢跑总耗时</div>
+        <div style="font-size:28px; font-weight:700; color:#ff6b6b">~3.5s</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:4px">抢跑后总耗时</div>
+        <div style="font-size:28px; font-weight:700; color:#00c864">~2.0s</div>
+      </div>
+      <div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:4px">提升</div>
+        <div style="font-size:28px; font-weight:700; color:#00c8ff">43%</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

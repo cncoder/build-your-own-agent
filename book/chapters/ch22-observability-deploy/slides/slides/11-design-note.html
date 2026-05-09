@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Ch18 · 11 Design Note</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #040812; font-family: 'SF Pro Display', -apple-system, sans-serif;
+    color: #e6edf3;
+    display: flex; align-items: stretch;
+  }
+  /* 左侧问题列 */
+  .left {
+    width: 560px; flex-shrink: 0;
+    background: rgba(56,139,253,0.04); border-right: 1px solid rgba(48,54,61,0.8);
+    padding: 60px 56px;
+    display: flex; flex-direction: column; gap: 32px;
+  }
+  .tag { font-size: 11px; letter-spacing: 0.15em; color: #58a6ff; text-transform: uppercase; margin-bottom: 4px; }
+  .left h2 { font-size: 36px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; }
+  .left h2 span { color: #58a6ff; }
+
+  .question {
+    background: rgba(22,27,34,0.8); border-radius: 10px; padding: 20px 22px;
+    border: 1px solid rgba(48,54,61,0.8);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .q-label { font-size: 11px; color: #6e7681; text-transform: uppercase; letter-spacing: 0.1em; }
+  .q-text { font-size: 17px; color: #e6edf3; line-height: 1.4; }
+
+  /* 右侧对比 */
+  .right {
+    flex: 1; padding: 60px 80px 56px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .right h1 { font-size: 40px; font-weight: 700; letter-spacing: -1px; }
+  .right h1 span { color: #3fb950; }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; flex: 1; }
+  .option {
+    background: rgba(22,27,34,0.7); border-radius: 12px; padding: 26px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    border: 1px solid rgba(48,54,61,0.8);
+  }
+  .option.recommended { border-color: rgba(63,185,80,0.4); background: rgba(63,185,80,0.06); }
+  .option-name { font-size: 18px; font-weight: 700; }
+  .option.launchd .option-name { color: #58a6ff; }
+  .option.systemd .option-name { color: #d29922; }
+  .option.docker .option-name { color: #bc8cff; }
+  .option-tag {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #6e7681; margin-top: -6px;
+  }
+  .option-body { font-size: 14px; color: #8b949e; line-height: 1.6; flex: 1; }
+  .option-body strong { color: #e6edf3; }
+  .option-when {
+    border-top: 1px solid rgba(48,54,61,0.6); padding-top: 12px;
+    font-size: 13px; color: #6e7681;
+  }
+  .rec-badge {
+    background: rgba(63,185,80,0.15); border: 1px solid rgba(63,185,80,0.3);
+    border-radius: 100px; padding: 4px 12px;
+    font-size: 11px; color: #3fb950; align-self: flex-start;
+    letter-spacing: 0.05em;
+  }
+
+  .bottom-note {
+    background: rgba(22,27,34,0.6); border: 1px solid rgba(48,54,61,0.6);
+    border-radius: 8px; padding: 14px 20px;
+    font-size: 14px; color: #8b949e; line-height: 1.5;
+  }
+  .bottom-note strong { color: #e6edf3; }
+
+  .chapter-badge {
+    position: absolute; bottom: 40px; right: 60px;
+    font-size: 12px; color: #30363d;
+  }
+</style>
+</head>
+<body>
+<div class="left">
+  <div>
+    <div class="tag">Design Note</div>
+    <h2>自托管 vs 云函数<br><span>Lena 的部署选型</span></h2>
+  </div>
+  <div class="question">
+    <div class="q-label">问自己</div>
+    <div class="q-text">Lena 需要一直在线<br>还是按需触发？</div>
+  </div>
+  <div class="question">
+    <div class="q-label">问自己</div>
+    <div class="q-text">用的是 Mac 开发机<br>还是 Linux 服务器？</div>
+  </div>
+  <div class="question">
+    <div class="q-label">问自己</div>
+    <div class="q-text">只有 Lena 一个服务<br>还是 Lena + LiteLLM + Redis？</div>
+  </div>
+</div>
+
+<div class="right">
+  <h1>三种方案<span>没有最好，只有最合适</span></h1>
+
+  <div class="compare">
+    <div class="option launchd recommended">
+      <span class="rec-badge">Mac 开发者首选</span>
+      <div class="option-name">launchd</div>
+      <div class="option-tag">macOS · ~/Library/LaunchAgents</div>
+      <div class="option-body">
+        随用户登录自动启动，系统级守护，无需额外依赖。
+        <strong>个人 7×24 AI 助手就是这样运行的</strong>——关了终端
+        Lena 还在，重启 Mac Lena 自动回来。
+      </div>
+      <div class="option-when">适用：Mac 个人 7×24 AI 助手</div>
+    </div>
+
+    <div class="option systemd">
+      <div class="option-name">systemd</div>
+      <div class="option-tag">Linux · /etc/systemd/system</div>
+      <div class="option-body">
+        Linux 服务器标准方案，journald 日志集成，
+        restart 策略灵活。<strong>VPS / EC2 部署 Lena 的标准选择</strong>，
+        记得配好 StartLimitBurst。
+      </div>
+      <div class="option-when">适用：Linux 服务器 · EC2 · VPS</div>
+    </div>
+
+    <div class="option docker">
+      <div class="option-name">Docker Compose</div>
+      <div class="option-tag">多服务 · Lena + Redis + Jaeger</div>
+      <div class="option-body">
+        多个服务组合时的最佳方案，服务间网络隔离，
+        healthcheck 依赖，资源限制精细控制。
+        <strong>生产级多服务部署的标准起点</strong>。
+      </div>
+      <div class="option-when">适用：多服务架构 · 需要 Redis/监控</div>
+    </div>
+  </div>
+
+  <div class="bottom-note">
+    <strong>云函数（Lambda/Cloud Functions）什么时候更好？</strong>
+    当 Lena 是「按需触发」而非「持续运行」时——比如每天一次日报任务，
+    用 EventBridge Cron → Lambda 比一直运行的服务更省钱。
+    两种范式不互斥：Lena 核心用 systemd/launchd，一次性任务用 Lambda。
+  </div>
+</div>
+<div class="chapter-badge">Ch 18 · Lena v1.8 · 部署选型</div>
+</body>
+</html>

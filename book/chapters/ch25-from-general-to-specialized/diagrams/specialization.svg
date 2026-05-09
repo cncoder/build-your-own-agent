@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" width="800" height="360">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif; fill: #e0e6f0; }
+      .label { font-size: 13px; }
+      .sublabel { font-size: 10px; fill: #8ba0b8; }
+      .title { font-size: 15px; font-weight: bold; }
+      .small { font-size: 10px; }
+      .cap-add { font-size: 10px; fill: #00ff88; }
+      .cap-rem { font-size: 10px; fill: #ff6060; }
+    </style>
+  </defs>
+
+  <rect width="800" height="360" fill="none"/>
+  <text x="400" y="26" text-anchor="middle" class="title">从通用 Agent 到专用 Agent 的派生路径（Ch25）</text>
+
+  <!-- Universal Lena (center, top) -->
+  <rect x="270" y="50" width="260" height="90" rx="12" fill="#0a2a14" stroke="#00ff88" stroke-width="2"/>
+  <text x="400" y="80" text-anchor="middle" class="label" fill="#00ff88">Lena v0.24（通用 Agent）</text>
+  <text x="400" y="98" text-anchor="middle" class="sublabel">六大支柱：工具 / 规划 / 记忆 / 安全 / 通道 / Evals</text>
+  <text x="400" y="113" text-anchor="middle" class="sublabel">Python Runtime · BaseChannel · Tool Registry · Memory</text>
+  <text x="400" y="128" text-anchor="middle" class="sublabel">AgentLoop · Heartbeat · MCP · Docker Sandbox</text>
+
+  <!-- Branching arrows -->
+  <line x1="310" y1="140" x2="130" y2="200" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="400" y1="140" x2="400" y2="200" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="490" y1="140" x2="670" y2="200" stroke="#00d4ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Specialist 1: Quant -->
+  <rect x="30" y="200" width="200" height="110" rx="10" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="130" y="222" text-anchor="middle" class="label">量化交易 Agent</text>
+  <text x="130" y="240" text-anchor="middle" class="sublabel">继承：计划 / 记忆 / Evals</text>
+  <text x="130" y="256" text-anchor="middle" class="cap-add">+ 行情数据工具</text>
+  <text x="130" y="270" text-anchor="middle" class="cap-add">+ 回测引擎工具</text>
+  <text x="130" y="284" text-anchor="middle" class="cap-add">+ 金融知识 System Prompt</text>
+  <text x="130" y="298" text-anchor="middle" class="cap-rem">− 通用 Shell 工具（降权）</text>
+
+  <!-- Specialist 2: News -->
+  <rect x="300" y="200" width="200" height="110" rx="10" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="400" y="222" text-anchor="middle" class="label">新闻播报 Agent</text>
+  <text x="400" y="240" text-anchor="middle" class="sublabel">继承：通道 / 记忆 / Heartbeat</text>
+  <text x="400" y="256" text-anchor="middle" class="cap-add">+ RSS / 爬虫工具</text>
+  <text x="400" y="270" text-anchor="middle" class="cap-add">+ TTS 音频合成</text>
+  <text x="400" y="284" text-anchor="middle" class="cap-add">+ 多 Agent 同步（协同）</text>
+  <text x="400" y="298" text-anchor="middle" class="cap-rem">− Docker 沙箱（简化）</text>
+
+  <!-- Specialist 3: DevOps -->
+  <rect x="570" y="200" width="200" height="110" rx="10" fill="#0c1220" stroke="#4a80a0" stroke-width="1.5"/>
+  <text x="670" y="222" text-anchor="middle" class="label">DevOps Agent</text>
+  <text x="670" y="240" text-anchor="middle" class="sublabel">继承：全部六大支柱</text>
+  <text x="670" y="256" text-anchor="middle" class="cap-add">+ K8s / AWS CLI 工具</text>
+  <text x="670" y="270" text-anchor="middle" class="cap-add">+ 监控报警集成</text>
+  <text x="670" y="284" text-anchor="middle" class="cap-add">+ 强化安全（双重审批）</text>
+  <text x="670" y="298" text-anchor="middle" class="cap-rem">− 对话通道（CLI only）</text>
+
+  <!-- Derivation pattern box -->
+  <rect x="150" y="328" width="500" height="24" rx="5" fill="#0c1a2a" stroke="#1a3050" stroke-width="1"/>
+  <text x="400" y="345" text-anchor="middle" class="sublabel">派生模式：覆盖 System Prompt → 注册专用工具 → 禁用危险工具 → 配置专属通道</text>
+</svg>

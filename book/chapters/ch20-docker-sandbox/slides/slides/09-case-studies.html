@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0a0d10; font-family: 'SF Mono', 'Fira Code', monospace; }
+.bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+.slide-label { position: absolute; top: 52px; left: 80px; font-size: 12px; letter-spacing: 0.3em; color: rgba(0,204,85,0.6); text-transform: uppercase; }
+.page-num { position: absolute; top: 52px; right: 80px; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 0.2em; }
+
+.title-area { position: absolute; top: 120px; left: 80px; }
+.title-area h2 { font-size: 52px; font-weight: 900; color: #fff; font-family: 'Arial Black', sans-serif; letter-spacing: -0.02em; }
+.title-area .sub { font-size: 20px; color: rgba(255,255,255,0.4); margin-top: 8px; }
+
+.content { position: absolute; top: 220px; left: 80px; right: 80px; bottom: 60px; display: flex; gap: 48px; }
+
+.case-card {
+  flex: 1; background: #0f1418; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px; padding: 28px; display: flex; flex-direction: column; gap: 16px;
+}
+.case-num { font-size: 11px; letter-spacing: 0.3em; color: rgba(255,255,255,0.25); }
+.case-title { font-size: 22px; font-weight: 700; color: #fff; line-height: 1.3; }
+.case-src { font-size: 12px; color: rgba(0,204,85,0.6); }
+.case-divider { height: 1px; background: rgba(255,255,255,0.05); }
+
+.arch-flow { display: flex; flex-direction: column; gap: 8px; }
+.flow-row { display: flex; align-items: center; gap: 10px; }
+.flow-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 3px; font-size: 12px; color: rgba(255,255,255,0.6); }
+.flow-box.green { border-color: rgba(0,204,85,0.25); color: #00cc55; background: rgba(0,204,85,0.06); }
+.flow-box.dim { opacity: 0.5; }
+.flow-arrow { color: rgba(255,255,255,0.2); font-size: 14px; }
+
+.key-points { display: flex; flex-direction: column; gap: 8px; }
+.kp { display: flex; gap: 10px; align-items: flex-start; }
+.kp-dot { width: 5px; height: 5px; border-radius: 50%; background: #00cc55; margin-top: 7px; flex-shrink: 0; }
+.kp-text { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+.kp-text strong { color: #fff; }
+.kp-text .hl { color: #00cc55; }
+
+.lesson { background: rgba(0,204,85,0.05); border: 1px solid rgba(0,204,85,0.15); padding: 12px 16px; border-radius: 4px; margin-top: auto; }
+.lesson-title { font-size: 11px; color: rgba(0,204,85,0.6); letter-spacing: 0.2em; margin-bottom: 4px; }
+.lesson-text { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+
+.bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="slide-label">真实案例</div>
+<div class="page-num">09 / 11</div>
+
+<div class="title-area">
+  <h2>两个真实沙箱案例</h2>
+  <div class="sub">沙箱 ≠ 云端——形式可以多样</div>
+</div>
+
+<div class="content">
+  <div class="case-card">
+    <div class="case-num">案例 16.1</div>
+    <div class="case-title">cat-vision<br>本地 MLX 模型沙箱化</div>
+    <div class="case-src">cat-vision/cat_monitor.py</div>
+    <div class="case-divider"></div>
+
+    <div class="arch-flow">
+      <div class="flow-row"><div class="flow-box">RTSP 摄像头 (内网)</div><div class="flow-arrow">→</div><div class="flow-box">ffmpeg 截帧</div></div>
+      <div class="flow-row"><div class="flow-arrow" style="margin-left:40px;">↓</div></div>
+      <div class="flow-row"><div class="flow-box green">mlx_vlm 本地推理 3-8s/张</div><div class="flow-arrow">→</div><div class="flow-box">JSON 行为分类</div></div>
+      <div class="flow-row"><div class="flow-arrow" style="margin-left:40px;">↓ 异常才</div></div>
+      <div class="flow-row"><div class="flow-box dim">Bedrock Claude（精判）</div><div class="flow-arrow">→</div><div class="flow-box dim">Discord + HA</div></div>
+    </div>
+
+    <div class="key-points">
+      <div class="kp"><div class="kp-dot"></div><div class="kp-text"><strong>数据不出内网</strong>：所有图像本地处理，不上传</div></div>
+      <div class="kp"><div class="kp-dot"></div><div class="kp-text"><span class="hl">95% 案例本地推理</span>，5% 异常才调 Bedrock</div></div>
+      <div class="kp"><div class="kp-dot"></div><div class="kp-text">模型首次加载缓存，后续推理无加载延迟</div></div>
+    </div>
+
+    <div class="lesson">
+      <div class="lesson-title">教学点</div>
+      <div class="lesson-text">沙箱 = 控制信息流，不一定是 Docker 容器。<br>数据不出内网 = 网络级隔离沙箱。</div>
+    </div>
+  </div>
+
+  <div class="case-card">
+    <div class="case-num">案例 16.2</div>
+    <div class="case-title">exposure-monitor<br>双引擎 Lambda 架构</div>
+    <div class="case-src">exposure-monitor/CLAUDE.md</div>
+    <div class="case-divider"></div>
+
+    <div class="arch-flow">
+      <div class="flow-row"><div class="flow-box green">Reactor (秒级)</div><div class="flow-arrow"></div><div class="flow-box green">Full Scanner (900s)</div></div>
+      <div class="flow-row" style="margin-left:4px;"><div style="font-size:12px;color:rgba(255,255,255,0.3);">CloudTrail→EventBridge→Lambda(15s)</div><div style="width:20px;"></div><div style="font-size:12px;color:rgba(255,255,255,0.3);">定时全量扫描</div></div>
+      <div class="flow-row"><div class="flow-arrow" style="margin-left:80px;">↓</div></div>
+      <div class="flow-row"><div class="flow-box">检测 0.0.0.0/0 规则</div><div class="flow-arrow">→</div><div class="flow-box green">TCP connect 验证可达性</div></div>
+      <div class="flow-row"><div class="flow-arrow" style="margin-left:280px;">↓ 可达才报警</div></div>
+      <div class="flow-row"><div class="flow-box" style="margin-left:280px;">SNS → Discord</div></div>
+    </div>
+
+    <div class="key-points">
+      <div class="kp"><div class="kp-dot"></div><div class="kp-text"><strong>"可达才算暴露"</strong>：SG 有规则但 ENI 未 attach 不报</div></div>
+      <div class="kp"><div class="kp-dot"></div><div class="kp-text"><span class="hl">Lambda 本身就是沙箱</span>：函数执行环境隔离，执行完销毁</div></div>
+      <div class="kp"><div class="kp-dot"></div><div class="kp-text">与 Docker sandbox 同思路：每次独立执行环境</div></div>
+    </div>
+
+    <div class="lesson">
+      <div class="lesson-title">教学点</div>
+      <div class="lesson-text">Serverless 是另一种"每次独立容器"沙箱。<br>设计思想与 Docker sandbox 一脉相承。</div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar"></div>
+</body>
+</html>

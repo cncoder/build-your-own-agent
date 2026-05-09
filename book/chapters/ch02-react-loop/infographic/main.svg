@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3508 4961" width="3508" height="4961">
+  <!-- A3 at 300dpi: 3508 × 4961 px -->
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;family=Noto+Sans+SC:wght@400;700;900&amp;display=swap');
+      text { font-family: 'Noto Sans SC', 'PingFang SC', sans-serif; }
+      .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+    </style>
+
+    <!-- Filters -->
+    <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glow-violet" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="glow-emerald" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="rgba(0,0,0,0.5)"/>
+    </filter>
+
+    <!-- Gradients -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#020c28"/>
+      <stop offset="50%" stop-color="#010818"/>
+      <stop offset="100%" stop-color="#020510"/>
+    </linearGradient>
+    <linearGradient id="title-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="complexity-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="40%" stop-color="#86efac"/>
+      <stop offset="70%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#f87171"/>
+    </linearGradient>
+    <linearGradient id="section-divider" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(56,189,248,0)"/>
+      <stop offset="50%" stop-color="rgba(56,189,248,0.4)"/>
+      <stop offset="100%" stop-color="rgba(56,189,248,0)"/>
+    </linearGradient>
+
+    <!-- Arrow markers -->
+    <marker id="arrow-v" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L0,10 L12,5 z" fill="rgba(167,139,250,0.9)"/>
+    </marker>
+    <marker id="arrow-e" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L0,10 L12,5 z" fill="rgba(52,211,153,0.9)"/>
+    </marker>
+    <marker id="arrow-c" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L0,10 L12,5 z" fill="rgba(56,189,248,0.9)"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="3508" height="4961" fill="url(#bg-grad)"/>
+
+  <!-- Nebula effects -->
+  <ellipse cx="1754" cy="800" rx="1400" ry="600" fill="rgba(99,102,241,0.04)"/>
+  <ellipse cx="800" cy="2400" rx="800" ry="600" fill="rgba(56,189,248,0.03)"/>
+  <ellipse cx="2700" cy="3200" rx="900" ry="700" fill="rgba(52,211,153,0.03)"/>
+
+  <!-- Stars (decorative dots) -->
+  <circle cx="200" cy="150" r="2" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="3200" cy="280" r="1.5" fill="rgba(255,255,255,0.4)"/>
+  <circle cx="450" cy="600" r="1" fill="rgba(255,255,255,0.3)"/>
+  <circle cx="3000" cy="900" r="2" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="3300" cy="1600" r="1.5" fill="rgba(255,255,255,0.4)"/>
+  <circle cx="100" cy="2000" r="1" fill="rgba(255,255,255,0.3)"/>
+  <circle cx="3400" cy="2800" r="2" fill="rgba(255,255,255,0.5)"/>
+  <circle cx="200" cy="3500" r="1.5" fill="rgba(255,255,255,0.4)"/>
+  <circle cx="3100" cy="4200" r="1" fill="rgba(255,255,255,0.3)"/>
+  <circle cx="600" cy="4700" r="2" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- ═══════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════ -->
+  <!-- Chapter badge -->
+  <rect x="154" y="80" width="320" height="52" rx="26" fill="rgba(56,189,248,0.1)" stroke="rgba(56,189,248,0.35)" stroke-width="1.5"/>
+  <text x="314" y="113" text-anchor="middle" class="mono" font-size="22" font-weight="700" fill="#38bdf8" letter-spacing="3">CH 02 · REACT</text>
+
+  <!-- Main title -->
+  <text x="154" y="240" font-size="120" font-weight="900" fill="url(#title-grad)">ReAct 循环</text>
+  <text x="154" y="360" font-size="72" font-weight="700" fill="rgba(240,246,255,0.85)">× Anthropic 五大工作流模式</text>
+
+  <!-- Subtitle -->
+  <text x="154" y="440" font-size="38" fill="rgba(148,163,184,0.7)" letter-spacing="2">Thought → Action → Observation · Building Effective Agents · Tool Use Protocol</text>
+
+  <!-- Divider line -->
+  <line x1="154" y1="490" x2="3354" y2="490" stroke="url(#section-divider)" stroke-width="1.5"/>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION 1: REACT STATE MACHINE (Left side)
+  ═══════════════════════════════════════════ -->
+  <text x="154" y="580" font-size="52" font-weight="700" fill="#38bdf8" letter-spacing="1">① ReAct 状态机</text>
+  <text x="154" y="630" class="mono" font-size="26" fill="rgba(148,163,184,0.5)" letter-spacing="2">Re(asoning) + Act(ing) · Yao et al., 2022 · arxiv:2210.03629</text>
+
+  <!-- State machine diagram centered in left column -->
+  <!-- Background card -->
+  <rect x="154" y="660" width="1540" height="1200" rx="24" fill="rgba(6,13,31,0.7)" stroke="rgba(56,189,248,0.15)" stroke-width="1.5"/>
+
+  <!-- Center of state machine: 154+770=924, 660+600=1260 -->
+  <!-- Orbit circle -->
+  <circle cx="924" cy="1260" r="380" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="2"/>
+
+  <!-- THOUGHT node: top, 924, 924 -->
+  <rect x="774" y="880" width="300" height="100" rx="50"
+    fill="rgba(167,139,250,0.12)" stroke="rgba(167,139,250,0.8)" stroke-width="2.5"
+    filter="url(#glow-violet)"/>
+  <text x="924" y="942" text-anchor="middle" class="mono" font-size="32" font-weight="700" fill="#a78bfa" letter-spacing="4">THOUGHT</text>
+
+  <!-- ACTION node: bottom-right -->
+  <rect x="1174" y="1470" width="280" height="100" rx="50"
+    fill="rgba(52,211,153,0.12)" stroke="rgba(52,211,153,0.8)" stroke-width="2.5"
+    filter="url(#glow-emerald)"/>
+  <text x="1314" y="1532" text-anchor="middle" class="mono" font-size="32" font-weight="700" fill="#34d399" letter-spacing="4">ACTION</text>
+
+  <!-- OBSERVATION node: bottom-left -->
+  <rect x="374" y="1470" width="360" height="100" rx="50"
+    fill="rgba(56,189,248,0.12)" stroke="rgba(56,189,248,0.8)" stroke-width="2.5"
+    filter="url(#glow-cyan)"/>
+  <text x="554" y="1532" text-anchor="middle" class="mono" font-size="28" font-weight="700" fill="#38bdf8" letter-spacing="2">OBSERVATION</text>
+
+  <!-- Arrows -->
+  <!-- Thought → Action -->
+  <path d="M 1060 960 C 1250 1000 1320 1200 1300 1458" fill="none"
+    stroke="rgba(167,139,250,0.6)" stroke-width="3" stroke-dasharray="12 6"
+    marker-end="url(#arrow-v)"/>
+  <text x="1310" y="1180" class="mono" font-size="26" fill="rgba(167,139,250,0.7)" text-anchor="middle">工具调用</text>
+  <text x="1310" y="1210" class="mono" font-size="22" fill="rgba(167,139,250,0.5)" text-anchor="middle">type:"tool_use"</text>
+
+  <!-- Action → Observation -->
+  <path d="M 1180 1540 C 1050 1620 720 1620 745 1582" fill="none"
+    stroke="rgba(52,211,153,0.6)" stroke-width="3" stroke-dasharray="12 6"
+    marker-end="url(#arrow-e)"/>
+  <text x="960" y="1640" class="mono" font-size="26" fill="rgba(52,211,153,0.7)" text-anchor="middle">工具结果</text>
+  <text x="960" y="1668" class="mono" font-size="22" fill="rgba(52,211,153,0.5)" text-anchor="middle">真实执行输出</text>
+
+  <!-- Observation → Thought -->
+  <path d="M 524 1458 C 440 1300 500 1080 780 970" fill="none"
+    stroke="rgba(56,189,248,0.6)" stroke-width="3" stroke-dasharray="12 6"
+    marker-end="url(#arrow-c)"/>
+  <text x="440" y="1200" class="mono" font-size="26" fill="rgba(56,189,248,0.7)" text-anchor="middle">写入</text>
+  <text x="440" y="1228" class="mono" font-size="22" fill="rgba(56,189,248,0.5)" text-anchor="middle">messages[]</text>
+
+  <!-- Exit arrows -->
+  <path d="M 1070 900 L 1380 800" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="8 5" marker-end="url(#arrow-c)"/>
+  <text x="1440" y="798" class="mono" font-size="24" fill="#475569">任务完成</text>
+  <text x="1440" y="826" class="mono" font-size="24" fill="#475569">/ max_iter</text>
+
+  <!-- Node input/output labels -->
+  <text x="924" y="820" text-anchor="middle" class="mono" font-size="22" fill="rgba(167,139,250,0.5)">输入: messages + tools定义</text>
+  <text x="924" y="848" text-anchor="middle" class="mono" font-size="22" fill="rgba(167,139,250,0.5)">输出: 推理文本 + tool_use block</text>
+
+  <text x="1314" y="1440" text-anchor="middle" class="mono" font-size="22" fill="rgba(52,211,153,0.5)">输入: 工具名 + 参数</text>
+  <text x="1314" y="1416" text-anchor="middle" class="mono" font-size="22" fill="rgba(52,211,153,0.5)">输出: 真实执行结果</text>
+
+  <text x="554" y="1440" text-anchor="middle" class="mono" font-size="22" fill="rgba(56,189,248,0.5)">输入: 工具执行结果</text>
+  <text x="554" y="1416" text-anchor="middle" class="mono" font-size="22" fill="rgba(56,189,248,0.5)">输出: 追加 messages 账本</text>
+
+  <!-- Bottom note in card -->
+  <text x="924" y="1810" text-anchor="middle" font-size="30" fill="rgba(148,163,184,0.5)" font-style="italic">
+    循环直到 stop_reason="end_turn" 且无工具调用
+  </text>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION 2: ANTHROPIC 5 PATTERNS (Right side)
+  ═══════════════════════════════════════════ -->
+  <text x="1814" y="580" font-size="52" font-weight="700" fill="#a78bfa" letter-spacing="1">② Anthropic 五大工作流模式</text>
+  <text x="1814" y="630" class="mono" font-size="26" fill="rgba(148,163,184,0.5)" letter-spacing="2">Building Effective Agents · 2024-12-19 · anthropic.com/news/building-effective-agents</text>
+
+  <!-- Pattern cards -->
+  <!-- P1: Augmented LLM -->
+  <rect x="1814" y="660" width="1540" height="160" rx="16" fill="rgba(6,13,31,0.7)" stroke="rgba(148,163,184,0.15)" stroke-width="1.5"/>
+  <text x="1874" y="725" class="mono" font-size="20" fill="rgba(148,163,184,0.4)" letter-spacing="2">01</text>
+  <text x="1940" y="725" class="mono" font-size="34" font-weight="700" fill="#94a3b8">Augmented LLM</text>
+  <text x="1940" y="768" font-size="28" fill="#64748b">LLM + 检索 / 工具 / 记忆的基础能力增强</text>
+  <text x="3294" y="768" text-anchor="end" font-size="26" fill="#334155" font-style="italic">单步问答增强</text>
+
+  <!-- P2: Prompt Chaining -->
+  <rect x="1814" y="840" width="1540" height="160" rx="16" fill="rgba(6,13,31,0.7)" stroke="rgba(125,211,252,0.2)" stroke-width="1.5"/>
+  <text x="1874" y="905" class="mono" font-size="20" fill="rgba(125,211,252,0.4)" letter-spacing="2">02</text>
+  <text x="1940" y="905" class="mono" font-size="34" font-weight="700" fill="#7dd3fc">Prompt Chaining</text>
+  <text x="1940" y="948" font-size="28" fill="#64748b">固定步骤序列，每步输出是下步输入</text>
+  <text x="3294" y="948" text-anchor="end" font-size="26" fill="#334155" font-style="italic">采集→摘要→发送</text>
+
+  <!-- P3: Routing -->
+  <rect x="1814" y="1020" width="1540" height="160" rx="16" fill="rgba(6,13,31,0.7)" stroke="rgba(134,239,172,0.2)" stroke-width="1.5"/>
+  <text x="1874" y="1085" class="mono" font-size="20" fill="rgba(134,239,172,0.4)" letter-spacing="2">03</text>
+  <text x="1940" y="1085" class="mono" font-size="34" font-weight="700" fill="#86efac">Routing</text>
+  <text x="1940" y="1128" font-size="28" fill="#64748b">LLM 分类器根据输入选择不同处理路径</text>
+  <text x="3294" y="1128" text-anchor="end" font-size="26" fill="#334155" font-style="italic">客服分流</text>
+
+  <!-- P4: Parallelization -->
+  <rect x="1814" y="1200" width="1540" height="160" rx="16" fill="rgba(6,13,31,0.7)" stroke="rgba(253,230,138,0.2)" stroke-width="1.5"/>
+  <text x="1874" y="1265" class="mono" font-size="20" fill="rgba(253,230,138,0.4)" letter-spacing="2">04</text>
+  <text x="1940" y="1265" class="mono" font-size="34" font-weight="700" fill="#fde68a">Parallelization</text>
+  <text x="1940" y="1308" font-size="28" fill="#64748b">子任务并行执行，聚合多路结果</text>
+  <text x="3294" y="1308" text-anchor="end" font-size="26" fill="#334155" font-style="italic">多角度分析</text>
+
+  <!-- P5: Orchestrator-Workers (highlighted - has ReAct) -->
+  <rect x="1814" y="1380" width="1540" height="200" rx="16" fill="rgba(196,181,253,0.08)" stroke="rgba(196,181,253,0.4)" stroke-width="2.5"/>
+  <rect x="1814" y="1380" width="6" height="200" rx="3" fill="rgba(196,181,253,0.8)"/>
+  <text x="1874" y="1454" class="mono" font-size="20" fill="rgba(196,181,253,0.5)" letter-spacing="2">05</text>
+  <text x="1940" y="1454" class="mono" font-size="36" font-weight="700" fill="#c4b5fd">Orchestrator-Workers</text>
+  <text x="1940" y="1500" font-size="28" fill="#94a3b8">主控 LLM 自主拆解任务，子 agent 执行，结果回传</text>
+  <text x="1940" y="1540" font-size="26" fill="rgba(196,181,253,0.5)" font-style="italic">← ReAct 在这里：每个 worker 的执行本身就是 ReAct 循环</text>
+
+  <!-- P6: Evaluator-Optimizer -->
+  <rect x="1814" y="1600" width="1540" height="160" rx="16" fill="rgba(6,13,31,0.7)" stroke="rgba(248,113,113,0.2)" stroke-width="1.5"/>
+  <text x="1874" y="1665" class="mono" font-size="20" fill="rgba(248,113,113,0.4)" letter-spacing="2">06</text>
+  <text x="1940" y="1665" class="mono" font-size="34" font-weight="700" fill="#f87171">Evaluator-Optimizer</text>
+  <text x="1940" y="1708" font-size="28" fill="#64748b">一个 LLM 生成，另一个批评，循环迭代到质量达标</text>
+  <text x="3294" y="1708" text-anchor="end" font-size="26" fill="#334155" font-style="italic">代码审查 / 翻译润色</text>
+
+  <!-- Complexity bar -->
+  <rect x="1814" y="1780" width="1540" height="10" rx="5" fill="url(#complexity-bar)"/>
+  <text x="1814" y="1815" class="mono" font-size="22" fill="#334155">← 简单 · 确定性高 · 成本低</text>
+  <text x="3354" y="1815" class="mono" font-size="22" fill="#334155" text-anchor="end">复杂 · 自主性高 · 成本高 →</text>
+
+  <!-- Iron rule card -->
+  <rect x="1814" y="1840" width="1540" height="180" rx="16" fill="rgba(167,139,250,0.06)" stroke="rgba(167,139,250,0.25)" stroke-width="1.5"/>
+  <text x="1870" y="1898" class="mono" font-size="22" font-weight="700" fill="#a78bfa" letter-spacing="2">⚡ ANTHROPIC 铁律</text>
+  <text x="1870" y="1940" font-size="30" fill="rgba(240,246,255,0.85)" font-style="italic">"Start simple. When in doubt, don't use agents."</text>
+  <text x="1870" y="1984" font-size="26" fill="#64748b">80% 场景用 Prompt Chaining 就够了，只在有明确证据时才加复杂度</text>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION DIVIDER
+  ═══════════════════════════════════════════ -->
+  <line x1="154" y1="2060" x2="3354" y2="2060" stroke="url(#section-divider)" stroke-width="1.5"/>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION 3: TOOL USE PROTOCOL COMPARISON
+  ═══════════════════════════════════════════ -->
+  <text x="154" y="2150" font-size="52" font-weight="700" fill="#34d399" letter-spacing="1">③ Tool Use 协议对比矩阵</text>
+  <text x="154" y="2200" class="mono" font-size="26" fill="rgba(148,163,184,0.5)" letter-spacing="2">Anthropic vs OpenAI — 跨厂商 Agent 必知的格式差异</text>
+
+  <!-- Table header row -->
+  <rect x="154" y="2230" width="3200" height="80" rx="12" fill="rgba(10,20,50,0.8)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="400" y="2279" class="mono" font-size="26" font-weight="700" fill="#475569" letter-spacing="2">维度</text>
+  <text x="1100" y="2279" class="mono" font-size="28" font-weight="700" fill="#fbbf24" letter-spacing="2">ANTHROPIC</text>
+  <text x="2350" y="2279" class="mono" font-size="28" font-weight="700" fill="#34d399" letter-spacing="2">OPENAI</text>
+
+  <!-- Row 1: Tool definition -->
+  <rect x="154" y="2318" width="3200" height="90" rx="0" fill="rgba(6,13,31,0.5)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="400" y="2372" class="mono" font-size="24" fill="#475569">工具定义字段</text>
+  <text x="1100" y="2372" class="mono" font-size="28" font-weight="600" fill="#fbbf24">input_schema</text>
+  <text x="2350" y="2372" class="mono" font-size="28" font-weight="600" fill="#34d399">function.parameters</text>
+
+  <!-- Row 2: Call type -->
+  <rect x="154" y="2408" width="3200" height="90" rx="0" fill="rgba(10,20,50,0.4)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="400" y="2462" class="mono" font-size="24" fill="#475569">工具调用类型</text>
+  <text x="1100" y="2462" class="mono" font-size="28" font-weight="600" fill="#fbbf24">type: "tool_use"</text>
+  <text x="2350" y="2462" class="mono" font-size="28" font-weight="600" fill="#34d399">type: "function"</text>
+
+  <!-- Row 3: PARAMS (highlighted) -->
+  <rect x="154" y="2498" width="3200" height="100" rx="0" fill="rgba(248,113,113,0.06)" stroke="rgba(248,113,113,0.2)" stroke-width="1"/>
+  <text x="400" y="2558" class="mono" font-size="24" fill="#f87171">⚠ 参数格式</text>
+  <text x="1100" y="2550" class="mono" font-size="28" font-weight="600" fill="#fbbf24">input: { }  对象</text>
+  <text x="1100" y="2582" class="mono" font-size="22" fill="rgba(251,191,36,0.5)">直接使用，无需 parse</text>
+  <text x="2350" y="2550" class="mono" font-size="28" font-weight="600" fill="#f87171">arguments: "{ }"  字符串</text>
+  <text x="2350" y="2582" class="mono" font-size="22" fill="rgba(248,113,113,0.6)">必须 JSON.parse() 后才能用</text>
+
+  <!-- Row 4: Result role -->
+  <rect x="154" y="2598" width="3200" height="90" rx="0" fill="rgba(6,13,31,0.5)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="400" y="2652" class="mono" font-size="24" fill="#475569">工具结果角色</text>
+  <text x="1100" y="2652" class="mono" font-size="28" font-weight="600" fill="#fbbf24">role: "user" + type: "tool_result"</text>
+  <text x="2350" y="2652" class="mono" font-size="28" font-weight="600" fill="#34d399">role: "tool"</text>
+
+  <!-- Row 5: ID field -->
+  <rect x="154" y="2688" width="3200" height="90" rx="0" fill="rgba(10,20,50,0.4)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="400" y="2742" class="mono" font-size="24" fill="#475569">ID 字段名</text>
+  <text x="1100" y="2742" class="mono" font-size="28" font-weight="600" fill="#fbbf24">tool_use_id</text>
+  <text x="2350" y="2742" class="mono" font-size="28" font-weight="600" fill="#34d399">tool_call_id</text>
+
+  <!-- Row 6: Assistant message -->
+  <rect x="154" y="2778" width="3200" height="90" rx="12 12 0 0" fill="rgba(6,13,31,0.5)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <text x="400" y="2832" class="mono" font-size="24" fill="#475569">助手消息结构</text>
+  <text x="1100" y="2832" class="mono" font-size="28" font-weight="600" fill="#fbbf24">content: [array of blocks]</text>
+  <text x="2350" y="2832" class="mono" font-size="28" font-weight="600" fill="#34d399">content: null + tool_calls: []</text>
+
+  <!-- Key gotcha callout -->
+  <rect x="154" y="2890" width="3200" height="100" rx="16" fill="rgba(248,113,113,0.06)" stroke="rgba(248,113,113,0.3)" stroke-width="2"/>
+  <text x="320" y="2950" class="mono" font-size="28" font-weight="700" fill="#f87171">💡 最易踩坑：</text>
+  <text x="740" y="2950" font-size="30" fill="rgba(240,246,255,0.8)">OpenAI arguments 是字符串，需 JSON.parse()；Anthropic input 直接是对象。Provider 抽象层负责抹平差异。</text>
+  <text x="320" y="2978" class="mono" font-size="24" fill="#475569">参考：nano-claw/src/providers/base.ts:204-206</text>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION DIVIDER
+  ═══════════════════════════════════════════ -->
+  <line x1="154" y1="3040" x2="3354" y2="3040" stroke="url(#section-divider)" stroke-width="1.5"/>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION 4: REAL CASES
+  ═══════════════════════════════════════════ -->
+  <text x="154" y="3130" font-size="52" font-weight="700" fill="#fbbf24" letter-spacing="1">④ 真实案例 · 生产实战</text>
+
+  <!-- Case 2.1 -->
+  <rect x="154" y="3160" width="1640" height="380" rx="20" fill="rgba(6,13,31,0.8)" stroke="rgba(248,113,113,0.3)" stroke-width="2"/>
+  <rect x="154" y="3160" width="8" height="380" rx="4" fill="rgba(248,113,113,0.7)"/>
+  <text x="220" y="3222" class="mono" font-size="22" font-weight="700" fill="rgba(248,113,113,0.8)" letter-spacing="2">[案例 2.1] hermesbot R7 风控被空字符串绕过</text>
+  <text x="220" y="3264" font-size="28" fill="#f0f6ff" font-weight="700">Observation 是真实反馈的最强诠释</text>
+  <text x="220" y="3308" font-size="26" fill="#64748b">crypto 交易 bot 风控写在 prompt 里 → AI 生成 decision.symbol="" →</text>
+  <text x="220" y="3342" font-size="26" fill="#64748b">Python 空字符串是 falsy → 风控跳过 → 直接下单</text>
+  <text x="220" y="3396" class="mono" font-size="24" font-weight="600" fill="#f87171">修复 (commit b3b421c)：风控写进工具代码层，默认"拦截"不是"放行"</text>
+  <text x="220" y="3440" class="mono" font-size="24" fill="rgba(251,191,36,0.7)">教训：关键约束放在 Observation 的来源（工具代码），AI 可以忽略 prompt 规则</text>
+  <text x="220" y="3490" class="mono" font-size="22" fill="#334155">source: ~/.openclaw/workspace/memory/procedural/lessons-learned.md</text>
+
+  <!-- Case 2.2 -->
+  <rect x="1854" y="3160" width="1500" height="380" rx="20" fill="rgba(6,13,31,0.8)" stroke="rgba(167,139,250,0.3)" stroke-width="2"/>
+  <rect x="1854" y="3160" width="8" height="380" rx="4" fill="rgba(167,139,250,0.7)"/>
+  <text x="1920" y="3222" class="mono" font-size="22" font-weight="700" fill="rgba(167,139,250,0.8)" letter-spacing="2">[案例 2.2] 熔断器永久死锁 bug</text>
+  <text x="1920" y="3264" font-size="28" fill="#f0f6ff" font-weight="700">状态机完整性：设计所有出口</text>
+  <text x="1920" y="3308" font-size="26" fill="#64748b">熔断器设计了"触发→冷却"两步，遗漏第三步"冷却→自动解除"</text>
+  <text x="1920" y="3342" font-size="26" fill="#64748b">consecutive_losses 冷却后没清零 → bot 永久停止交易</text>
+  <text x="1920" y="3396" class="mono" font-size="24" font-weight="600" fill="#a78bfa">修复：触发→冷却→自动解除，三步缺一不可</text>
+  <text x="1920" y="3440" class="mono" font-size="24" fill="rgba(251,191,36,0.7)">教训：while 循环必须考虑所有出口和恢复路径</text>
+  <text x="1920" y="3490" class="mono" font-size="22" fill="#334155">source: ~/.openclaw/workspace/memory/procedural/lessons-learned.md</text>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION DIVIDER
+  ═══════════════════════════════════════════ -->
+  <line x1="154" y1="3590" x2="3354" y2="3590" stroke="url(#section-divider)" stroke-width="1.5"/>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION 5: CODE REFERENCE
+  ═══════════════════════════════════════════ -->
+  <text x="154" y="3680" font-size="52" font-weight="700" fill="#38bdf8" letter-spacing="1">⑤ 生产代码索引</text>
+
+  <!-- Code references grid -->
+  <!-- Card 1: query.ts -->
+  <rect x="154" y="3710" width="740" height="260" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(56,189,248,0.2)" stroke-width="1.5"/>
+  <text x="214" y="3768" class="mono" font-size="22" font-weight="700" fill="#38bdf8">claude-code-source/source/src/query.ts</text>
+  <text x="214" y="3808" class="mono" font-size="26" fill="#64748b">queryLoop() · while(true) 循环</text>
+  <text x="214" y="3848" class="mono" font-size="24" fill="#94a3b8">callModel() → streamingToolExecutor</text>
+  <text x="214" y="3888" class="mono" font-size="24" fill="#94a3b8">getRemainingResults() → yield</text>
+  <text x="214" y="3944" class="mono" font-size="22" fill="rgba(56,189,248,0.5)">line 307: while(true) 主循环</text>
+  <text x="214" y="3968" class="mono" font-size="22" fill="rgba(56,189,248,0.5)">line 241: queryLoop() 函数定义</text>
+
+  <!-- Card 2: loop.ts -->
+  <rect x="934" y="3710" width="740" height="260" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(167,139,250,0.2)" stroke-width="1.5"/>
+  <text x="994" y="3768" class="mono" font-size="22" font-weight="700" fill="#a78bfa">nano-claw/src/agent/loop.ts</text>
+  <text x="994" y="3808" class="mono" font-size="26" fill="#64748b">AgentLoop · 最小 ReAct 实现</text>
+  <text x="994" y="3848" class="mono" font-size="24" fill="#94a3b8">processMessage() · 247 行</text>
+  <text x="994" y="3888" class="mono" font-size="24" fill="#94a3b8">while(continueLoop &amp;&amp; iteration &lt; max)</text>
+  <text x="994" y="3944" class="mono" font-size="22" fill="rgba(167,139,250,0.5)">line 91: while 主循环</text>
+  <text x="994" y="3968" class="mono" font-size="22" fill="rgba(167,139,250,0.5)">适合教学，清晰骨架</text>
+
+  <!-- Card 3: base.ts -->
+  <rect x="1714" y="3710" width="740" height="260" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(52,211,153,0.2)" stroke-width="1.5"/>
+  <text x="1774" y="3768" class="mono" font-size="22" font-weight="700" fill="#34d399">nano-claw/src/providers/base.ts</text>
+  <text x="1774" y="3808" class="mono" font-size="26" fill="#64748b">Provider 抽象层</text>
+  <text x="1774" y="3848" class="mono" font-size="24" fill="#94a3b8">Anthropic → OpenAI 格式转换</text>
+  <text x="1774" y="3888" class="mono" font-size="24" fill="#94a3b8">tool_use → tool_calls 映射</text>
+  <text x="1774" y="3944" class="mono" font-size="22" fill="rgba(52,211,153,0.5)">line 204-206: 格式转换核心</text>
+  <text x="1774" y="3968" class="mono" font-size="22" fill="rgba(52,211,153,0.5)">297 行，教学首选</text>
+
+  <!-- Card 4: Anthropic reference -->
+  <rect x="2494" y="3710" width="860" height="260" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(251,191,36,0.2)" stroke-width="1.5"/>
+  <text x="2554" y="3768" class="mono" font-size="22" font-weight="700" fill="#fbbf24">anthropic.com/news/building-effective-agents</text>
+  <text x="2554" y="3808" class="mono" font-size="26" fill="#64748b">Building Effective Agents</text>
+  <text x="2554" y="3848" class="mono" font-size="24" fill="#94a3b8">五大工作流模式 · 2024-12-19</text>
+  <text x="2554" y="3888" class="mono" font-size="24" fill="#94a3b8">Anthropic 官方架构指南</text>
+  <text x="2554" y="3944" class="mono" font-size="22" fill="rgba(251,191,36,0.5)">Start simple 铁律</text>
+  <text x="2554" y="3968" class="mono" font-size="22" fill="rgba(251,191,36,0.5)">ReAct 论文: arxiv.org/abs/2210.03629</text>
+
+
+  <!-- ═══════════════════════════════════════════
+       SECTION 6: KEY TAKEAWAYS
+  ═══════════════════════════════════════════ -->
+  <line x1="154" y1="4030" x2="3354" y2="4030" stroke="url(#section-divider)" stroke-width="1.5"/>
+
+  <text x="154" y="4120" font-size="52" font-weight="700" fill="#f0f6ff" letter-spacing="1">⑥ 三条金句</text>
+
+  <!-- Takeaway 1 -->
+  <rect x="154" y="4150" width="1020" height="160" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(56,189,248,0.15)" stroke-width="1.5"/>
+  <text x="214" y="4208" class="mono" font-size="60" font-weight="700" fill="rgba(56,189,248,0.15)">01</text>
+  <text x="340" y="4208" font-size="36" font-weight="700" fill="#f0f6ff">ReAct = 每步都基于真实 Observation</text>
+  <text x="340" y="4252" font-size="28" fill="#64748b">推理和行动交织，不是先全想清楚再执行</text>
+  <text x="340" y="4292" font-size="26" fill="#475569">Observation 是真实代码执行结果，不是 LLM 猜测</text>
+
+  <!-- Takeaway 2 -->
+  <rect x="1224" y="4150" width="1060" height="160" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(248,113,113,0.15)" stroke-width="1.5"/>
+  <text x="1284" y="4208" class="mono" font-size="60" font-weight="700" fill="rgba(248,113,113,0.15)">02</text>
+  <text x="1410" y="4208" font-size="36" font-weight="700" fill="#f0f6ff">关键约束放工具代码层</text>
+  <text x="1410" y="4252" font-size="28" fill="#64748b">AI 会忽略 Prompt 里的规则</text>
+  <text x="1410" y="4292" font-size="26" fill="#475569">代码级检查无法被绕过（hermesbot 教训）</text>
+
+  <!-- Takeaway 3 -->
+  <rect x="2334" y="4150" width="1020" height="160" rx="16" fill="rgba(6,13,31,0.8)" stroke="rgba(52,211,153,0.15)" stroke-width="1.5"/>
+  <text x="2394" y="4208" class="mono" font-size="60" font-weight="700" fill="rgba(52,211,153,0.15)">03</text>
+  <text x="2520" y="4208" font-size="36" font-weight="700" fill="#f0f6ff">Start Simple</text>
+  <text x="2520" y="4252" font-size="28" fill="#64748b">80% 场景 Prompt Chaining 就够了</text>
+  <text x="2520" y="4292" font-size="26" fill="#475569">不要一上来就用 Orchestrator-Workers</text>
+
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  <line x1="154" y1="4380" x2="3354" y2="4380" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+  <text x="154" y="4450" font-size="28" fill="#334155">《从零构建你的 AI Agent：Claude Code &amp; OpenClaw 深度实战》</text>
+  <text x="154" y="4490" class="mono" font-size="24" fill="#334155">Ch 02 · ReAct 循环 × Anthropic 五大工作流模式 · 印刷级信息图 A3</text>
+  <text x="3354" y="4490" class="mono" font-size="24" fill="#334155" text-anchor="end">2026-05-05 · v1.0</text>
+</svg>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #050810; font-family: "SF Pro Display", -apple-system, "PingFang SC", sans-serif; color: #fff; }
+.bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 80% 20%, #001a33 0%, #050810 50%); }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(0,100,200,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,100,200,0.03) 1px, transparent 1px); background-size: 80px 80px; }
+
+.layout { position: absolute; inset: 0; display: flex; padding: 80px 160px 60px; gap: 80px; }
+.left { flex: 1.1; display: flex; flex-direction: column; }
+.right { flex: 0.9; display: flex; flex-direction: column; gap: 24px; justify-content: center; }
+
+h2 { font-size: 52px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 12px; }
+.sub { font-size: 19px; color: rgba(255,255,255,0.4); margin-bottom: 44px; }
+
+/* Code block */
+.code-block {
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(0,200,255,0.15);
+  border-radius: 12px; padding: 32px 36px; flex: 1;
+  overflow: hidden; position: relative;
+}
+.code-block::before {
+  content: 'SSE Stream';
+  position: absolute; top: 12px; right: 16px;
+  font-size: 11px; color: rgba(0,200,255,0.4); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.code-block pre { font-family: "SF Mono", "Fira Code", monospace; font-size: 18px; line-height: 1.7; }
+.kw  { color: #c792ea; }
+.str { color: #c3e88d; }
+.cmt { color: rgba(255,255,255,0.25); }
+.ev  { color: #82aaff; }
+.key { color: #f78c6c; }
+.val { color: #eeffff; }
+.hl  { background: rgba(0,200,255,0.08); border-left: 2px solid #00c8ff; margin-left: -36px; padding-left: 34px; display: block; }
+
+/* Rule cards */
+.rule-card {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; padding: 24px 28px;
+}
+.rule-card .rnum { font-size: 11px; color: rgba(0,200,255,0.6); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+.rule-card .rtitle { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.rule-card .rdesc { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+.rule-card code { font-family: "SF Mono", monospace; color: #c3e88d; font-size: 14px; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; }
+
+/* vs badge */
+.vs-row { display: flex; gap: 16px; align-items: stretch; }
+.vs-card { flex: 1; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px 24px; border: 1px solid rgba(255,255,255,0.07); }
+.vs-card h4 { font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 10px; }
+.vs-card ul { list-style: none; }
+.vs-card li { font-size: 14px; color: rgba(255,255,255,0.4); padding: 4px 0; padding-left: 18px; position: relative; }
+.vs-card li::before { content: '·'; position: absolute; left: 6px; color: rgba(255,255,255,0.2); }
+.vs-card.highlight { border-color: rgba(0,200,255,0.25); background: rgba(0,200,255,0.05); }
+.vs-card.highlight h4 { color: #00c8ff; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="layout">
+  <div class="left">
+    <h2>SSE 协议解析</h2>
+    <p class="sub">Server-Sent Events — LLM 流式输出的通用选择</p>
+    <div class="code-block">
+      <pre><span class="cmt"># HTTP 响应头</span>
+<span class="key">Content-Type</span><span class="val">: text/event-stream</span>
+<span class="key">Cache-Control</span><span class="val">: no-cache</span>
+
+<span class="cmt"># 每条消息：event + data + 空行</span>
+<span class="ev">event</span><span class="val">: content_block_delta</span>
+<span class="hl"><span class="ev">data</span><span class="val">: {"type":"content_block_delta","delta":{"type":"text_delta","text":"你好"}}</span></span>
+
+<span class="ev">event</span><span class="val">: content_block_delta</span>
+<span class="ev">data</span><span class="val">: {"type":"content_block_delta","delta":{"type":"text_delta","text":"世界"}}</span>
+
+<span class="cmt"># 流结束</span>
+<span class="ev">event</span><span class="val">: message_stop</span>
+<span class="ev">data</span><span class="val">: {"type":"message_stop"}</span>
+
+<span class="cmt"># OpenAI 约定的结束标志</span>
+<span class="ev">data</span><span class="val">: [DONE]</span></pre>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="rule-card">
+      <div class="rnum">规则 1</div>
+      <div class="rtitle">空行分隔消息</div>
+      <div class="rdesc">每条 SSE 消息由一行或多行 <code>key: value</code> 组成，以<strong>空行</strong>结束。客户端逐行读取，遇空行触发事件处理。</div>
+    </div>
+    <div class="rule-card">
+      <div class="rnum">规则 2</div>
+      <div class="rtitle">data: 字段是 JSON</div>
+      <div class="rdesc">LLM API 的 data 字段是 JSON 字符串，需要 <code>json.loads()</code> 解析。<code>[DONE]</code> 是纯文本标志（OpenAI 约定），不是 JSON。</div>
+    </div>
+
+    <div class="vs-row">
+      <div class="vs-card highlight">
+        <h4>SSE（选择原因）</h4>
+        <ul>
+          <li>纯 HTTP，代理友好</li>
+          <li>单向推送，足够用</li>
+          <li>断线自动重连</li>
+          <li>无需特殊库</li>
+        </ul>
+      </div>
+      <div class="vs-card">
+        <h4>WebSocket（为何不用）</h4>
+        <ul>
+          <li>双向全双工，过于复杂</li>
+          <li>需要握手建立连接</li>
+          <li>代理服务器有兼容问题</li>
+          <li>LLM 生成是单向的</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

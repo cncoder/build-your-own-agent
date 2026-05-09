@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 20 · Browser Agent 实时演示</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #060910;
+  --panel: #0c1120;
+  --border: rgba(255,255,255,0.06);
+  --accent-blue: #00b4ff;
+  --accent-green: #00ff88;
+  --accent-orange: #ff9240;
+  --accent-purple: #b464ff;
+  --accent-red: #ff4060;
+  --text: #e0e8ff;
+  --text-dim: rgba(224,232,255,0.45);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* 粒子背景 */
+#particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 主布局 */
+.shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 52px 1fr 120px;
+  height: 100vh;
+  padding: 12px;
+  gap: 10px;
+}
+
+/* 顶部状态栏 */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.topbar-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent-blue);
+}
+
+.topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* 主内容区：左右分栏 */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* 浏览器视窗（左栏） */
+.browser-pane {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+.pane-label {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+
+.browser-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 模拟浏览器页面 */
+.mock-page {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: auto;
+}
+.mock-page.active { display: block; }
+
+.mock-page-inner {
+  padding: 20px;
+  font-family: -apple-system, sans-serif;
+  font-size: 13px;
+  color: #1a1a2e;
+}
+
+.mock-weibo-header {
+  background: linear-gradient(135deg, #e6162d, #ff6b35);
+  color: white;
+  padding: 12px 16px;
+  margin: -20px -20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.mock-notification-bell {
+  position: relative;
+  cursor: pointer;
+}
+
+.mock-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: #ff4444;
+  color: white;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-family: monospace;
+}
+
+.mock-feed-item {
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.mock-user { font-weight: bold; color: #e6162d; font-size: 13px; }
+.mock-content { margin-top: 6px; line-height: 1.5; color: #333; }
+.mock-time { margin-top: 4px; font-size: 11px; color: #999; }
+
+/* 高亮框（agent 聚焦的 DOM 元素）*/
+.dom-highlight {
+  position: absolute;
+  border: 2px solid var(--accent-orange);
+  border-radius: 3px;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(255, 146, 64, 0.4);
+  opacity: 0;
+}
+
+.dom-highlight.visible {
+  opacity: 1;
+}
+
+/* Agent Reasoning 面板（右栏）*/
+.reasoning-pane {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.reasoning-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+/* 步骤条目 */
+.step-item {
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.4s ease;
+}
+
+.step-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.step-num {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-num.thinking { background: rgba(180,100,255,0.2); border: 1px solid var(--accent-purple); color: var(--accent-purple); }
+.step-num.acting { background: rgba(255,146,64,0.2); border: 1px solid var(--accent-orange); color: var(--accent-orange); }
+.step-num.observing { background: rgba(0,255,136,0.2); border: 1px solid var(--accent-green); color: var(--accent-green); }
+.step-num.done { background: rgba(0,180,255,0.2); border: 1px solid var(--accent-blue); color: var(--accent-blue); }
+
+.step-type { font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim); }
+.step-action { font-size: 11px; color: var(--text); flex: 1; }
+
+.step-detail {
+  margin-left: 28px;
+  background: rgba(255,255,255,0.03);
+  border-left: 2px solid rgba(255,255,255,0.08);
+  border-radius: 0 4px 4px 0;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.step-detail .key { color: var(--accent-blue); }
+.step-detail .val { color: var(--accent-green); }
+
+/* Memory 状态 */
+.memory-section {
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.memory-title {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.memory-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.memory-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  flex-shrink: 0;
+}
+
+/* 任务选择器（底部）*/
+.task-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.task-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.task-card:nth-child(1)::before { background: radial-gradient(ellipse at 50% 0%, rgba(0,180,255,0.1) 0%, transparent 70%); }
+.task-card:nth-child(2)::before { background: radial-gradient(ellipse at 50% 0%, rgba(180,100,255,0.1) 0%, transparent 70%); }
+.task-card:nth-child(3)::before { background: radial-gradient(ellipse at 50% 0%, rgba(0,255,136,0.1) 0%, transparent 70%); }
+
+.task-card:hover::before, .task-card.active::before { opacity: 1; }
+
+.task-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-1px); }
+.task-card.active:nth-child(1) { border-color: var(--accent-blue); }
+.task-card.active:nth-child(2) { border-color: var(--accent-purple); }
+.task-card.active:nth-child(3) { border-color: var(--accent-green); }
+
+.task-num {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+}
+
+.task-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.task-card:nth-child(1) .task-title { color: var(--accent-blue); }
+.task-card:nth-child(2) .task-title { color: var(--accent-purple); }
+.task-card:nth-child(3) .task-title { color: var(--accent-green); }
+
+/* 打字机光标 */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--accent-blue);
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* 进度条 */
+.progress-bar {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+/* 结果展示 */
+.result-panel {
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(0,255,136,0.05);
+  border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.result-panel.visible { opacity: 1; }
+.result-label { font-size: 9px; letter-spacing: 0.2em; color: var(--accent-green); margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div class="shell">
+  <!-- 顶部状态栏 -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">LENA · BROWSER AGENT · v2.0</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">CH 20 · 实战大结局 · DOM 感知 + 动作决策可视化</div>
+    </div>
+    <div style="display:flex;gap:20px;align-items:center">
+      <div class="topbar-status">
+        <div class="status-dot"></div>
+        <span>CDP 9222 就绪</span>
+      </div>
+      <div class="topbar-status" style="gap:6px">
+        <span style="color:rgba(255,255,255,0.2)">|</span>
+        <span id="step-counter">步骤: 0 / 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容：左右分栏 -->
+  <div class="main-grid">
+    <!-- 左栏：浏览器视窗 -->
+    <div class="browser-pane">
+      <div class="pane-header">
+        <span class="pane-label" style="color:var(--accent-blue)">浏览器视窗</span>
+        <span style="color:rgba(255,255,255,0.15)">|</span>
+        <span id="current-url">about:blank</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#ff5f57"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#ffbd2e"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background:#28c840"></div>
+        </div>
+      </div>
+
+      <div class="browser-content">
+        <!-- 空白初始页 -->
+        <div class="mock-page active" id="page-blank">
+          <div class="mock-page-inner" style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:13px">
+            选择下方任务开始演示
+          </div>
+        </div>
+
+        <!-- 微博页 -->
+        <div class="mock-page" id="page-weibo">
+          <div class="mock-page-inner">
+            <div class="mock-weibo-header">
+              <span>微博</span>
+              <span style="font-size:12px;opacity:0.8">weibo.com</span>
+              <div style="margin-left:auto;display:flex;gap:16px;align-items:center">
+                <div class="mock-notification-bell">
+                  🔔
+                  <span class="mock-badge" id="notif-badge">3</span>
+                </div>
+                <span style="font-size:13px">搜索</span>
+              </div>
+            </div>
+            <div id="weibo-feed">
+              <div class="mock-feed-item">
+                <div class="mock-user">@AI前沿周报</div>
+                <div class="mock-content">Claude 4.0 发布，多模态能力大幅提升，agent 编排效率提升 3x...</div>
+                <div class="mock-time">5分钟前</div>
+              </div>
+              <div class="mock-feed-item">
+                <div class="mock-user">@深圳科技圈</div>
+                <div class="mock-content">browser-use 新版本发布，支持 ChatBrowserUse 专用模型，速度提升 5 倍！</div>
+                <div class="mock-time">12分钟前</div>
+              </div>
+              <div class="mock-feed-item">
+                <div class="mock-user">@量化交易社区</div>
+                <div class="mock-content">A 股开盘，AI 概念股全线上涨，思必驰涨停...</div>
+                <div class="mock-time">23分钟前</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 表格页 -->
+        <div class="mock-page" id="page-table">
+          <div class="mock-page-inner">
+            <h3 style="margin-bottom:12px;font-size:14px">WorldMonitor 数据导出</h3>
+            <table id="mock-table" style="width:100%;border-collapse:collapse;font-size:11px">
+              <thead>
+                <tr style="background:#f0f4ff">
+                  <th style="padding:8px;text-align:left;border:1px solid #ddd">事件</th>
+                  <th style="padding:8px;border:1px solid #ddd">地区</th>
+                  <th style="padding:8px;border:1px solid #ddd">时间</th>
+                  <th style="padding:8px;border:1px solid #ddd">影响指数</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd">美联储加息25BP</td><td style="padding:8px;border:1px solid #ddd;text-align:center">北美</td><td style="padding:8px;border:1px solid #ddd">2026-05-05</td><td style="padding:8px;border:1px solid #ddd;text-align:center">9.2</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd">AI监管新规发布</td><td style="padding:8px;border:1px solid #ddd;text-align:center">欧盟</td><td style="padding:8px;border:1px solid #ddd">2026-05-04</td><td style="padding:8px;border:1px solid #ddd;text-align:center">8.7</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd">深圳-上海高铁涨价</td><td style="padding:8px;border:1px solid #ddd;text-align:center">中国</td><td style="padding:8px;border:1px solid #ddd">2026-05-03</td><td style="padding:8px;border:1px solid #ddd;text-align:center">6.1</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd">比特币突破10万</td><td style="padding:8px;border:1px solid #ddd;text-align:center">全球</td><td style="padding:8px;border:1px solid #ddd">2026-05-02</td><td style="padding:8px;border:1px solid #ddd;text-align:center">8.4</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:12px">
+              <button id="export-btn" style="background:#4a90d9;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-size:12px">导出 CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 12306页 -->
+        <div class="mock-page" id="page-train">
+          <div class="mock-page-inner">
+            <div style="background:#1166bb;color:white;padding:12px 16px;margin:-20px -20px 16px;font-size:15px;font-weight:bold">
+              中国铁路 12306
+            </div>
+            <div style="background:#f8f9fa;padding:12px;border-radius:6px;margin-bottom:12px">
+              <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:8px;align-items:center;font-size:12px">
+                <input id="from-station" style="padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px" value="深圳北" placeholder="出发站">
+                <span>→</span>
+                <input id="to-station" style="padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px" value="上海虹桥" placeholder="到达站">
+                <input id="travel-date" style="padding:6px;border:1px solid #ddd;border-radius:4px;font-size:12px" value="2026-05-06" placeholder="日期">
+                <button id="query-btn" style="background:#1166bb;color:white;border:none;padding:7px 14px;border-radius:4px;cursor:pointer;font-size:12px">查询</button>
+              </div>
+            </div>
+            <div id="train-results" style="display:none">
+              <table style="width:100%;border-collapse:collapse;font-size:11px">
+                <thead><tr style="background:#eef2ff"><th style="padding:8px;border:1px solid #ddd">车次</th><th style="padding:8px;border:1px solid #ddd">出发</th><th style="padding:8px;border:1px solid #ddd">到达</th><th style="padding:8px;border:1px solid #ddd">历时</th><th style="padding:8px;border:1px solid #ddd">二等座</th></tr></thead>
+                <tbody>
+                  <tr><td style="padding:8px;border:1px solid #ddd">G4</td><td style="padding:8px;border:1px solid #ddd;text-align:center">08:00</td><td style="padding:8px;border:1px solid #ddd;text-align:center">14:26</td><td style="padding:8px;border:1px solid #ddd;text-align:center">6h26m</td><td style="padding:8px;border:1px solid #ddd;text-align:center">¥862</td></tr>
+                  <tr><td style="padding:8px;border:1px solid #ddd">G68</td><td style="padding:8px;border:1px solid #ddd;text-align:center">09:30</td><td style="padding:8px;border:1px solid #ddd;text-align:center">15:50</td><td style="padding:8px;border:1px solid #ddd;text-align:center">6h20m</td><td style="padding:8px;border:1px solid #ddd;text-align:center">¥862</td></tr>
+                  <tr><td style="padding:8px;border:1px solid #ddd">G72</td><td style="padding:8px;border:1px solid #ddd;text-align:center">11:00</td><td style="padding:8px;border:1px solid #ddd;text-align:center">17:22</td><td style="padding:8px;border:1px solid #ddd;text-align:center">6h22m</td><td style="padding:8px;border:1px solid #ddd;text-align:center">¥862</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOM 高亮框 -->
+        <div class="dom-highlight" id="dom-highlight"></div>
+      </div>
+    </div>
+
+    <!-- 右栏：Agent Reasoning -->
+    <div class="reasoning-pane">
+      <div class="pane-header">
+        <span class="pane-label" style="color:var(--accent-purple)">Agent Reasoning</span>
+        <span style="color:rgba(255,255,255,0.15)">|</span>
+        <span id="current-task-label">等待任务...</span>
+        <div style="margin-left:auto">
+          <div class="progress-bar" style="width:100px">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reasoning-content" id="reasoning-content">
+        <div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--text-dim);font-size:12px">
+          点击下方任务卡片开始演示
+        </div>
+      </div>
+
+      <div class="memory-section" id="memory-section" style="display:none">
+        <div class="memory-title">MEMORY STATE</div>
+        <div id="memory-items"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部任务选择器 -->
+  <div class="task-bar">
+    <div class="task-card" onclick="startTask(0)">
+      <div class="task-num">TASK 01</div>
+      <div class="task-title">查微博新消息</div>
+      <div class="task-desc">导航微博 · 检测通知 · 提取 feed 摘要</div>
+    </div>
+    <div class="task-card" onclick="startTask(1)">
+      <div class="task-num">TASK 02</div>
+      <div class="task-title">表格导出 CSV</div>
+      <div class="task-desc">识别 DOM 表格 · 提取结构数据 · 输出文件</div>
+    </div>
+    <div class="task-card" onclick="startTask(2)">
+      <div class="task-num">TASK 03</div>
+      <div class="task-title">查深圳→上海高铁</div>
+      <div class="task-desc">填表单 · 提交查询 · 解析车次结果</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 粒子系统
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const particles = Array.from({length: 60}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.5 + 0.3,
+  vx: (Math.random() - 0.5) * 0.3,
+  vy: (Math.random() - 0.5) * 0.3,
+  a: Math.random() * 0.4 + 0.1,
+  color: ['rgba(0,180,255,', 'rgba(0,255,136,', 'rgba(180,100,255,'][Math.floor(Math.random()*3)]
+}));
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.color + p.a + ')';
+    ctx.fill();
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// 任务定义
+const TASKS = [
+  {
+    name: "查微博新消息",
+    page: "weibo",
+    url: "https://weibo.com",
+    steps: [
+      { type: "thinking", action: "分析任务目标", detail: {goal: "检查微博新消息", approach: "导航到微博首页，检测通知状态"} },
+      { type: "acting", action: "navigate('https://weibo.com')", detail: {method: "browser.navigate", url: "https://weibo.com"}, dom: {top:"8%",left:"5%",width:"90%",height:"6%"} },
+      { type: "observing", action: "页面加载完成，分析 DOM", detail: {status: "loaded", title: "微博 - 随时随地发现新鲜事"} },
+      { type: "thinking", action: "识别通知图标", detail: {element: "bell icon", location: "顶部导航栏右侧", badge: "发现红色数字 3"} },
+      { type: "acting", action: "screenshot() → 分析通知区域", detail: {focus: "notification bell", badge_detected: "3 条未读"}, dom: {top:"4%",left:"75%",width:"8%",height:"8%"} },
+      { type: "acting", action: "extract_content(feed)", detail: {selector: ".feed-list .feed-item", count: "提取 3 条"}, dom: {top:"20%",left:"5%",width:"90%",height:"65%"} },
+      { type: "observing", action: "提取成功，整理结果", detail: {messages: "3 条未读消息", feed_items: "3 条微博"} },
+      { type: "done", action: "done(result)", detail: {new_messages: 3, feed: "已提取 3 条微博摘要"} }
+    ],
+    memory: ["URL: weibo.com 已导航", "通知数量: 3 条未读", "Feed 已提取: 3 条"]
+  },
+  {
+    name: "表格导出 CSV",
+    page: "table",
+    url: "http://localhost:3589/data",
+    steps: [
+      { type: "thinking", action: "分析任务：找表格并导出", detail: {goal: "识别页面表格，提取为 CSV", method: "DOM 分析 + 结构提取"} },
+      { type: "acting", action: "navigate('localhost:3589/data')", detail: {method: "browser.navigate"}, dom: {top:"8%",left:"5%",width:"90%",height:"6%"} },
+      { type: "observing", action: "页面加载，检测表格元素", detail: {tables_found: 1, rows: 4, cols: 4} },
+      { type: "thinking", action: "解析表格结构", detail: {headers: "['事件','地区','时间','影响指数']", strategy: "遍历 <tr> <td>"} },
+      { type: "acting", action: "extract_content(table)", detail: {selector: "table#mock-table", action: "提取 headers + rows"}, dom: {top:"22%",left:"2%",width:"96%",height:"52%"} },
+      { type: "acting", action: "识别导出按钮", detail: {element: "button#export-btn", text: "导出 CSV"}, dom: {top:"76%",left:"3%",width:"20%",height:"8%"} },
+      { type: "observing", action: "数据提取完成", detail: {headers: 4, rows: 4, total_cells: 16} },
+      { type: "done", action: "done(csv_data)", detail: {file: "/tmp/export.csv", rows: 4, cols: 4} }
+    ],
+    memory: ["页面: WorldMonitor 数据", "表格结构: 4列4行", "导出目标: /tmp/export.csv"]
+  },
+  {
+    name: "查深圳→上海高铁",
+    page: "train",
+    url: "https://www.12306.cn",
+    steps: [
+      { type: "thinking", action: "分析任务：查高铁票（只查不买）", detail: {goal: "查询明天 SZB→SHH 的 G 字头车次", safety: "禁止点击购票按钮"} },
+      { type: "acting", action: "navigate('12306.cn')", detail: {method: "browser.navigate", url: "https://www.12306.cn"}, dom: {top:"8%",left:"5%",width:"90%",height:"6%"} },
+      { type: "observing", action: "页面加载，识别查询表单", detail: {form_found: true, fields: "出发站/到达站/日期/查询按钮"} },
+      { type: "acting", action: "click(出发站输入框)", detail: {selector: "#from-station", action: "激活输入"}, dom: {top:"20%",left:"3%",width:"28%",height:"8%"} },
+      { type: "acting", action: "type('深圳北')", detail: {field: "出发站", value: "深圳北", autocomplete: "等待建议"}, dom: {top:"20%",left:"3%",width:"28%",height:"8%"} },
+      { type: "acting", action: "type('上海虹桥')", detail: {field: "到达站", value: "上海虹桥"}, dom: {top:"20%",left:"40%",width:"28%",height:"8%"} },
+      { type: "acting", action: "click('查询')", detail: {selector: "#query-btn", action: "提交表单"}, dom: {top:"20%",left:"82%",width:"14%",height:"8%"} },
+      { type: "observing", action: "等待结果加载", detail: {status: "networkidle", timeout: "5s"} },
+      { type: "acting", action: "extract_content(车次列表)", detail: {filter: "G 字头", sort: "按出发时间"}, dom: {top:"35%",left:"2%",width:"96%",height:"50%"} },
+      { type: "done", action: "done(tickets)", detail: {trains: "G4/G68/G72", earliest: "G4 08:00", price: "¥862"} }
+    ],
+    memory: ["表单: 深圳北→上海虹桥", "日期: 2026-05-06", "结果: 3 班 G 字头", "最早: G4 08:00 ¥862"]
+  }
+];
+
+let currentTaskIndex = -1;
+let isRunning = false;
+
+async function startTask(idx) {
+  if (isRunning) return;
+  isRunning = true;
+  currentTaskIndex = idx;
+
+  // 重置 UI
+  document.querySelectorAll('.task-card').forEach((c, i) => {
+    c.classList.toggle('active', i === idx);
+  });
+
+  const task = TASKS[idx];
+  document.getElementById('current-task-label').textContent = task.name;
+  document.getElementById('current-url').textContent = task.url;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('step-counter').textContent = `步骤: 0 / ${task.steps.length}`;
+
+  // 切换页面
+  document.querySelectorAll('.mock-page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById(`page-${task.page}`);
+  if (page) page.classList.add('active');
+
+  // 清空 reasoning
+  const rc = document.getElementById('reasoning-content');
+  rc.innerHTML = '';
+
+  // 隐藏 memory
+  document.getElementById('memory-section').style.display = 'none';
+  document.getElementById('memory-items').innerHTML = '';
+
+  const highlight = document.getElementById('dom-highlight');
+  highlight.classList.remove('visible');
+
+  // 逐步执行
+  for (let i = 0; i < task.steps.length; i++) {
+    const step = task.steps[i];
+    const progress = ((i + 1) / task.steps.length * 100).toFixed(0);
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('step-counter').textContent = `步骤: ${i+1} / ${task.steps.length}`;
+
+    // 添加步骤条目
+    await addStepItem(rc, i + 1, step);
+
+    // 移动 DOM 高亮框
+    if (step.dom) {
+      highlight.style.top = step.dom.top;
+      highlight.style.left = step.dom.left;
+      highlight.style.width = step.dom.width;
+      highlight.style.height = step.dom.height;
+      highlight.classList.add('visible');
+    } else {
+      highlight.classList.remove('visible');
+    }
+
+    // 特殊交互效果
+    if (step.type === 'acting' && task.page === 'table' && step.action.includes('export')) {
+      document.getElementById('export-btn').style.background = '#e67e00';
+    }
+    if (step.type === 'acting' && task.page === 'train' && step.action.includes("'查询'")) {
+      setTimeout(() => {
+        document.getElementById('train-results').style.display = 'block';
+      }, 800);
+    }
+
+    // 等待（模拟 LLM 响应时间）
+    const delay = step.type === 'thinking' ? 900 : step.type === 'done' ? 600 : 700;
+    await sleep(delay);
+  }
+
+  // 显示 Memory 状态
+  const ms = document.getElementById('memory-section');
+  ms.style.display = 'flex';
+  const mi = document.getElementById('memory-items');
+  task.memory.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'memory-item';
+    div.innerHTML = `<div class="memory-dot"></div><span>${m}</span>`;
+    mi.appendChild(div);
+  });
+
+  // 显示结果
+  const resultDiv = document.createElement('div');
+  resultDiv.className = 'result-panel visible';
+  resultDiv.innerHTML = `<div class="result-label">TASK COMPLETE</div>${getResultText(idx)}`;
+  rc.appendChild(resultDiv);
+  rc.scrollTop = rc.scrollHeight;
+
+  highlight.classList.remove('visible');
+  isRunning = false;
+}
+
+async function addStepItem(container, num, step) {
+  const div = document.createElement('div');
+  div.className = 'step-item';
+
+  const typeColors = {
+    thinking: 'thinking', acting: 'acting',
+    observing: 'observing', done: 'done'
+  };
+  const typeLabels = {
+    thinking: 'THINK', acting: 'ACT',
+    observing: 'OBS', done: 'DONE'
+  };
+
+  const detail = Object.entries(step.detail)
+    .map(([k, v]) => `<span class="key">${k}</span>: <span class="val">${v}</span>`)
+    .join('<br>');
+
+  div.innerHTML = `
+    <div class="step-header">
+      <div class="step-num ${typeColors[step.type]}">${num}</div>
+      <span class="step-type">${typeLabels[step.type]}</span>
+      <span class="step-action">${step.action}</span>
+    </div>
+    <div class="step-detail">${detail}</div>
+  `;
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+
+  await sleep(50);
+  div.classList.add('visible');
+}
+
+function getResultText(idx) {
+  const results = [
+    '{"new_messages": 3, "feed": [{"user": "@AI前沿周报", "content": "Claude 4.0 发布..."}, {"user": "@深圳科技圈", "content": "browser-use 新版..."}, {"user": "@量化交易社区", "content": "A 股开盘..."}]}',
+    '导出完成：4 行 × 4 列 → /tmp/worldmonitor_export.csv',
+    '[{"train": "G4", "depart": "08:00", "arrive": "14:26", "duration": "6h26m", "price": "¥862"}, {"train": "G68", "depart": "09:30", ...}]'
+  ];
+  return `<span style="color:var(--text-dim)">${results[idx]}</span>`;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>

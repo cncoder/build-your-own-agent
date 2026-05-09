@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#7c3aed"/>
+    </marker>
+    <style>
+      text { font-family: 'PingFang SC', 'Noto Sans SC', sans-serif; fill: #e2e8f0; }
+      .title { font-size: 16px; font-weight: bold; }
+      .label { font-size: 13px; }
+      .sub { font-size: 11px; fill: #94a3b8; }
+    </style>
+  </defs>
+
+  <rect width="900" height="400" fill="#0f172a" rx="12"/>
+
+  <text x="450" y="35" text-anchor="middle" class="title">LLM 推理管线：从 Token 到回复</text>
+
+  <!-- Input -->
+  <rect x="30" y="80" width="120" height="60" rx="8" fill="#1e1b4b" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="90" y="107" text-anchor="middle" class="label">输入文本</text>
+  <text x="90" y="125" text-anchor="middle" class="sub">Input Text</text>
+
+  <!-- Tokenizer -->
+  <rect x="190" y="80" width="120" height="60" rx="8" fill="#1e1b4b" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="250" y="107" text-anchor="middle" class="label">分词器</text>
+  <text x="250" y="125" text-anchor="middle" class="sub">Tokenizer</text>
+
+  <!-- Embedding -->
+  <rect x="350" y="80" width="120" height="60" rx="8" fill="#1e1b4b" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="410" y="107" text-anchor="middle" class="label">嵌入层</text>
+  <text x="410" y="125" text-anchor="middle" class="sub">Embedding</text>
+
+  <!-- Transformer Blocks -->
+  <rect x="510" y="60" width="160" height="100" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <text x="590" y="90" text-anchor="middle" class="label">Transformer 层 x N</text>
+  <text x="590" y="112" text-anchor="middle" class="sub">Self-Attention</text>
+  <text x="590" y="130" text-anchor="middle" class="sub">+ Feed Forward</text>
+  <text x="590" y="148" text-anchor="middle" class="sub">+ Layer Norm</text>
+
+  <!-- Output Head -->
+  <rect x="710" y="80" width="150" height="60" rx="8" fill="#1e1b4b" stroke="#10b981" stroke-width="1.5"/>
+  <text x="785" y="107" text-anchor="middle" class="label">概率分布</text>
+  <text x="785" y="125" text-anchor="middle" class="sub">logits → softmax</text>
+
+  <!-- Arrows -->
+  <line x1="150" y1="110" x2="188" y2="110" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="310" y1="110" x2="348" y2="110" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="470" y1="110" x2="508" y2="110" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="670" y1="110" x2="708" y2="110" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- Context Window -->
+  <rect x="30" y="200" width="830" height="80" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="450" y="225" text-anchor="middle" class="label">Context Window（上下文窗口）</text>
+  <text x="450" y="248" text-anchor="middle" class="sub">所有 token（system + messages + tools）必须装进这个窗口</text>
+  <text x="450" y="268" text-anchor="middle" class="sub">Claude Opus: 200K tokens / GPT-4o: 128K tokens / Gemini 1.5: 2M tokens</text>
+
+  <!-- Temperature -->
+  <rect x="30" y="310" width="260" height="70" rx="10" fill="#1e293b" stroke="#f97316" stroke-width="1.5"/>
+  <text x="160" y="338" text-anchor="middle" class="label">Temperature 采样</text>
+  <text x="160" y="358" text-anchor="middle" class="sub">0.0 = 确定性 / 1.0 = 创造性</text>
+  <text x="160" y="373" text-anchor="middle" class="sub">Agent 推荐: 0.0 ~ 0.3</text>
+
+  <!-- Token Count -->
+  <rect x="320" y="310" width="260" height="70" rx="10" fill="#1e293b" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="450" y="338" text-anchor="middle" class="label">Token 计费</text>
+  <text x="450" y="358" text-anchor="middle" class="sub">input_tokens + output_tokens = cost</text>
+  <text x="450" y="373" text-anchor="middle" class="sub">Prompt Caching 可省 90% input 费用</text>
+
+  <!-- Autoregressive -->
+  <rect x="610" y="310" width="260" height="70" rx="10" fill="#1e293b" stroke="#34d399" stroke-width="1.5"/>
+  <text x="740" y="338" text-anchor="middle" class="label">自回归生成</text>
+  <text x="740" y="358" text-anchor="middle" class="sub">每次只产 1 个 token</text>
+  <text x="740" y="373" text-anchor="middle" class="sub">输出追加到输入 → 再生成下一个</text>
+</svg>
