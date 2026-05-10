@@ -30,20 +30,31 @@ jobs:
 
       - name: Materialize chapter assets (replace symlinks with real copies)
         run: |
-          cd site/chapters
-          for ch in */; do
-            src="../../book/chapters/${ch%/}"
-            # Remove any symlinks (they point to absolute paths on the author's machine)
-            find "$ch" -maxdepth 1 -type l -delete
-            # Copy every asset subdirectory from the source chapter
-            if [ -d "$src" ]; then
-              for sub in "$src"/*/; do
-                [ -d "$sub" ] || continue
-                name=$(basename "$sub")
-                rm -rf "${ch}${name}"
-                cp -r "$sub" "${ch}${name}"
-              done
-            fi
+          # MD-referenced assets go next to the page so VitePress can resolve ![]() imports.
+          # Runtime assets (iframe demo, audio, slide downloads) go into public/ so VitePress
+          # ships them verbatim to dist/ without trying to process them as modules.
+          MD_SUBS="diagrams images infographic"
+          PUBLIC_SUBS="demo audio slides"
+          cd site
+          for ch_dir in chapters/*/; do
+            ch=$(basename "$ch_dir")
+            src="../book/chapters/$ch"
+            [ -d "$src" ] || continue
+            # Clear any author-machine symlinks
+            find "$ch_dir" -maxdepth 1 -type l -delete
+            for sub in $MD_SUBS; do
+              if [ -d "$src/$sub" ]; then
+                rm -rf "$ch_dir$sub"
+                cp -r "$src/$sub" "$ch_dir$sub"
+              fi
+            done
+            for sub in $PUBLIC_SUBS; do
+              if [ -d "$src/$sub" ]; then
+                mkdir -p "public/chapters/$ch"
+                rm -rf "public/chapters/$ch/$sub"
+                cp -r "$src/$sub" "public/chapters/$ch/$sub"
+              fi
+            done
           done
 
       - name: Setup Node.js
