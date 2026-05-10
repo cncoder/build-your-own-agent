@@ -13,9 +13,9 @@ export default defineConfig({
           if (warning.code === 'UNRESOLVED_IMPORT' || warning.message?.includes('Could not resolve')) return
           warn(warning)
         },
-        external: [/\.\/(diagrams|images|infographic)\/.*/]
       }
-    }
+    },
+    assetsInclude: ['**/*.svg']
   },
 
   locales: {

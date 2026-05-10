@@ -28,29 +28,21 @@ jobs:
         with:
           fetch-depth: 0  # 需要 git 历史以获取 lastUpdated
 
-      - name: Resolve symlinks in site/chapters
+      - name: Materialize chapter assets (replace symlinks with real copies)
         run: |
           cd site/chapters
-          for dir in */; do
-            if [ -L "${dir%/}" ] || find "$dir" -type l | head -1 | grep -q .; then
-              temp=$(mktemp -d)
-              cp -rL "$dir" "$temp/"
-              rm -rf "$dir"
-              mv "$temp/$(basename $dir)" "$dir"
-              rm -rf "$temp"
-            fi
-          done
-          # Copy diagrams/images into each chapter dir for VitePress to resolve
           for ch in */; do
             src="../../book/chapters/${ch%/}"
-            if [ -d "$src/diagrams" ]; then
-              cp -r "$src/diagrams" "${ch}diagrams" 2>/dev/null || true
-            fi
-            if [ -d "$src/images" ]; then
-              cp -r "$src/images" "${ch}images" 2>/dev/null || true
-            fi
-            if [ -d "$src/infographic" ]; then
-              cp -r "$src/infographic" "${ch}infographic" 2>/dev/null || true
+            # Remove any symlinks (they point to absolute paths on the author's machine)
+            find "$ch" -maxdepth 1 -type l -delete
+            # Copy every asset subdirectory from the source chapter
+            if [ -d "$src" ]; then
+              for sub in "$src"/*/; do
+                [ -d "$sub" ] || continue
+                name=$(basename "$sub")
+                rm -rf "${ch}${name}"
+                cp -r "$sub" "${ch}${name}"
+              done
             fi
           done
 
