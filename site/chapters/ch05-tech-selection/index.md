@@ -10,8 +10,8 @@ title: "Ch5：技术选型"
 
 <ChapterMedia
   chapterTitle="Ch5：技术选型"
-  audioSrc="./ch-05.mp3"
+  audioSrc="./audio/ch-05.mp3"
   demoSrc="./demo/index.html"
 />
 
-<ChapterPlayer audioSrc="./ch-05.mp3" chapterTitle="Ch5：技术选型" />
+<ChapterPlayer audioSrc="./audio/ch-05.mp3" chapterTitle="Ch5：技术选型" />

@@ -46,13 +46,15 @@
         <span class="panel__badge">分层动态图</span>
       </div>
       <div class="slides-wrap">
-        <iframe
-          :src="slidesSrc"
-          class="slides-iframe"
-          frameborder="0"
-          allowfullscreen
-          title="章节 Slides"
-        />
+        <div class="slides-stage" ref="slidesStage">
+          <iframe
+            :src="slidesSrc"
+            class="slides-iframe"
+            frameborder="0"
+            allowfullscreen
+            title="章节 Slides"
+          />
+        </div>
         <a :href="slidesSrc" target="_blank" class="open-new-tab">在新标签页打开 ↗</a>
       </div>
     </div>
@@ -61,7 +63,7 @@
     <div v-if="activeTab === 'demo' && demoSrc" class="panel panel--demo">
       <div class="panel__header">
         <span>🎨 交互 Demo · 无需 API Key</span>
-        <span class="panel__badge">扫码可玩</span>
+        <button class="panel__badge panel__badge--btn" @click="showQR = true">扫码可玩</button>
       </div>
       <div class="demo-wrap">
         <iframe
@@ -72,6 +74,17 @@
           sandbox="allow-scripts allow-same-origin"
         />
         <a :href="demoSrc" target="_blank" class="open-new-tab">全屏体验 ↗</a>
+      </div>
+    </div>
+
+    <!-- 二维码弹窗 -->
+    <div v-if="showQR" class="qr-overlay" @click.self="showQR = false">
+      <div class="qr-modal">
+        <button class="qr-close" @click="showQR = false" aria-label="关闭">×</button>
+        <div class="qr-title">📱 扫码在手机上打开 Demo</div>
+        <img :src="qrImageUrl" class="qr-image" alt="Demo 二维码" />
+        <div class="qr-url">{{ absoluteDemoUrl }}</div>
+        <div class="qr-tip">无需 API Key · 无需登录 · 即扫即玩</div>
       </div>
     </div>
 
@@ -102,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 
 interface CodeFile {
   name: string
@@ -139,6 +152,47 @@ const availableTabs = computed(() => allTabs.filter(tab => {
 }))
 
 const activeTab = ref(availableTabs.value[0]?.id || 'code')
+
+// QR modal for demo
+const showQR = ref(false)
+const absoluteDemoUrl = computed(() => {
+  if (!props.demoSrc) return ''
+  if (typeof window === 'undefined') return props.demoSrc
+  return new URL(props.demoSrc, window.location.href).href
+})
+const qrImageUrl = computed(() =>
+  `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(absoluteDemoUrl.value)}`
+)
+
+// Scale 1920×1080 slides to fit the current stage width
+const slidesStage = ref<HTMLDivElement | null>(null)
+let ro: ResizeObserver | null = null
+
+function applyScale() {
+  const el = slidesStage.value
+  if (!el) return
+  const scale = el.clientWidth / 1920
+  el.style.setProperty('--slides-scale', String(scale))
+}
+
+onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined') {
+    ro = new ResizeObserver(applyScale)
+  }
+})
+
+watch(activeTab, async (tab) => {
+  await nextTick()
+  const el = slidesStage.value
+  if (tab === 'slides' && el) {
+    applyScale()
+    ro?.observe(el)
+  } else if (ro && el) {
+    ro.unobserve(el)
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => { ro?.disconnect() })
 </script>
 
 <style scoped>
@@ -250,14 +304,28 @@ const activeTab = ref(availableTabs.value[0]?.id || 'code')
   max-height: 480px;
 }
 
-/* Slides 面板 */
+/* Slides 面板 — 1920×1080 固定画布等比缩放 */
 .slides-wrap {
   position: relative;
 }
 
-.slides-iframe {
+.slides-stage {
+  position: relative;
   width: 100%;
-  height: 500px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #0d1117;
+}
+
+.slides-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: top left;
+  transform: scale(var(--slides-scale, 1));
+  border: none;
   display: block;
 }
 
@@ -360,10 +428,97 @@ const activeTab = ref(availableTabs.value[0]?.id || 'code')
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* 可点击的徽章 */
+.panel__badge--btn {
+  cursor: pointer;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  font: inherit;
+  transition: all 0.2s;
+}
+.panel__badge--btn:hover {
+  background: rgba(0, 212, 255, 0.18);
+  border-color: rgba(0, 212, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+/* QR 弹窗 */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 14, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: qr-fade 0.2s ease;
+}
+@keyframes qr-fade { from { opacity: 0 } to { opacity: 1 } }
+
+.qr-modal {
+  position: relative;
+  background: linear-gradient(145deg, #0e1626, #081022);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 16px;
+  padding: 28px 32px 24px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 212, 255, 0.15);
+  max-width: 92vw;
+}
+
+.qr-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.qr-close:hover { color: #00d4ff; }
+
+.qr-title {
+  color: #00d4ff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.qr-image {
+  width: 260px;
+  height: 260px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  display: block;
+  margin: 0 auto;
+}
+
+.qr-url {
+  margin-top: 14px;
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  max-width: 280px;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+.qr-tip {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
 /* 响应式 */
 @media (max-width: 640px) {
   .chapter-tab__label { display: none; }
   .chapter-tab { padding: 12px 14px; }
-  .slides-iframe, .demo-iframe { height: 350px; }
+  .demo-iframe { height: 350px; }
+  .qr-image { width: 220px; height: 220px; }
+  .qr-modal { padding: 20px 22px 18px; }
 }
 </style>

@@ -10,8 +10,8 @@ title: "Ch4：LLM 底层速查"
 
 <ChapterMedia
   chapterTitle="Ch4：LLM 底层速查"
-  audioSrc="./ch-04.mp3"
+  audioSrc="./audio/ch-04.mp3"
   demoSrc="./demo/index.html"
 />
 
-<ChapterPlayer audioSrc="./ch-04.mp3" chapterTitle="Ch4：LLM 底层速查" />
+<ChapterPlayer audioSrc="./audio/ch-04.mp3" chapterTitle="Ch4：LLM 底层速查" />
