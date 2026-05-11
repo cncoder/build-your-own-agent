@@ -131,7 +131,7 @@ Convention：Thought = LLM 输出的文本推理段落（内心独白）; Action
 
 这就是 ReAct 的全部。五步。现在让我们看看它在 Python 里的最小实现形态是什么样的。
 
-Let's verify the core loop by tracing through the minimal Python structure that every real agent is built on:
+下面逐步追踪每个真实 agent 底层最小 Python 结构，验证核心循环：
 
 ```python
 # ReAct 循环的最小骨架（未接入真实工具，仅展示结构）
@@ -207,7 +207,7 @@ def agent_loop(client, messages: list, tools: list, max_steps: int = 10) -> str:
 | 工具执行错误捕获 | 工具可能抛出异常（网络超时/权限错误/参数错误），必须把错误也作为 Observation 返回 | `try/except` 包裹工具调用，错误信息写入 `tool_result.content` |
 | stop_reason 断言 | 防御性编程：如果出现未知的 `stop_reason`，应该及时发现而不是静默跳过 | `assert response.stop_reason in ("end_turn", "tool_use")` |
 
-Let's add these features one by one and verify after each:
+下面逐一添加这些特性并验证：
 
 **扩展 1：接入真实工具**
 

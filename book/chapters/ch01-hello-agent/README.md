@@ -23,11 +23,11 @@ Ch13-18  安全双章 + always-on（Telegram / Heartbeat / Cron）
 Ch19-25  MCP / Sandbox / Evals / 专用派生 / Browser Agent
 ```
 
-**本章 arc**：从"LLM 是什么感觉"出发，经过三层心智模型的建立（LLM 是函数 / Agent 是程序 / 工具调用是两者之间的桥梁），最终在第 6 节用 ≤30 行 Python 跑通第一次 API 调用——途中会踩的坑是三家 provider 的格式差异，以及 Bedrock 的模型 ID 不是你想象中的那个名字。
+**本章脉络**：从"LLM 是什么感觉"出发，经过三层心智模型的建立（LLM 是函数 / Agent 是程序 / 工具调用是两者之间的桥梁），最终在第 6 节用 ≤30 行 Python 跑通第一次 API 调用——途中会踩的坑是三家 provider 的格式差异，以及 Bedrock 的模型 ID 不是你想象中的那个名字。
 
 **Lena 版本变化**：本章结束时，Lena 从 v0.0（什么都没有）变成 v0.1——一个能打印一次模型回复的最小骨架。她还不会记忆、不会工具调用、不会循环，但她**活着**。这是本书最重要的一步：从零到有。
 
-本章不上来就塞代码。前 80% 篇幅用来建立心智模型，最后 20% 才跑 API。这个顺序是有意设计的：**直觉先于代码，代码才能被真正理解**（来源：rasbt/LLMs-from-scratch Ch01 的"无代码"策略，R7-G §4 #1）。
+本章不上来就塞代码。前 80% 篇幅用来建立心智模型，最后 20% 才跑 API。这个顺序是有意设计的：**直觉先于代码，代码才能被真正理解**（参考 Raschka 的 LLMs-from-scratch 第一章）。
 
 > **🧠 聪明度增量（v0.0 → v0.1）**：Lena 第一次向 LLM 发请求并拿到真实回答——从零行代码到能打印模型输出的最小骨架，彻底告别 if/else 硬编码逻辑。这一章教读者把"让语言模型做决策"这个能力长在自己 agent 上的方法。
 
@@ -60,7 +60,7 @@ Ch19-25  MCP / Sandbox / Evals / 专用派生 / Browser Agent
 
 正如 Andrej Karpathy 所说："We are at the start of the decade of agents — requiring patience and persistent human-in-the-loop oversight."（我们正处在 agent 十年之始。这需要耐心和持续的人在环路监督。）本书不鼓吹"Agent 元年"焦虑，而是用十年视角陪读者把 Lena 从零造出来。
 
-So here we go. 本章的任务是让你走过那道门：不再是模型的用户，而是模型的构建者。
+本章的任务是让你走过那道门：不再是模型的用户，而是模型的构建者。
 
 ---
 
@@ -149,9 +149,9 @@ System prompt 是给模型设定角色、行为基调的一段指令，相当于
 
 ## Beat 4 — 脚手架：最小 API 调用骨架
 
-Now it is time to build Lena v0.1. 我们的目标是最小化：一个函数，给它 prompt，它返回模型回复。没有循环，没有工具，没有记忆。只是让 API 跑通。
+下面开始构建 Lena v0.1。目标是最小化：一个函数，给它 prompt，它返回模型回复。没有循环，没有工具，没有记忆。只是让 API 跑通。
 
-Let's verify the basic structure by building the smallest possible wrapper around the Anthropic provider:
+下面验证基础结构，构建最小的 Anthropic provider 封装：
 
 ```python
 # lena_v01.py — Lena v0.1 最小骨架（Anthropic 版）
@@ -191,7 +191,7 @@ python3 lena_v01.py
 大语言模型是一种通过海量文本数据训练、能够理解和生成自然语言的人工智能系统。
 ```
 
-That's it. 这就是 Lena 的起点：一个函数，18 行，一次调用，打印回复。
+这就是 Lena 的起点：一个函数，18 行，一次调用，打印回复。
 
 `max_tokens=1024` 这个参数值得解释一下。LLM 的生成是开放式的——如果你不设上限，它可能生成很长的内容（不是 bug，是 feature）。`max_tokens` 的作用是告诉 API "超过这个长度就停"。对于简单的问答，1024 已经足够；对于需要生成长文档的场景，可以调高到 4096 或更大。这个参数影响的是**单次调用的最大输出长度**，不影响输入的长度。
 
@@ -306,7 +306,7 @@ python3 lena_v01_full.py bedrock
 回复：大语言模型是一种利用海量文本数据训练的人工智能模型，具备理解和生成自然语言的能力。
 ```
 
-Along the way，你刚才亲手看到了三家格式差异中最重要的一条：**Bedrock 的 `content` 是列表，不是字符串**。这不是 Bedrock 的 quirk，而是它为了统一支持多模态（文字 + 图片 + 文档）而做的设计——列表里的每个元素可以是 `{"text": "..."}` 也可以是 `{"image": {...}}`。当你后续需要给 Lena 加图片理解能力时，这个设计就变成了优点。
+你刚才亲手看到了三家格式差异中最重要的一条：**Bedrock 的 `content` 是列表，不是字符串**。这不是 Bedrock 的 quirk，而是它为了统一支持多模态（文字 + 图片 + 文档）而做的设计——列表里的每个元素可以是 `{"text": "..."}` 也可以是 `{"image": {...}}`。当你后续需要给 Lena 加图片理解能力时，这个设计就变成了优点。
 
 **Bedrock 前置条件**：Bedrock 在运行前需要在 AWS 控制台手动申请模型访问权限：进入 Bedrock 控制台 → Model access → Anthropic Claude 系列 → 申请访问。申请通常即时生效，但需要你的 AWS 账号已经激活对应 region 的 Bedrock 服务。
 

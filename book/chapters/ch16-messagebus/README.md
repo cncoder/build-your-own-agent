@@ -185,7 +185,7 @@ MessageBus 维护两类订阅，这个设计选择不是可选的优化，而是
 
 ## Beat 4 — 脚手架
 
-Let's implement the minimum MessageBus skeleton using only what's needed to route one message to one handler and verify it works:
+下面实现最小的 MessageBus 骨架——只包含把一条消息路由到一个 handler 并验证其工作所需的内容：
 
 ```python
 # bus.py — MessageBus 最小骨架（lena-v0.16）
@@ -488,7 +488,7 @@ asyncio.run(verify_hotplug())
 
 ## Beat 6 — 运行验证
 
-Let's run the full Lena v0.16 end-to-end and verify all three capabilities together. 完整代码在 `code/lena-v0.16/main.py`，这里展示关键部分：
+下面端到端运行完整的 Lena v0.16，验证三个能力协同工作。完整代码在 `code/lena-v0.16/main.py`，这里展示关键部分：
 
 ```python
 # main.py — Lena v0.16 完整示例（精简版，完整版见代码目录）

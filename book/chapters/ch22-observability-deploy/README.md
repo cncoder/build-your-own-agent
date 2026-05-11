@@ -103,7 +103,7 @@ Convention：**launchd** = macOS 的原生进程管理器，以 plist XML 配置
 
 ## Beat 4 — 脚手架
 
-Let's build the minimal observable skeleton by adding structured logging to Lena's core loop first:
+下面先给 Lena 核心循环加上结构化日志，构建最小可观测骨架：
 
 ```python
 # code/lena-v0.22/src/observability/logger.py
@@ -175,7 +175,7 @@ def setup_logging(
 
 ### 扩展 1：OTel span 追踪
 
-Let's verify the full call chain by wrapping the LLM call in an OpenTelemetry span:
+下面把 LLM 调用包裹在 OpenTelemetry span 里，验证完整调用链：
 
 ```python
 # code/lena-v0.22/src/observability/tracing.py

@@ -99,7 +99,7 @@ HITL 的正确触发原则是**操作的可逆性**：
 
 上面三节理论都指向同一件事：我们需要在代码里建立一个结构性的"信任边界"。外部内容进入 agent 之前，必须经过一道显式的隔离层。
 
-Let's implement the boundary layer by writing the minimal `PromptGuard` skeleton — just the wrapper function that does one thing: mark external content as untrusted using a random boundary ID:
+下面实现边界层，编写最小的 `PromptGuard` 骨架——只做一件事：用随机边界 ID 把外部内容标记为不受信任：
 
 ```python
 # code/lena-v0.13/security/prompt_guard.py  （骨架版，40 行）
@@ -361,7 +361,7 @@ def sanitize(content: str, source: str = "external") -> tuple[str, ScanResult]:
 
 ## Beat 6 — 运行验证
 
-Let's put it all together. 下面是 `lena-v0.13/main.py`——组合 PromptGuard + PermissionGate 的完整可运行验证：
+下面是 `lena-v0.13/main.py`——组合 PromptGuard + PermissionGate 的完整可运行验证：
 
 ```python
 # code/lena-v0.13/main.py

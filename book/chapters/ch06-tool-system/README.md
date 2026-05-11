@@ -183,7 +183,7 @@ class ReadFileInput(BaseModel):
 
 ## Beat 4 — 脚手架：最小 ToolRegistry
 
-Let's implement the smallest working registry——能注册工具并导出 schema——在添加任何真实工具之前。这是我们将在 Beat 5 继续构建的骨架。
+下面实现最小可用的 registry——能注册工具并导出 schema——在添加任何真实工具之前。这是我们将在 Beat 5 继续构建的骨架。
 
 ```python
 # lena-v0.6/registry.py  (~50 行，仅骨架)

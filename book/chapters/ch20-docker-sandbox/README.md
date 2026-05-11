@@ -118,7 +118,7 @@ Convention：**seccomp profile** = 系统调用白名单，以 JSON 格式配置
 
 乍看 Docker 容器像是天然的安全沙箱——毕竟代码"装在盒子里"跑。但实际上，一个裸 `docker run` 命令在默认配置下有至少 3 个逃逸面：未限制 capabilities，未阻断 docker socket，未验证安全选项不被绕过。
 
-Let's build the minimal Docker execution skeleton and see exactly what it does and doesn't protect:
+下面构建最小的 Docker 执行骨架，观察它究竟能和不能防护什么：
 
 ```python
 # lena-v0.20/sandbox/docker_executor.py

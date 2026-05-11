@@ -156,7 +156,7 @@ Convention：**agentId** = Worker 实例的唯一标识符；**sessionId** = 整
 
 先建立最小的 Orchestrator 骨架——它只做一件事：把任务喂给三个 Worker 然后等结果。
 
-Let's verify the smallest Orchestrator that can dispatch three workers and collect their results:
+下面验证能派发三个 Worker 并收集结果的最小 Orchestrator：
 
 ```python
 # orchestrator_skeleton.py — Beat 4 脚手架（约 50 行，只跑通核心结构）

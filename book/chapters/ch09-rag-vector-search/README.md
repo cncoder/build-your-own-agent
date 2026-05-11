@@ -7,7 +7,7 @@ Lena v0.1   v0.3   v0.6   ──   ──   v0.6   v0.7   v0.8                  
 
 **本章把 Lena 从 v0.8（具备上下文管理和规划能力）升级到 v0.9（能回答关于 200 页 PDF 的问题）。**
 
-本章 arc：从"把 200 页技术文档全塞进 prompt"这一具体失败出发 → 发现解法是五个独立的工程决策叠加在一起 → 以 pgvector 为后端逐层搭建 → 最终以 `search_knowledge_base` 作为 Lena 的第五个工具，执行 `docker compose up` 即可运行。
+本章脉络：从"把 200 页技术文档全塞进 prompt"这一具体失败出发 → 发现解法是五个独立的工程决策叠加在一起 → 以 pgvector 为后端逐层搭建 → 最终以 `search_knowledge_base` 作为 Lena 的第五个工具，执行 `docker compose up` 即可运行。
 
 途中会遇到一个大多数 RAG 教程都忽略的洞见：Anthropic 的情境检索（Contextual Retrieval）技术——在嵌入前为每个文本块附加一段简短的定位上下文，通过 prompt 缓存以极低成本将检索失败率降低约 35%。
 

@@ -16,7 +16,7 @@ Ch21 Ch22  ★Ch23★  Ch24
          你在这里
 ```
 
-**本章 arc**：从一个会部署、会观测、7×24 在线的通用 Lena（Ch22 产物）出发 → 理解三种派生姿势的工作原理与 tradeoff → 通过 Agent Squad SupervisorAgent 模式看多专用 agent 的统一调度 → 对比 CrewAI Crew 与 Flow 两种编排范式 → 用 TradingAgents 四层结构理解"角色扮演多 agent"的通用骨架 → 最终跑通 **Lena-SpecKit（lena-v0.23）**，一行命令 `python -m lena_speckit create trader` 派生出一个完整专用 agent 骨架。
+**本章脉络**：从一个会部署、会观测、7×24 在线的通用 Lena（Ch22 产物）出发 → 理解三种派生姿势的工作原理与 tradeoff → 通过 Agent Squad SupervisorAgent 模式看多专用 agent 的统一调度 → 对比 CrewAI Crew 与 Flow 两种编排范式 → 用 TradingAgents 四层结构理解"角色扮演多 agent"的通用骨架 → 最终跑通 **Lena-SpecKit（lena-v0.23）**，一行命令 `python -m lena_speckit create trader` 派生出一个完整专用 agent 骨架。
 
 途中会踩一个坑：system prompt 里写的"安全规则"在某个边界输入下会被 LLM 直接绕过——这不是 bug，这是 LLM 的结构性局限，理解它才能知道什么时候该把规则写进代码而不是写进 prompt。
 
@@ -36,7 +36,7 @@ Ch21 Ch22  ★Ch23★  Ch24
 
 最直觉的做法：给每类需求重新写一个 agent。
 
-Let's count what that costs:
+算一下这样做的代价：
 
 ```python
 # 重新写三个 agent 的实际工作量
@@ -116,7 +116,7 @@ Convention：**Crew** = 一次性任务的角色协作模式（项目制）；**
 
 现在我们来建 Lena-SpecKit 的骨架。它做一件事：给定角色名称和工具集，生成一个完整的专用 agent 目录。
 
-Let's implement the minimal SpecKit skeleton — just the `create` command, no templates yet:
+下面实现最小的 SpecKit 骨架——只包含 `create` 命令，暂不包含模板：
 
 ```python
 # lena_speckit/creator.py（30 行骨架，只处理最小情况）
@@ -174,7 +174,7 @@ def create_agent(spec: AgentSpec) -> Path:
 
 **扩展 1：Skills 注入**
 
-Let's extend `create_agent` to also write the skills directory:
+下面扩展 `create_agent`，同时写入 skills 目录：
 
 ```python
 # lena_speckit/creator.py（扩展 skills 注入）
@@ -241,7 +241,7 @@ agents/trader/
 
 **扩展 2：CLI 入口**
 
-Let's wire up the command-line interface:
+下面接入命令行入口：
 
 ```python
 # lena_speckit/__main__.py
@@ -399,7 +399,7 @@ print(f"已加载 agent：{list(sup.agents.keys())}")
 
 ## Beat 6 — 运行验证
 
-Let's assemble the final runnable demo and see it end-to-end:
+下面组装最终可运行的演示，端到端跑通：
 
 ```bash
 # 安装

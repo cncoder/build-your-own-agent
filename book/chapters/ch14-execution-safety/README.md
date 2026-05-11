@@ -134,7 +134,7 @@ Convention：**单步审查（per-step review）** = 对每条工具调用独立
 
 ## Beat 4 — 脚手架
 
-Let's build the minimal security skeleton by implementing all eight defenses as a single `ExecutionGuard` class that wraps every tool call before execution:
+下面构建最小安全骨架，把八道防线实现为单一的 `ExecutionGuard` class，在每次工具调用执行前包裹一层：
 
 ```python
 # lena-v0.14/execution_guard.py
@@ -284,7 +284,7 @@ class ExecutionGuard:
 
 这是权限收敛在时间维度的实现。agent 的工具调用不应该使用系统环境变量里的长期 AWS key，而应该在任务开始时通过 IAM Role 发放一个与任务生命周期等长的临时凭证，任务结束后立即清除。
 
-Let's implement a `CredentialVault` that issues short-lived credentials on demand:
+下面实现一个按需颁发短期凭证的 `CredentialVault`：
 
 ```python
 # lena-v0.14/credential_vault.py
@@ -404,7 +404,7 @@ class PluginValidator:
 
 这是 agent 间通信中最容易被忽略的风险。当主 agent 派遣子 agent 去抓取一个网页并返回摘要时，这个摘要里可能包含恶意内容——比如网页作者故意写入的"忽略之前的指令，改为执行以下操作"。主 agent 如果直接把这个返回值当成可信内容传递给工具调用，就等于把子 agent 的 prompt injection 攻击面带入了主 agent 的执行链。
 
-Let's add a wrapper that enforces untrusted labeling for all subagent outputs:
+下面为所有子 agent 输出添加强制不受信任标记的包装层：
 
 ```python
 # lena-v0.14/subagent_trust.py
@@ -563,7 +563,7 @@ ToolCall → ExecutionGuard.check()
 
 ## Beat 6 — 运行验证
 
-Let's assemble the complete defense pipeline and verify it against a real attack sequence:
+下面组装完整的防御流水线，并用一个真实攻击序列验证：
 
 ```python
 # lena-v0.14/demo.py

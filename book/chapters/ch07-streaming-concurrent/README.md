@@ -35,7 +35,7 @@ Lena v0.6 在处理这个请求时会发生什么：
       4）明天北京→上海航班 5）Python 3.13 有哪些新特性
 ```
 
-Let's 用数字说话：
+用数字来说明：
 
 ```
 t=0.0s   发出 API 请求，屏幕空白
@@ -145,7 +145,7 @@ Convention：`thinking_delta` = thinking block 的内容增量；`signature_delt
 
 ## Beat 4 — 脚手架
 
-Let's verify the streaming baseline by building the smallest possible SSE consumer — one that can print tokens as they arrive and detect tool_use blocks:
+下面构建最小的 SSE consumer 来验证流式基线——能在 token 到达时打印，并检测 tool_use 块：
 
 ```python
 # lena-v0.7/core/streaming_base.py
@@ -510,7 +510,7 @@ class StreamingAgentLoop:
 
 ## Beat 6 — 运行验证
 
-Let's verify the speedup by running the actual benchmark with 5 concurrent web_search calls:
+下面用 5 个并发的 web_search 调用来验证加速效果：
 
 ```python
 # lena-v0.7/demo/benchmark.py
