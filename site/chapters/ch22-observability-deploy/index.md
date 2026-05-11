@@ -13,7 +13,7 @@ title: "Ch22：可观测性与部署"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.22"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch22-observability-deploy/code/lena-v0.22"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch22-observability-deploy/code/lena-v0.22"
 />
 
 

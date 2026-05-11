@@ -12,7 +12,7 @@ title: "Ch10：Context Engineering"
   chapterTitle="Ch10：Context Engineering"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.10"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch10-context-engineering/code/lena-v0.10"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch10-context-engineering/code/lena-v0.10"
 />
 
 

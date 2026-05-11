@@ -13,7 +13,7 @@ title: "Ch19：MCP 协议"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.19"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch19-mcp-protocol/code/lena-v0.19"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch19-mcp-protocol/code/lena-v0.19"
 />
 
 

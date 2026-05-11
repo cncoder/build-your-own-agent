@@ -13,7 +13,7 @@ title: "Ch17：Heartbeat 常驻"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.17"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch17-heartbeat/code/lena-v0.17"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch17-heartbeat/code/lena-v0.17"
 />
 
 

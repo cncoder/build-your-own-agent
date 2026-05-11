@@ -14,7 +14,7 @@ title: "Ch8：记忆"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.8"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch08-memory/code/lena-v0.8"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch08-memory/code/lena-v0.8"
 />
 
 <ChapterPlayer audioSrc="./audio/ch-08.mp3" chapterTitle="Ch8：记忆" />

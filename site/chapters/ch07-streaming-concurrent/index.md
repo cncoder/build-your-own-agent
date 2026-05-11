@@ -14,7 +14,7 @@ title: "Ch7：流式与并发"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.7"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch07-streaming-concurrent/code/lena-v0.7"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch07-streaming-concurrent/code/lena-v0.7"
 />
 
 <ChapterPlayer audioSrc="./audio/ch-07.mp3" chapterTitle="Ch7：流式与并发" />

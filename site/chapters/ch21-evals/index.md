@@ -13,7 +13,7 @@ title: "Ch21：Evals"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.21"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch21-evals/code/lena-v0.21"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch21-evals/code/lena-v0.21"
 />
 
 

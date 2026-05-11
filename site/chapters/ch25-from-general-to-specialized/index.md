@@ -12,7 +12,7 @@ title: "Ch25：从通用到你的 Agent"
   chapterTitle="Ch25：从通用到你的 Agent"
   demoSrc="./demo/index.html"
   codeVersion="lena-spawn"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch25-from-general-to-specialized/code/lena-spawn"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch25-from-general-to-specialized/code/lena-spawn"
 />
 
 

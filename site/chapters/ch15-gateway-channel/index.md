@@ -13,7 +13,7 @@ title: "Ch15：网关与 Channel"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.15"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch15-gateway-channel/code/lena-v0.15"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch15-gateway-channel/code/lena-v0.15"
 />
 
 

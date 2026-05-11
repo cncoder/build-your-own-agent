@@ -13,7 +13,7 @@ title: "Ch20：Docker Sandbox"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.20"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch20-docker-sandbox/code/lena-v0.20"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch20-docker-sandbox/code/lena-v0.20"
 />
 
 

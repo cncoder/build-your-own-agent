@@ -12,7 +12,7 @@ title: "Ch9：RAG 与向量检索"
   chapterTitle="Ch9：RAG 与向量检索"
   demoSrc="./demo/index.html"
   codeVersion="lena-v0.9-rag"
-  githubLink="https://github.com/cncoder/abelagent/tree/main/book/chapters/ch09-rag-vector-search/code/lena-v0.9-rag"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch09-rag-vector-search/code/lena-v0.9-rag"
 />
 
 
