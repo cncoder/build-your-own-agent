@@ -693,9 +693,3 @@ Lena 在本章学会了"在安全边界里执行代码"——Docker 容器隔离
 ---
 
 *本章产物：lena-v0.20 — Docker sandbox + exec-approvals session 记忆，三道防线完整实现*
-
----
-
-## 导航
-
-[← Ch 19. MCP 协议](../ch19-mcp-protocol/README.md) · [下一章 →](../ch21-evals/README.md) · [📘 目录](../../README.md)

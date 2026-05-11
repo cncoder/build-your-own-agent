@@ -1032,9 +1032,3 @@ Lena 在本章学会了"对外连接"——MCP 协议让她无需重写核心就
 - 官方 MCP servers 仓库：https://github.com/modelcontextprotocol/servers
 - 本书教材源码：`nanoClaw/nanoclaw/mcp/client.py`（200 行最佳教材）
 - Anthropic Blog：Code Execution with MCP（2025-11-04）
-
----
-
-## 导航
-
-[← Ch 18. Cron 长任务](../ch18-cron-longtask/README.md) · [下一章 →](../ch20-docker-sandbox/README.md) · [📘 目录](../../README.md)

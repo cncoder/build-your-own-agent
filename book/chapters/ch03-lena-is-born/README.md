@@ -735,11 +735,3 @@ LangChain 的 `AgentExecutor`（`langchain>=0.1.0`）做的事情和本章的 `a
 ## 叙事钩子
 
 Lena 现在能回答"现在几点"了。但她只有一个工具，而一个真正有用的助手需要能读文件、执行命令、搜网页。把工具从 1 个扩展到 4 个时，你不希望修改 AgentLoop 的任何一行——这就是**工具注册机制**要解决的问题。下一章，我们设计一个"加工具不改核心"的 ToolRegistry，然后用 4 个工具完成第一次真正意义上的多步任务。
-
----
-
-## 导航
-
-➡️ **[Ch 4. LLM 底层速查](../ch04-llm-internals/README.md)** — 工程师需要知道的 LLM 最少原理
-
-[← Ch 2. ReAct 循环的秘密](../ch02-react-loop/README.md) · [下一章 →](../ch04-llm-internals/README.md) · [📘 回全书目录](../../README.md)

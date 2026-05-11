@@ -514,11 +514,3 @@ Lena 在本章学会了"管理自己的工作记忆"——prompt caching 把 tok
 2. **保留错误的压缩。** 扩展 `AutoCompactor.compact()`，在摘要前从工具结果中提取每一行 `Error:` 并原文追加到摘要末尾。运行 50 轮测试，在某一轮故意触发 `FileNotFoundError`。验证错误文本在摘要中存活下来。
 
 3. **Provider 统一统计。** 在 `parse_usage()` 测试中将 Anthropic client 替换为返回 OpenAI 格式 usage dict（包含 `prompt_tokens_details.cached_tokens`）的 mock。确认缓存命中率正确读取，而不是总是显示零。
-
----
-
-## 导航
-
-➡️ **[Ch 11. 规划与多步推理](../ch11-planning-subagent/README.md)** — 子 agent 与任务委托
-
-[← Ch 9. RAG 与向量检索](../ch09-rag-vector-search/README.md) · [📘 回全书目录](../../README.md)

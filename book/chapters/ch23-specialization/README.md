@@ -612,11 +612,3 @@ v0.22 可观测性 + 部署（Ch22）
 Lena 在本章学会了"从通用变专用"——SpecKit 三件套（专用 system prompt + 工具子集 + 记忆过滤器）让同一个 runtime 派生出不同领域的专家 agent，而不需要重写核心逻辑。
 
 但 Specialization 模式的终极考场，是一个需要同时用到六大支柱的真实任务：浏览互联网。Browser Agent 要感知 DOM、生成点击序列、应对动态加载、处理登录态、在反爬限制下设计 fallback——这比任何单一支柱都复杂。**第 24 章，我们用前 23 章全部积累，搭建 lena-v0.24 Browser Agent——通用 agent 的终极压力测试。**
-
----
-
-## 导航
-
-➡️ **[Ch 24. Browser Agent（终章）](../ch24-browser-agent/README.md)** — 前 23 章全部能力在 Browser Agent 里的终极压力测试
-
-[← Ch 22. 可观测性深化](../ch22-observability-deploy/README.md) · [📘 回全书目录](../../README.md)

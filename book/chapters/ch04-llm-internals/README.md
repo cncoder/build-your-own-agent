@@ -382,9 +382,3 @@ Claude Sonnet 4.5：输入 $3/M tokens，输出 $15/M tokens
 | 版本 | 日期 | 变更 |
 |------|------|------|
 | v1.0 | 2026-05-05 | 初稿，从零创建，覆盖 SPEC 全部 8 个心智模型 |
-
----
-
-## 导航
-
-[← Ch 3. Lena 诞生](../ch03-lena-is-born/README.md) · [下一章 →](../ch05-tech-selection/README.md) · [📘 目录](../../README.md)

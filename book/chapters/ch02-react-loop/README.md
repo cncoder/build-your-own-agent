@@ -816,11 +816,3 @@ Observation:
 Lena 在本章学会了"为什么循环"——Thought/Action/Observation 三拍节奏让她从"生成文字"升级到"执行任务"。但现在的循环只活在图上，我们还没有一行真实代码。
 
 下一章要做的事只有一件：把这张状态机图变成 50 行真正能跑的 Python。你会看到最小的 AgentLoop 长什么样，第一次亲眼见证 Lena 用工具查到天气、写回复、再等下一条消息——这是整本书第一个可以在你本机运行的 agent 产物。**第 3 章，我们给 Lena 安上骨架。**
-
----
-
-## 导航
-
-➡️ **[Ch 3. Lena 诞生](../ch03-lena-is-born/README.md)** — 把纸上的状态机变成 50 行真实可跑的代码
-
-[← Ch 1. 你好，Agent](../ch01-hello-agent/README.md) · [📘 回全书目录](../../README.md)

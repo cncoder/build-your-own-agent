@@ -10,10 +10,11 @@ title: "Ch24：Browser Agent"
 
 <ChapterMedia
   chapterTitle="Ch24：Browser Agent"
+  audioSrc="./audio/ch-24.mp3"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
-  codeVersion="lena-v0.24"
-  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch24-browser-agent/code/lena-v0.24"
+  codeVersion="lena-v24"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch24-browser-agent/code"
 />
 
-
+<ChapterPlayer audioSrc="./audio/ch-24.mp3" chapterTitle="Ch24：Browser Agent" />

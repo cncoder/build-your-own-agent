@@ -437,9 +437,3 @@ lena-v0.12/
 ---
 
 Lena 现在能按需加载 skill 了。但如果某个 skill 的 instructions 里藏着恶意指令呢？第 13 章我们讲输入安全：如何让 Lena 不被 prompt injection 劫持。
-
----
-
-## 导航
-
-[← Ch 11. 规划与子 Agent](../ch11-planning-subagent/README.md) · [下一章 →](../ch13-input-safety/README.md) · [📘 目录](../../README.md)

@@ -1034,13 +1034,3 @@ class CacheStats:
 Lena 现在能在生产环境 7×24 运行，每次决策都有日志可查，每次花费都在预算控制内。
 
 但还有一个维度没有解决：她能泛化成任何专用 agent 吗？一个做代码审查的 Lena、一个做市场调研的 Lena、一个管理日历的 Lena——它们共用一套 runtime，但有不同的工具集、不同的 system prompt、不同的技能包。下一章，我们把这个"通用 runtime → 专用 agent"的通路打通。
-
----
-
----
-
-## 导航
-
-➡️ **[Ch 23. Specialization 深化](../ch23-specialization/README.md)** — Agent Squad 与 CrewAI 对比，派生框架解析
-
-[← Ch 21. Evals 深化](../ch21-evals/README.md) · [📘 回全书目录](../../README.md)

@@ -690,9 +690,3 @@ isDuplicate =
 个人项目和原型用 178 行版本——够用，清晰，易懂。多团队、多 channel、需要 audit trail 的系统用 4 子模块。不要"以防万用"地直接用 OpenClaw 版本——4 子模块的配置复杂度会让你的项目维护成本翻倍，而你可能根本用不到 visibility 和 reason 子模块。
 
 这是一个通用的工程原则：先用最简方案满足当前需求，当需求增长到最简方案的边界时，再升级到下一层复杂度。Heartbeat 的设计阶梯就是这么构建出来的——nano-claw 178 行是"当前需求"的答案，OpenClaw 4 子模块是"多 agent / 多 channel / 审计"需求的答案，两者不是同一个问题的好答案和差答案，而是不同问题的各自正确答案。
-
----
-
-## 导航
-
-[← Ch 16. MessageBus](../ch16-messagebus/README.md) · [下一章 →](../ch18-cron-longtask/README.md) · [📘 目录](../../README.md)

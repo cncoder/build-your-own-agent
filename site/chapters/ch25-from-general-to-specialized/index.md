@@ -10,9 +10,10 @@ title: "Ch25：从通用到你的 Agent"
 
 <ChapterMedia
   chapterTitle="Ch25：从通用到你的 Agent"
+  audioSrc="./audio/ch-25.mp3"
   demoSrc="./demo/index.html"
-  codeVersion="lena-spawn"
-  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch25-from-general-to-specialized/code/lena-spawn"
+  codeVersion="lena-v25"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch25-from-general-to-specialized/code"
 />
 
-
+<ChapterPlayer audioSrc="./audio/ch-25.mp3" chapterTitle="Ch25：从通用到你的 Agent" />

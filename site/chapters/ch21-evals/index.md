@@ -10,10 +10,11 @@ title: "Ch21：Evals"
 
 <ChapterMedia
   chapterTitle="Ch21：Evals"
+  audioSrc="./audio/ch-21.mp3"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
-  codeVersion="lena-v0.21"
-  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch21-evals/code/lena-v0.21"
+  codeVersion="lena-v21"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch21-evals/code"
 />
 
-
+<ChapterPlayer audioSrc="./audio/ch-21.mp3" chapterTitle="Ch21：Evals" />

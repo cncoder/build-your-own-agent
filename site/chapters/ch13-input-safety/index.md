@@ -10,10 +10,11 @@ title: "Ch13：输入安全"
 
 <ChapterMedia
   chapterTitle="Ch13：输入安全"
+  audioSrc="./audio/ch-13.mp3"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
-  codeVersion="lena-v0.13"
-  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch13-input-safety/code/lena-v0.13"
+  codeVersion="lena-v13"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch13-input-safety/code"
 />
 
-
+<ChapterPlayer audioSrc="./audio/ch-13.mp3" chapterTitle="Ch13：输入安全" />

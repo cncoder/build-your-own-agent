@@ -1053,11 +1053,3 @@ Lena v0.21 新增能力：
 Lena 在本章学会了"知道自己有没有变好"——code-based / model-based / human 三种 grader 覆盖不同任务类型，regression suite 让每次迭代有据可查，VERIFICATION_AGENT 机制在内循环持续施压。
 
 但 eval 告诉你分数，不告诉你为什么。当生产环境里某个工具调用耗时突然从 200ms 涨到 3s，当某条请求链路静默失败，当 token 预算被某个失控循环悄悄耗尽——这些都需要可观测性：trace、metric、日志三位一体。**第 22 章，我们给 Lena 接入 OTel——让每一次工具调用都留下可追踪的 span，同时装上预算熔断，防止失控循环烧穿账单。**
-
----
-
-## 导航
-
-➡️ **[Ch 22. 可观测性深化](../ch22-observability-deploy/README.md)** — OTel trace、预算熔断与生产部署实战
-
-[← Ch 20. Docker 沙箱](../ch20-docker-sandbox/README.md) · [📘 回全书目录](../../README.md)

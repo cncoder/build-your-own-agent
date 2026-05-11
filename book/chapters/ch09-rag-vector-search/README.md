@@ -807,11 +807,3 @@ Lena v0.9 现在能读一本 200 页的 PDF 并回答关于它的问题了。流
 `search_knowledge_base` 工具 40 行代码。基础设施是一个如果你在跑 PostgreSQL 就已经有了的 Docker 服务。这不是框架——是三条 SQL 查询加一次嵌入调用。
 
 下一章——上下文工程——将教你如何确保 Lena 检索到的文本块落在她上下文窗口的正确位置，以及当她检索的内容超出容量时如何压缩。
-
----
-
-## 导航
-
-➡️ **[Ch 10. 上下文工程：Token 经济学](../ch10-context-engineering/README.md)** — 三层压缩、prompt 缓存、TokenMonitor
-
-[← Ch 8. 记忆与上下文](../ch08-memory/README.md) · [📘 回全书目录](../../README.md)

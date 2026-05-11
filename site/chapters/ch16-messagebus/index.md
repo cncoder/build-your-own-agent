@@ -10,10 +10,11 @@ title: "Ch16：MessageBus"
 
 <ChapterMedia
   chapterTitle="Ch16：MessageBus"
+  audioSrc="./audio/ch-16.mp3"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
-  codeVersion="lena-v0.16"
-  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch16-messagebus/code/lena-v0.16"
+  codeVersion="lena-v16"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch16-messagebus/code"
 />
 
-
+<ChapterPlayer audioSrc="./audio/ch-16.mp3" chapterTitle="Ch16：MessageBus" />

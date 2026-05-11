@@ -10,10 +10,11 @@ title: "Ch20：Docker Sandbox"
 
 <ChapterMedia
   chapterTitle="Ch20：Docker Sandbox"
+  audioSrc="./audio/ch-20.mp3"
   slidesSrc="./slides/index.html"
   demoSrc="./demo/index.html"
-  codeVersion="lena-v0.20"
-  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch20-docker-sandbox/code/lena-v0.20"
+  codeVersion="lena-v20"
+  githubLink="https://github.com/cncoder/build-your-own-agent/tree/main/book/chapters/ch20-docker-sandbox/code"
 />
 
-
+<ChapterPlayer audioSrc="./audio/ch-20.mp3" chapterTitle="Ch20：Docker Sandbox" />
