@@ -165,7 +165,7 @@ Now let's walk through each path systematically — not to celebrate it, but to 
 
 2. **语气/角色设定**：客服 bot 需要"友善、简洁、不道歉"的语气。在 system prompt 里写清楚比 fine-tune 快 100 倍，而且可以随时修改。
 
-3. **思维链（CoT）激活**：给推理题加入思维链提示词（典型写法："think step by step"），CoT 提示在多个 benchmark 上显著提升准确率——Wei et al. 2022 报告 GSM8K 数学推理从 17.9% 提升到 58.1%（来源：Wei et al., 2022, [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903)，不需要读完，只需要知道：给出思考步骤的指令能显著改善推理任务）。
+3. **思维链（CoT）激活**：给推理题加入思维链提示词（典型写法："think step by step"），CoT 提示在多个 benchmark 上显著提升准确率——Wei et al. 2022 报告 PaLM 540B 在 GSM8K 数学推理上从 17.9% 提升到 56.9%（绝对提升 39 个百分点，见 Appendix Table 2）（来源：Wei et al., 2022, [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903)，不需要读完，只需要知道：给出思考步骤的指令能显著改善推理任务）。
 
 **3 个不该用的场景**
 
