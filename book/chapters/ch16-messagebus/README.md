@@ -654,6 +654,6 @@ ERROR:bus:Handler 'buggy_analytics' failed on ...: Analytics service down
 | `nano-claw/src/channels/manager.ts` | Channel → Bus 的注册逻辑（TypeScript 版） |
 | Michael Nygard, *Release It!: Design and Deploy Production-Ready Software*, 2nd ed., Stability Patterns 章节 | Bulkhead Pattern 的标准参考（Nygard 在生产系统故障分析中系统化了这个模式）；不需要读完，只需要知道：隔仓 = 限制一个组件的故障影响范围 |
 | Apache Kafka Documentation, "Introduction to Event Streaming" | 分布式 pub/sub 的标准参考；不需要读完，只需要知道：Kafka 解决的是"多机、高吞吐、持久化"场景，本章的进程内 Bus 解决的是"单机、低延迟、零运维"场景 |
-| Confluent, "Benchmarking Apache Kafka, Apache Pulsar, and RabbitMQ" (developer.confluent.io/learn/kafka-performance/) | Beat 7 表格数据来源：Kafka p99 = 5 ms @ 200K msg/s，峰值 605 MB/s；RabbitMQ 超过 ~38K msg/s 后 p99 接近 2 秒 |
+| Confluent, "Benchmarking Apache Kafka, Apache Pulsar, and RabbitMQ" (developer.confluent.io/learn/kafka-performance/) | Beat 7 表格数据来源：Kafka p99 = 5 ms @ 200K msg/s，峰值 605 MB/s；RabbitMQ 在高吞吐下延迟会显著升高（Confluent 基准测试仅覆盖 Kafka 与 Pulsar 的对比，RabbitMQ 延迟特性见 CloudAMQP 最佳实践文档） |
 | NATS.io, "Sophotech: Cutting Latency by 3x Migrating from RabbitMQ to NATS" (nats.io/blog/sophotech-rabbitmq-to-nats) | 进程间通信场景从 RabbitMQ 迁移到 NATS 的真实案例：p99 从 ~150 ms → ~40 ms，运维时间从数小时/周 → 1 小时以内 |
 | Redis documentation, "Redis Benchmarks" (redis.io/docs/latest/operate/oss_and_stack/management/optimization/benchmarks) | redis-benchmark 官方实测数据：SET p50 = 0.143 ms（50 并发客户端，无流水线），吞吐典型值 > 100K ops/s |
