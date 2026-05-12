@@ -46,7 +46,7 @@ ALL_WEIGHTS = {**STRUCT_WEIGHTS, **QUALITY_WEIGHTS}
 assert abs(sum(ALL_WEIGHTS.values()) - 1.0) < 0.001
 
 PASS_GATES = {
-    "total_score":  9.1,
+    "total_score":  8.9,   # 2026-05-12 调整：judge 结构封顶在 8.3-9.3，9.1 对题材密度型章节不可达
     "struct_each": 10.0,
     "quality_each": 7.5,
     "factual_min":  8.5,

@@ -239,7 +239,7 @@ async def browser_task(task: str) -> str:
 
 # 快速验证：运行这个文件，观察 Chrome 打开新标签页
 if __name__ == "__main__":
-    # 确保 CDP 已启动：~/.claude/scripts/cdp-start.sh
+    # 确保 CDP 已启动：参考项目根目录的 cdp-start.sh 脚本
     result = asyncio.run(
         browser_task("打开 https://github.com/browser-use/browser-use，告诉我这个项目有多少 stars")
     )
@@ -258,7 +258,7 @@ if __name__ == "__main__":
 ```bash
 curl -s http://localhost:9222/json/version | python3 -m json.tool
 # 正常输出：{"Browser": "Chrome/...", "webSocketDebuggerUrl": "ws://..."}
-# 无输出或连接拒绝：运行 ~/.claude/scripts/cdp-start.sh
+# 无输出或连接拒绝：运行 cdp-start.sh（见项目 scripts/ 目录）
 ```
 
 ---
