@@ -52,12 +52,9 @@ python3 lena-v0.14/main.py
 
 > 本节是纯理论，分三个小节。
 
-Anthropic 的 Managed Agents 架构（2026-04）把这个问题提到了操作系统层面的抽象高度：
+操作系统曾经面对一个类似的问题：硬件千差万别，但程序不可能为每块硬件单独编写。解法是**虚拟化**——把物理资源抽象成"进程"、"文件"这样的通用接口，让"还没被想到的程序"也能运行。Gateway + Channel 的设计在 agent 层做的是同一件事：把"用户从哪来"这个变量虚拟化，让 Lena 的 AgentLoop 不需要知道消息来自 Discord、CLI 还是邮件；Gateway 负责翻译。
 
-> "Operating systems solved the 'programs as yet unthought of' problem by virtualizing hardware into abstractions—process, file—general enough for programs that didn't exist yet. Managed Agents does the same for AI agents: session, harness, sandbox."
-> （来源：Anthropic, *Scaling Managed Agents*, 2026-04-08）
-
-本章的 Gateway + Channel 对应的正是这三层中的**中间层**：它把"用户从哪来"这个变量虚拟化了——Lena 的 AgentLoop 不需要知道消息来自 Discord、CLI、还是邮件；Gateway 负责翻译。
+本章的 Gateway + Channel 对应的正是这个**中间层**。
 
 ### 3.1 Gateway 的本质是什么
 
