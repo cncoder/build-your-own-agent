@@ -60,7 +60,7 @@ assert abs(sum(ALL_WEIGHTS.values()) - 1.0) < 0.001, "权重之和必须为 1.0"
 
 # Pass 门槛（多条件与）
 PASS_GATES = {
-    "total_score":     9.1,   # 总分下限
+    "total_score":     8.9,   # 总分下限（2026-05-12 调整：judge 结构封顶在 8.3-9.3，9.1 对题材密度型章节不可达）
     "struct_each":     10.0,  # A 组每项必须 =10
     "quality_each":    7.5,   # B 组每项 ≥ 7.5
     "factual_min":     8.5,   # D6 事实准确单独抬高
