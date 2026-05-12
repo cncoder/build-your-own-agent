@@ -310,8 +310,6 @@ python3 lena_v01_full.py bedrock
 
 你刚才亲手验证了 Beat 3 讲的格式差异中最值得关注的一条：**Bedrock 的 `content` 是列表，不是字符串**。这个设计是为了支持 Convention：**multimodal**（多模态）= 在同一条消息里混合多种内容类型——文字（`{"text": "..."}`）、图片（`{"image": {...}}`）、文档（`{"document": {...}}`）可以共存于同一个 `content` 列表中，每种类型是一个独立 block。当前的 Lena v0.1 只用文字，但后续需要给 Lena 加"读截图"能力时，只需在同一个列表里追加一个 `{"image": ...}` block，不需要换 SDK。
 
-**Bedrock 前置条件**：Bedrock 在运行前需要在 AWS 控制台手动申请模型访问权限：进入 Bedrock 控制台 → Model access → Anthropic Claude 系列 → 申请访问。申请通常即时生效，但需要你的 AWS 账号已经激活对应 region 的 Bedrock 服务。
-
 ---
 
 ## Beat 6 — 运行验证：Day-0 的三分钟锚点
