@@ -23,7 +23,7 @@ Ch17 Heartbeat（下章）
      Lena 从"被动响应"升级为"主动出击"
 ```
 
-本章从"多 channel 直连 AgentLoop"这个定时炸弹出发，经过 pub/sub 理论、134 行 nano-claw 实现拆解，最终到达"channel 可运行时 attach/detach"的 Lena v0.16。途中踩的坑只有一个，但很致命：`asyncio.gather` 在没有错误隔离时，一个 handler 的未捕获异常会让同批所有其他 handler 也停止——`safeHandlerCall` 是唯一的出路。
+本章从"多 channel 直连 AgentLoop"这个定时炸弹出发，经过 pub/sub 理论、134 行 nano-claw（本书配套的极简 agent runtime 参考实现，TypeScript 版）实现拆解，最终到达"channel 可运行时 attach/detach"的 Lena v0.16。途中踩的坑只有一个，但很致命：`asyncio.gather` 在没有错误隔离时，一个 handler 的未捕获异常会传播到调用方，整批消息处理失败——`safeHandlerCall` 是唯一的出路。
 
 本章结束后，Lena 从 v0.15（固定 channel 结构，channel 崩了 Lena 崩）升级到 **v0.16**，新增三项能力：
 1. 任意 handler 崩溃不影响同批其他 handler
@@ -31,8 +31,6 @@ Ch17 Heartbeat（下章）
 3. 运行时动态 detach 旧 channel，不重启 Lena
 
 **本章回答的核心问题**：我的 agent 连了 Telegram + Discord + HTTP，一个 channel 超时崩溃，其他 channel 为什么也停了？怎么修？
-
-> **🧠 聪明度增量（v0.15 → v0.16）**：Lena 第一次解耦协作——MessageBus pub/sub 把 channel 与 AgentLoop 的直连线换成事件总线，任意 channel 崩溃不拖垮其他 channel，运行时热插拔无需重启。这一章教读者把事件驱动解耦架构长在自己 agent 上的方法。
 
 ---
 
@@ -100,9 +98,9 @@ async def handle_message_concurrent(channel_type: str, content: str):
     )
 ```
 
-`asyncio.gather` 的默认行为是：任意一个 coroutine 抛出异常，gather 立即 cancel 其他仍在运行的 coroutine，然后把那个异常重新抛给调用方。
+`asyncio.gather` 的默认行为（`return_exceptions=False`）是：任意一个 coroutine 抛出异常，gather 把该异常立即重新抛给调用方。其他 coroutine 继续在事件循环中运行直到完成，调用方不再等待它们的结果。
 
-运行这个版本，你会发现：`agent_loop` 和 `logger` 可能正在执行到一半，`buggy_analytics` 抛了异常，它们直接被取消。你看到的输出可能是空的——`[AgentLoop]` 和 `[Logger]` 的打印甚至没出现，因为它们在打印之前就被 cancel 了。
+实际效果：调用方收到异常后，如果没有 `try/except`，这一次的消息处理整体失败，Telegram 的回复没有发出。在一个消息处理循环里，下一条消息到来时还会遇到同样的问题——只要 `buggy_analytics` 的根因没解除，每条消息都失败。
 
 实测数字：在一个有 5 个 channel（Telegram / Discord / HTTP / WebSocket / Slack）的 Lena 实例中，Slack 鉴权 token 过期导致 `SlackChannel.receive()` 每次调用都抛 `AuthenticationError`。结果：**所有 5 个 channel 的所有消息在那个时段的响应率都降到了 0%**。Telegram 用户发消息没有回复，不是 Telegram 有问题，是 Slack 的异常通过 gather 传播到了整个处理管道。
 
@@ -128,44 +126,42 @@ Bus 把拓扑从全连接图变成星形图：Publisher 只连向 Bus（N 条边
 
 ### 3.2 safeHandlerCall：隔仓设计的最小实现
 
-"隔仓设计"（Bulkhead Pattern）的名字来自造船工程。船体被分成多个独立的水密仓，一个仓进水，水密壁阻止水流到其他仓，整艘船不会因为局部进水而沉没。在微服务架构里，Bulkhead Pattern 指把不同的服务调用放在独立的线程池或信号量里，一个服务响应慢不会耗尽整个系统的线程资源，拖垮其他服务。
+**Convention**：**Bulkhead Pattern**（隔仓设计）= 把不同的调用单元隔离，一个单元的故障不能传播到其他单元；名字来自造船工程的水密舱（一仓进水不沉船）；在微服务里表现为独立线程池/信号量；在 agent MessageBus 里，每个 handler 是一个"仓"，`_safe_call` 是隔离层。
 
-在 agent 的 MessageBus 里，每个 handler 是一个"仓"。Bulkhead 要做的事是：一个 handler 抛出异常，不能传播给其他 handler。
+关键设计决策：一个 handler 抛出异常，不能传播给其他 handler，也不能让整批消息失败。
 
 关键点是"**在 asyncio.gather 之前捕获**"。
 
-`asyncio.gather(coro1(), coro2(), coro3())` 同时启动三个 coroutine。如果 coro2 抛出异常，gather 的默认行为（`return_exceptions=False`）是：立即向调用方传播这个异常，同时 cancel 正在运行的 coro1 和 coro3。
+`asyncio.gather(coro1(), coro2(), coro3())` 同时启动三个 coroutine。如果 coro2 抛出异常，gather 的默认行为（`return_exceptions=False`）是：立即把该异常重新抛给调用方，coro1 和 coro3 继续在事件循环中运行直到完成——但调用方已经收到异常，不再等待它们的结果。整个这一批消息的处理逻辑失败，该消息的回复没有发出。
 
-要让 gather 不 cancel 其他 coroutine，必须让每个 coroutine 调用本身不抛出异常——换句话说，把异常在 coroutine 内部吞掉。`safeHandlerCall` 就是这个包裹层：它接受一个 handler 和一条消息，调用 handler，如果 handler 抛异常，`safeHandlerCall` 捕获它、记录日志、不 rethrow，然后正常返回 None。从 gather 的视角看，这次调用成功完成了（只是 handler 内部遇到了一个已被处理的错误）。
+要让 gather 始终正常返回，必须让每个 coroutine 调用本身不抛出异常——换句话说，把异常在 coroutine 内部吞掉。`safeHandlerCall` 就是这个包裹层：它接受一个 handler 和一条消息，调用 handler，如果 handler 抛异常，`safeHandlerCall` 捕获它、记录日志、不 rethrow，然后正常返回 None。从 gather 的视角看，这次调用成功完成了（只是 handler 内部遇到了一个已被处理的错误）。其余所有 handler 的 safeHandlerCall 也正常完成，整批处理不中断。
 
 `safeHandlerCall` 的行为规范：
 1. `await handler(message)` — 调用 handler
-2. 如果抛出任何 `Exception`：记录 `logger.error`（保留问题可追溯性），emit error event（通知监听者，但不强制处理），然后 **return**，不 rethrow
+2. 如果抛出任何 `Exception`：记录 `logger.error`（包含 handler 名字、message id、异常信息和 traceback，保留问题可追溯性），然后 **return**，不 rethrow
 3. 如果正常完成：直接 return
 
-这 8 行代码是本章最重要的工程决策。
+这几行代码是本章最重要的工程决策。
 
 **Convention**：`safeHandlerCall`（或 `_safe_call`）= 带错误隔离包裹的 handler 调用，任何异常在内部被捕获，不传播给调用方；裸 handler 调用 = 异常会传播给调用方（通常通过 gather 传播给整批调用）。
 
 ### 3.2b 多 Agent 协调的三种模式：MessageBus 的理论坐标
 
-本章的 MessageBus 实现不是凭空设计的，它对应多 agent 系统协调架构中一个明确的类别。Anthropic 架构白皮书列出了 collaborative 系统的三种协调模式：
+safeHandlerCall 解决了崩溃传播，pub/sub 解决了 N×M 耦合——但这两个工具合在一起，在架构分类上属于哪一种模式？把本章的设计放到多 agent 协调框架的全局坐标里定位，有助于理解它在什么场景下是正确选择，在什么场景下不够用。
 
-> - **Group chat** — agents 参与共享对话线程，通过自然语言协调
-> - **Event-driven** — 事件作为共享语言，结构化更新驱动协作
-> - **Blackboard** — 共享知识仓，所有 agent 可读写（集体记忆）
->
-> （来源：Anthropic, *Building Effective AI Agents: Architecture Patterns and Implementation Frameworks*, 2025, p.17）
+**Convention**：**event-driven coordination**（事件驱动协调）= 多 agent 或多组件系统中，以结构化事件（而非自然语言对话或共享变量读写）作为协作语言的协调模式。组件之间不直接调用，而是通过发布/订阅事件来传递状态变化。
 
-本章的 MessageBus 对应的是其中的 **event-driven coordination** 模式：`ChannelMessage` 是结构化事件，`publish()` 是事件发布，`subscribe()` 是事件订阅，`_safe_call` 保证单个 handler 的故障不传播给整个事件总线。
+本章的 MessageBus 在多 agent 系统的协调模式谱系里属于 event-driven coordination：组件之间不互相持有引用，通过发布/订阅结构化事件（`ChannelMessage`）来协作，`_safe_call` 保证单个 handler 的故障不传播给整个总线。
 
-白皮书对 event-driven 模式给出了一个工程警告，值得在实现 MessageBus 时牢记：
+这与 Anthropic 在 *Building effective agents*（2024-12-19）中讨论多 agent 并行化架构时给出的工程警告高度对应：
 
 > "small changes can unpredictably affect how agents behave"
 
-这就是为什么 pub/sub 解耦比直接调用安全。在直连架构里，加一个新的 subscriber 意味着修改 publisher 的代码——这是一次"小改动"，却可能触发意外的行为变化。在 Bus 架构里，加一个 subscriber 只需要调用 `bus.subscribe()`，publisher 的代码完全不知道这件事发生了，也不受影响。
+这正是 pub/sub 解耦比直连架构安全的原因。在直连架构里，加一个新的 subscriber 意味着修改 publisher 的代码——这是一次"小改动"，却可能触发意外的行为变化。在 Bus 架构里，加一个 subscriber 只需要调用 `bus.subscribe()`，publisher 的代码完全不知道这件事发生了，也不受影响。
 
-三种协调模式各有适用场景：Group chat 适合创意任务（agent 需要相互"看见"彼此的推理过程），Blackboard 适合知识共享（所有 agent 需要访问同一个不断更新的知识库），Event-driven 适合解耦的响应式系统（如本章的 Lena——多个 channel 独立发消息，多个 handler 独立响应，互不干扰）。
+Event-driven 协调模式的典型对比场景：如果 agent 之间需要"相互看见彼此的推理过程"（如多个 LLM agents 讨论同一个问题），共享对话线程或共享知识仓更合适；如果 agent/组件之间需要解耦的响应式协作（如本章的 Lena——多个 channel 独立发消息，多个 handler 独立响应，互不干扰），event-driven 是正确选择。
+
+确定了"这是 event-driven 架构"之后，有一个实现细节需要决策：不是所有的 subscriber 都关心"消息从哪个 channel 来"。这个区别，决定了 MessageBus 需要维护两类不同的订阅。
 
 ### 3.3 globalHandlers vs channel-specific handlers
 
@@ -173,11 +169,13 @@ MessageBus 维护两类订阅，这个设计选择不是可选的优化，而是
 
 **channel-specific handlers**：用 `subscribe("telegram", handler)` 注册，只在 `channel_type == "telegram"` 的消息到来时触发。AgentLoop 是典型的 channel-specific subscriber——它需要知道消息来自哪个 channel，来决定用什么上下文回复（Telegram 的 chat_id、Discord 的 guild_id 都在 `metadata` 里）。
 
-**global handlers**：用 `subscribe_all(handler)` 注册，任何 channel 的任何消息都触发。Logger、Analytics、成本统计、安全审计这类**横切关注点**（cross-cutting concerns）对消息来源无感知——它们只关心"有消息发生了"，不关心"消息从哪里来"。
+**global handlers**：用 `subscribe_all(handler)` 注册，任何 channel 的任何消息都触发。Logger、Analytics、成本统计、安全审计这类横切关注点对消息来源无感知——它们只关心"有消息发生了"，不关心"消息从哪里来"。
+
+**Convention**：**横切关注点**（cross-cutting concerns）= 系统中与业务逻辑正交的通用能力，如日志、监控、权限审计、成本计量——它们"横穿"所有业务模块而不属于其中任何一个。在直连架构里，横切关注点会被迫耦合到每一个调用点；在 Bus 架构里，它们通过 `subscribe_all` 集中注册一次，与业务逻辑完全隔离。
 
 把横切关注点注册成 global handler 的关键好处是：加一个新的 channel（从 4 个增加到 5 个），Logger 不需要任何改动。Logger 注册了一次 `subscribe_all`，之后无论有多少个 channel，它都自动收到所有消息。如果 Logger 是 channel-specific，加 channel 就必须同步更新 Logger 的注册，这是在 Bus 层复现 N×M 的耦合。
 
-判断规则很简单：handler 需不需要知道消息来自哪个 channel？需要 → channel-specific。不需要 → global。
+判断规则：handler 需不需要知道消息来自哪个 channel？需要 → channel-specific（如 AgentLoop 需要 chat_id、guild_id）。不需要 → global（如 Logger、Analytics）。
 
 这个区分在 nano-claw 的 `bus/index.ts` 里表现为两个独立的数据结构（`handlers: Map<string, Set<MessageHandler>>` 和 `globalHandlers: Set<MessageHandler>`），不是同一个结构里的不同标签。数据结构的分离保证了两类 handler 的管理逻辑不互相干扰。
 
@@ -500,7 +498,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
 
-from bus import MessageBus, ChannelMessage, get_message_bus
+from bus import MessageBus, ChannelMessage
 from channel_plugin import MockChannel
 from channel_manager import ChannelManager
 
@@ -521,7 +519,7 @@ async def buggy_analytics(msg: ChannelMessage) -> None:
 
 
 async def main():
-    bus = get_message_bus()
+    bus = MessageBus()
     manager = ChannelManager(bus)
 
     # 注册 handlers
@@ -591,13 +589,7 @@ ERROR:bus:Handler 'buggy_analytics' failed on ...: Analytics service down
 最终 handler 数量: 4
 ```
 
-**三件事需要确认**：
-
-1. `buggy_analytics` 每次都报 ERROR，但 `[AgentLoop]` 和 `[Logger]` 每次都正常打印。这证明 `safeHandlerCall` 的错误隔离有效。如果你不信，把 `_safe_call` 里的 `except` 块删掉，再跑一遍——AgentLoop 和 Logger 就会在场景 1 之后消失。
-
-2. 场景 2 的 discord 消息正常被处理，但 discord 在场景 1 时还不存在。这是热插拔有效的证明——`bus.subscribe("discord", ...)` 在 attach 之前就注册了，attach 之后立刻生效。
-
-3. 场景 3 telegram 已经 detach，但 discord 消息继续正常处理。这说明 detach 是幂等的，不影响其他 channel。
+**验证三点**：①`buggy_analytics` 报 ERROR 但其他 handler 正常打印（隔离有效；反证：删掉 `_safe_call` 的 `except` 块重跑，输出会消失）。②场景 2 的 discord 消息处理正常，但 discord 在场景 1 时还不存在（subscribe 先于 attach 生效）。③场景 3 telegram 已 detach 但 discord 正常（detach 不影响其他 channel）。
 
 **常见报错诊断**：
 - `RuntimeError: Channel 'X' not started` → 直接调用了 `channel.receive()` 而没有先 `await manager.attach(channel)`
@@ -619,16 +611,14 @@ ERROR:bus:Handler 'buggy_analytics' failed on ...: Analytics service down
 >
 > | 维度 | 进程内 MessageBus | Redis pub/sub | Kafka |
 > |------|-----------------|--------------|-------|
-> | 运维成本 | 零，无依赖 | Redis 实例 + 连接管理 | Kafka + ZooKeeper/KRaft + 监控 |
-> | 消息延迟 | ~1 微秒（函数调用） | ~0.5–2 毫秒（本地网络） | ~5–20 毫秒（正常情况） |
-> | 消息持久化 | 无（进程重启丢失） | 无（pub/sub 无持久化） | 有（可配置保留期） |
-> | 消息回放 | 无 | 无 | 有 |
+> | 运维成本 | 零，无依赖 | Redis 实例 + 连接管理 | Kafka + KRaft + 监控 |
+> | 消息延迟 | 数微秒量级（Python asyncio 事件循环调度开销；实际取决于 Python 版本和系统负载） | < 1 毫秒（本地回环，redis-benchmark 实测 SET p50 = 0.143 ms） | p99 = 5 ms @ 200K msg/s（Confluent 官方 benchmark，1 KB payload，单 broker 典型配置） |
+> | 峰值吞吐 | 受 Python GIL 限制，单核约数万/s | redis-benchmark 典型吞吐 > 100K ops/s（50 并发客户端，来源：redis.io 官方 benchmarks 页；SET p50 = 0.143 ms 是每请求延迟，与吞吐不矛盾） | 实测峰值 605 MB/s（约 6 亿 byte/s，Confluent 2021 benchmark） |
+> | 消息持久化 | 无（进程重启丢失） | 无（pub/sub 不落盘，Redis Streams 可持久化） | 有（可配置保留期） |
+> | 消息回放 | 无 | pub/sub 无回放；Streams 有 | 有，offset 任意定位 |
 > | 水平扩展 | 无，单进程 | 有，多消费者 | 有，consumer group |
-> | 适用消息量 | < 10,000/s | < 100,000/s | > 100,000/s |
 >
-> **当前选择的理由**：Lena 是单机 personal agent，channel 数量个位数（4–8 个），消息量每分钟几十条，峰值每分钟几百条。在这个规模下，进程内 Bus 的 ~1 微秒延迟 vs Redis 的 ~1 毫秒延迟，差距是 1000x。对于交互式 agent（用户发消息等回复），这个延迟差在 "快到感觉不到" vs "已经感觉到轻微迟滞" 之间。
->
-> 更重要的是：引入 Redis 引入了 5 个新的运维问题（Redis 进程管理、连接池配置、连接超时处理、消息序列化/反序列化、Redis 崩溃时 Lena 的 fallback 行为），来解决一个在当前规模下不存在的问题（单进程处理能力不足）。这不是工程决策，是工程债务。
+> **当前选择的理由**：Lena 是单机 personal agent，channel 数量个位数（4–8 个），消息量每分钟几十条，峰值每分钟几百条。在这个规模下，引入 Redis 引入了 5 个新的运维问题（Redis 进程管理、连接池配置、连接超时处理、消息序列化/反序列化、Redis 崩溃时 Lena 的 fallback 行为），来解决一个在当前规模下不存在的问题（单进程处理能力不足）。这不是工程决策，是工程债务。
 >
 > **什么时候该换成 MQ**：Lena 需要**跨机器运行**时——主 agent 在服务器 A，Telegram channel 在服务器 B（比如为了隔离 Telegram Bot Token 的暴露面），两个进程之间的通信必须有网络传输，Redis pub/sub 是最简单的选择。或者 Lena 的消息量因为多租户（同时服务 1000 个用户）超出单进程处理能力时。
 >
@@ -638,17 +628,15 @@ ERROR:bus:Handler 'buggy_analytics' failed on ...: Analytics service down
 
 ## 本章小结
 
-MessageBus 是 134 行，但它解决了 3 个架构问题：
+三个问题 → 三个工具：
 
-**问题一：耦合爆炸**。N 个 channel × M 个 handler = N×M 条直连线，任何一边增减都需要改对面所有代码。Bus 把这个乘法变成加法：N+M 条线，双方互不知晓。
+- **耦合爆炸**（N×M 直连线）→ pub/sub Bus，N+M 条线，双方互不知晓
+- **错误传播**（asyncio.gather 把一个 handler 的异常传播给整批）→ `_safe_call` 包裹层，异常在每个 handler 内部消化，不向外传播
+- **静态结构**（添加/移除 channel 需要重启）→ `subscribe/unsubscribe` + `ChannelManager.attach/detach` 实现运行时热插拔
 
-**问题二：错误传播**。`asyncio.gather` 的默认行为会让一个 handler 的异常 cancel 所有其他 handler。`safeHandlerCall`（或 `_safe_call`）在 gather 之前把每个 handler 包裹一层，保证异常在包裹内部被消化，不向外传播。这是隔仓设计（Bulkhead Pattern）的最小实现——8 行代码。
+横切关注点用 `subscribe_all`（注册一次适用所有 channel），业务逻辑用 `subscribe`（精准订阅）——这是防止在 Bus 层复现 N×M 耦合的关键区分。
 
-**问题三：静态结构**。直连架构中，channel 是在 Lena 启动时初始化的，添加或移除 channel 需要重启。`subscribe/unsubscribe` 是运行时操作，`ChannelManager.attach/detach` 把这两个操作封装成带生命周期管理的热插拔接口。
-
-**两类订阅的区分**是另一个值得记住的设计决策：横切关注点（Logger、Analytics、Security Audit）用 `subscribe_all`，注册一次、适用所有 channel；业务逻辑（AgentLoop、NotificationService）用 `subscribe`，精准订阅特定 channel。这个区分防止了在 Bus 层复现 N×M 问题。
-
-**进程内 vs 分布式 MQ**的选择不是品味问题，是规模和运维成本的工程决策。个人 agent 用进程内 Bus，千万不要因为"看起来更专业"就上 Kafka。
+进程内 Bus vs 分布式 MQ 的选择是规模工程决策，不是品味问题：Kafka p99 在 200K msg/s 负载下为 5 ms，对个人 agent 的场景是引入 5 个新运维问题来解决一个不存在的规模问题。
 
 ---
 
@@ -664,5 +652,8 @@ MessageBus 是 134 行，但它解决了 3 个架构问题：
 |------|------|
 | `nano-claw/src/bus/index.ts`（134 行） | TypeScript 版 MessageBus 完整实现，本章 Python 版的原型 |
 | `nano-claw/src/channels/manager.ts` | Channel → Bus 的注册逻辑（TypeScript 版） |
-| Martin Fowler, *Patterns of Enterprise Application Architecture*, Ch 9 | Bulkhead Pattern 的原始讨论；不需要读完，只需要知道：隔仓 = 限制一个组件的故障影响范围 |
+| Michael Nygard, *Release It!: Design and Deploy Production-Ready Software*, 2nd ed., Stability Patterns 章节 | Bulkhead Pattern 的标准参考（Nygard 在生产系统故障分析中系统化了这个模式）；不需要读完，只需要知道：隔仓 = 限制一个组件的故障影响范围 |
 | Apache Kafka Documentation, "Introduction to Event Streaming" | 分布式 pub/sub 的标准参考；不需要读完，只需要知道：Kafka 解决的是"多机、高吞吐、持久化"场景，本章的进程内 Bus 解决的是"单机、低延迟、零运维"场景 |
+| Confluent, "Benchmarking Apache Kafka, Apache Pulsar, and RabbitMQ" (developer.confluent.io/learn/kafka-performance/) | Beat 7 表格数据来源：Kafka p99 = 5 ms @ 200K msg/s，峰值 605 MB/s；RabbitMQ 超过 ~38K msg/s 后 p99 接近 2 秒 |
+| NATS.io, "Sophotech: Cutting Latency by 3x Migrating from RabbitMQ to NATS" (nats.io/blog/sophotech-rabbitmq-to-nats) | 进程间通信场景从 RabbitMQ 迁移到 NATS 的真实案例：p99 从 ~150 ms → ~40 ms，运维时间从数小时/周 → 1 小时以内 |
+| Redis documentation, "Redis Benchmarks" (redis.io/docs/latest/operate/oss_and_stack/management/optimization/benchmarks) | redis-benchmark 官方实测数据：SET p50 = 0.143 ms（50 并发客户端，无流水线），吞吐典型值 > 100K ops/s |
