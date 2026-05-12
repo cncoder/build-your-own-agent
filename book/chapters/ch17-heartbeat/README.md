@@ -294,6 +294,79 @@ export class Heartbeat extends EventEmitter {
 
 运行 `new Heartbeat({ intervalMs: 5000, enabled: true }).start()` 应该每 5 秒打印一次 `beat #N`。接下来我们在这个骨架上逐步增加 active-hours、payload 生成和 outbound 事件。
 
+**Python 等价骨架**（用 `asyncio` 替代 `setTimeout`，同样保证节拍不重叠）：
+
+```python
+# heartbeat.py — 最小骨架（Python asyncio 版）
+# 运行后每 5 秒打印一次 beat 事件；asyncio.sleep 等价于递归 setTimeout
+import asyncio
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Callable, Awaitable
+
+@dataclass
+class HeartbeatConfig:
+    interval_sec: float   # 节拍间隔：测试用 5，生产用 3600
+    enabled: bool         # 开关，集成测试时设 False
+
+class Heartbeat:
+    def __init__(self, config: HeartbeatConfig) -> None:
+        self._config = config
+        self._tick_count = 0
+        self._task: asyncio.Task | None = None
+        self._callbacks: list[Callable[..., Awaitable[None]]] = []
+
+    def on_beat(self, fn: Callable[..., Awaitable[None]]) -> None:
+        """注册 beat 回调（等价于 EventEmitter.on("beat", fn)）"""
+        self._callbacks.append(fn)
+
+    def start(self) -> None:
+        if not self._config.enabled:
+            print("[Heartbeat] disabled")
+            return
+        print(f"[Heartbeat] started, interval={self._config.interval_sec}s")
+        self._task = asyncio.create_task(self._run())
+
+    def stop(self) -> None:
+        if self._task:
+            self._task.cancel()
+        print("[Heartbeat] stopped")
+
+    async def _run(self) -> None:
+        # 关键：await sleep 在 tick 完成后才等，保证节拍不重叠
+        # 等价于 TypeScript 的 finally(() => scheduleNext())
+        while True:
+            await self._tick()
+            await asyncio.sleep(self._config.interval_sec)
+
+    async def _tick(self) -> None:
+        self._tick_count += 1
+        ts = datetime.now(timezone.utc)
+        print(f"[Heartbeat] beat #{self._tick_count} at {ts.isoformat()}")
+        for cb in self._callbacks:
+            await cb(count=self._tick_count, ts=ts)
+
+# 入口验证：运行后每 5 秒打印一次 beat
+async def _demo() -> None:
+    hb = Heartbeat(HeartbeatConfig(interval_sec=5, enabled=True))
+    hb.on_beat(lambda **kw: asyncio.coroutine(lambda: None)())
+    hb.start()
+    await asyncio.sleep(16)   # 等 3 次 beat
+    hb.stop()
+
+if __name__ == "__main__":
+    asyncio.run(_demo())
+```
+
+预期输出：
+```
+[Heartbeat] started, interval=5s
+[Heartbeat] beat #1 at 2026-05-12T08:00:05.001Z
+[Heartbeat] beat #2 at 2026-05-12T08:00:10.003Z
+[Heartbeat] beat #3 at 2026-05-12T08:00:15.005Z
+[Heartbeat] stopped
+```
+
 ---
 
 ## Beat 5 — 渐进组装
@@ -335,6 +408,40 @@ export function isActiveHours(config: ActiveHoursConfig): boolean {
 ```
 
 中间验证：`console.log(isActiveHours({ timezone: "Asia/Shanghai", weekdays: { start: 8, end: 22 } }))` 根据你当前的本地时间应该返回 `true`（如果现在是北京时间 8:00-22:00 之间）。
+
+**Python 版 active-hours**（用标准库 `zoneinfo` 替代 `Intl.DateTimeFormat`）：
+
+```python
+# active_hours.py — 时区感知的活跃时间窗口检查（Python 3.9+）
+from dataclasses import dataclass
+from datetime import datetime
+from zoneinfo import ZoneInfo  # Python 3.9+ 内置；3.8 用 pip install backports.zoneinfo
+
+@dataclass
+class ActiveHoursConfig:
+    timezone: str             # IANA 时区，如 "Asia/Shanghai"
+    weekday_start: int        # 工作日开始小时（0-23）
+    weekday_end: int          # 工作日结束小时（0-23）
+    weekend_start: int = 0    # 周末开始，默认与工作日相同
+    weekend_end: int = 24     # 周末结束，默认全天
+
+def is_active_hours(cfg: ActiveHoursConfig) -> bool:
+    """判断当前时刻是否在用户的活跃时间窗口内。
+    
+    关键：用 ZoneInfo 转换到用户时区，不用 datetime.now().hour（服务器本地时间）。
+    """
+    now = datetime.now(ZoneInfo(cfg.timezone))
+    hour = now.hour
+    is_weekend = now.weekday() >= 5          # 0=周一，5=周六，6=周日
+    start = cfg.weekend_start if is_weekend else cfg.weekday_start
+    end   = cfg.weekend_end   if is_weekend else cfg.weekday_end
+    return start <= hour < end
+
+# 中间验证
+if __name__ == "__main__":
+    cfg = ActiveHoursConfig(timezone="Asia/Shanghai", weekday_start=8, weekday_end=22)
+    print(is_active_hours(cfg))   # True，当北京时间在 8:00-22:00 之间
+```
 
 **第二步扩展：注入 Payload 生成器，加 OutboundPayload 事件**
 
@@ -426,7 +533,102 @@ export class HeartbeatRunner extends EventEmitter {
 
 中间验证：监听 `runner.on("outbound", p => console.log("got outbound:", p.content))`，把 `intervalMs` 改成 `3000`，3 秒后应该看到 outbound 事件打印（确保当前时间在 activeHours 范围内）。如果看到 "outside active hours"，把 `start` 降低到当前小时或更低。
 
-注意 `onTick()` 里的错误处理策略：`generatePayload()` 抛出异常时我们只记录日志，**不重新抛出**。这是有意为之的设计：Heartbeat 是一个持续运行的后台系统，单次内容生成失败不应该让整个节拍器崩溃。丢一次节拍比整个系统停止要好。这和 `finally(() => this.scheduleNext())` 的设计一致——无论 `onTick()` 成功还是失败，下一次节拍都会按时调度。
+**Python 版完整 HeartbeatRunner**（asyncio 实现，逻辑与 TypeScript 版完全对应）：
+
+```python
+# heartbeat_runner.py — 完整 HeartbeatRunner（Python asyncio 版）
+import asyncio
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Awaitable, Callable
+
+from active_hours import ActiveHoursConfig, is_active_hours
+
+@dataclass
+class OutboundPayload:
+    agent_id: str
+    channel_id: str
+    content: str
+    timestamp: float   # Unix timestamp（秒）
+    reason: str        # 触发原因，如 "tick#3"，方便事后追溯
+
+# 内容生成器：返回 None 表示本次无内容，节拍静默跳过
+PayloadGenerator = Callable[[], Awaitable[str | None]]
+
+@dataclass
+class HeartbeatRunnerConfig:
+    interval_sec: float
+    active_hours: ActiveHoursConfig
+    agent_id: str
+    channel_id: str
+
+class HeartbeatRunner:
+    def __init__(self, cfg: HeartbeatRunnerConfig, generate: PayloadGenerator) -> None:
+        self._cfg = cfg
+        self._generate = generate
+        self._tick_count = 0
+        self._task: asyncio.Task | None = None
+        self._outbound_handlers: list[Callable[[OutboundPayload], Awaitable[None]]] = []
+
+    def on_outbound(self, fn: Callable[[OutboundPayload], Awaitable[None]]) -> None:
+        self._outbound_handlers.append(fn)
+
+    def start(self) -> None:
+        cfg = self._cfg
+        print(
+            f"[Heartbeat] started — interval={cfg.interval_sec}s "
+            f"tz={cfg.active_hours.timezone} "
+            f"hours={cfg.active_hours.weekday_start}:00-{cfg.active_hours.weekday_end}:00"
+        )
+        self._task = asyncio.create_task(self._run())
+
+    def stop(self) -> None:
+        if self._task:
+            self._task.cancel()
+        print("[Heartbeat] stopped")
+
+    async def _run(self) -> None:
+        while True:
+            await self._on_tick()
+            await asyncio.sleep(self._cfg.interval_sec)  # tick 完成后再等，防重叠
+
+    async def _on_tick(self) -> None:
+        self._tick_count += 1
+        tick_id = f"tick#{self._tick_count}"
+
+        # 扩展点 1：active-hours 门控
+        if not is_active_hours(self._cfg.active_hours):
+            print(f"[Heartbeat] {tick_id} — outside active hours, skipping")
+            return
+
+        # 扩展点 2：调用注入的内容生成器；异常只记录，不重新抛出
+        content: str | None = None
+        try:
+            content = await self._generate()
+        except Exception as exc:
+            print(f"[Heartbeat] {tick_id} — generator failed: {exc}")
+
+        if not content:
+            print(f"[Heartbeat] {tick_id} — no content, skipping")
+            return
+
+        # 扩展点 3：触发 outbound，调用方决定通过哪个 channel 推送
+        payload = OutboundPayload(
+            agent_id=self._cfg.agent_id,
+            channel_id=self._cfg.channel_id,
+            content=content,
+            timestamp=time.time(),
+            reason=tick_id,
+        )
+        print(f"[Heartbeat] {tick_id} — emitting outbound")
+        for fn in self._outbound_handlers:
+            await fn(payload)
+```
+
+中间验证：把 `interval_sec=3`、`weekday_start=0`、`weekday_end=24`，启动后 3 秒应看到 `tick#1 — emitting outbound` 和处理器打印。
+
+注意 `_on_tick()` 里的错误处理策略：`generatePayload()` 抛出异常时我们只记录日志，**不重新抛出**。这是有意为之的设计：Heartbeat 是一个持续运行的后台系统，单次内容生成失败不应该让整个节拍器崩溃。丢一次节拍比整个系统停止要好。这和 `finally(() => this.scheduleNext())` 的设计一致——无论 `onTick()` 成功还是失败，下一次节拍都会按时调度。
 
 **第三步扩展：独立告警通道（Watchdog 模式）**
 
@@ -464,6 +666,55 @@ export class AlertChannel {
 ```
 
 中间验证：`alert.shouldAlert("test")` 第 1 次返回 `true`，立刻再调 4 次全都返回 `false`（退避时间未到）。60 秒后再调返回 `true`（第 2 次告警，但已进入下一档退避，需等 5 分钟）。
+
+**Python 版 AlertChannel**（零依赖，只用标准库 `urllib`）：
+
+```python
+# alert_channel.py — 独立告警通道（Python 版）
+# 零依赖：只用标准库 urllib，不引用任何 agent 模块
+import json
+import time
+import urllib.request
+from dataclasses import dataclass, field
+
+# 指数退避梯度（秒）：60s → 5min → 15min → 30min → 1h
+BACKOFF_SECS = [60, 300, 900, 1800, 3600]
+
+@dataclass
+class _AlertState:
+    count: int = 0
+    last_at: float = 0.0
+
+class AlertChannel:
+    """独立告警通道：不依赖主 agent 任何代码路径，直连 Telegram API。"""
+
+    def __init__(self, bot_token: str, chat_id: str) -> None:
+        self._bot_token = bot_token
+        self._chat_id = chat_id
+        self._states: dict[str, _AlertState] = {}
+
+    def should_alert(self, check_id: str) -> bool:
+        """判断是否到了应发告警的时间（指数退避）。"""
+        s = self._states.setdefault(check_id, _AlertState())
+        wait = BACKOFF_SECS[min(s.count, len(BACKOFF_SECS) - 1)]
+        if time.time() - s.last_at >= wait:
+            s.count += 1
+            s.last_at = time.time()
+            return True
+        return False
+
+    def reset_alert(self, check_id: str) -> None:
+        self._states.pop(check_id, None)
+
+    def send(self, msg: str) -> None:
+        """同步发送 Telegram 消息（直连 API，不走任何 agent gateway）。"""
+        url = f"https://api.telegram.org/bot{self._bot_token}/sendMessage"
+        body = json.dumps({"chat_id": self._chat_id, "text": msg}).encode()
+        req = urllib.request.Request(url, data=body,
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            print(f"[AlertChannel] sent, status={resp.status}")
+```
 
 ---
 
