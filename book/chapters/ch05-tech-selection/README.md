@@ -165,7 +165,7 @@ Now let's walk through each path systematically — not to celebrate it, but to 
 
 2. **语气/角色设定**：客服 bot 需要"友善、简洁、不道歉"的语气。在 system prompt 里写清楚比 fine-tune 快 100 倍，而且可以随时修改。
 
-3. **思维链（CoT）激活**：对推理题加 "Let's think step by step" 这条指令，o1 之前的模型准确率平均提升 15-30%（来源：Wei et al., 2022, [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903)，不需要读完，只需要知道：给出思考步骤的指令能显著改善推理任务）。
+3. **思维链（CoT）激活**：给推理题加入思维链提示词（典型写法："think step by step"），o1 之前的模型准确率平均提升 15-30%（来源：Wei et al., 2022, [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903)，不需要读完，只需要知道：给出思考步骤的指令能显著改善推理任务）。
 
 **3 个不该用的场景**
 
@@ -434,6 +434,73 @@ Now let's build the decision tree. 从一个问题出发，走到最终路径推
                               │ 否则先 Few-shot        │
                               └──────────────────────┘
 ```
+
+决策树也可以用代码表达，方便在团队评审时作为可执行文档：
+
+```python
+from dataclasses import dataclass
+from typing import Literal
+
+PathType = Literal["workflow", "rag_realtime", "rag_index", "fewshot_or_finetune",
+                   "finetune", "fewshot", "prompt"]
+
+@dataclass
+class SelectionContext:
+    """描述一个具体 LLM 需求的参数集合。"""
+    path_predictable: bool        # 执行路径是否完全可预知（步骤固定）
+    needs_external_knowledge: bool  # 是否需要训练截止日之后或内部专有知识
+    knowledge_update_freq: Literal["high", "low"]  # 知识更新频率
+    knowledge_exceeds_30pct_ctx: bool  # 知识量是否超出 context window 的 30%
+    style_consistency_required: bool  # 输出风格/格式一致性要求极高
+    example_count: int            # 可用高质量示例数量
+    monthly_calls: int            # 每月调用次数
+
+
+def select_path(ctx: SelectionContext) -> tuple[PathType, str]:
+    """
+    根据五维度上下文返回推荐路径及理由。
+    对应 Beat 6 决策树的可执行版本。
+    """
+    if ctx.path_predictable:
+        return "workflow", "步骤固定 → 硬编码工作流，无需 LLM 动态决策"
+
+    if ctx.needs_external_knowledge:
+        if ctx.knowledge_update_freq == "high":
+            return "rag_realtime", "知识频繁更新 → RAG 实时索引"
+        # 低频更新
+        if ctx.knowledge_exceeds_30pct_ctx:
+            return "rag_index", "知识量超出 context 30% → RAG 知识库索引"
+        return "fewshot_or_finetune", "知识量可控 → Few-shot 或 Fine-tune 均可，按调用量决策"
+
+    # 不需要外部知识
+    if ctx.style_consistency_required:
+        return "finetune", "风格一致性要求高 → Fine-tune 改变行为，优于 Few-shot"
+
+    if ctx.example_count >= 5:
+        # 有足够示例，按调用量选择
+        if ctx.monthly_calls > 500_000:
+            return "finetune", f"月调用 {ctx.monthly_calls:,} 次 → Fine-tune 摊薄 token 成本"
+        return "fewshot", f"月调用 {ctx.monthly_calls:,} 次 + {ctx.example_count} 个示例 → Few-shot ROI 合理"
+
+    return "prompt", "无外部知识需求 + 示例不足 → Prompt Engineering 起步"
+
+
+# 使用示例：企业内部文档问答场景
+ctx = SelectionContext(
+    path_predictable=False,
+    needs_external_knowledge=True,
+    knowledge_update_freq="high",
+    knowledge_exceeds_30pct_ctx=True,
+    style_consistency_required=False,
+    example_count=0,
+    monthly_calls=10_000,
+)
+path, reason = select_path(ctx)
+print(f"推荐路径: {path}")   # rag_realtime
+print(f"理由: {reason}")
+```
+
+这段代码是决策树的可执行镜像，没有引入新逻辑——它只是把上面 ASCII 树的判断条件翻译成类型化的 Python 函数，方便在 code review 或架构评审中作为团队共识文档使用。
 
 **叠加规则**：上面五条路径不是互斥的。最常见的生产架构是：
 
