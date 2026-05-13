@@ -86,6 +86,3 @@ site/.vitepress/dist/
 assets/tts/*.json
 assets/tts/*.md
 
-# 本地 TTS 跑的中间产物（最终 mp3 在 S3 CDN）
-book/chapters/*/audio/
-assets/tts/*.mp3
